@@ -33,7 +33,7 @@ namespace SGTELIB {
   void test_many_models (const std::string & model_list_file , const std::string & out_file , const SGTELIB::Matrix & X0 , const SGTELIB::Matrix & Z0 );
 
 
-  void test_LWR_times (void);
+  void test_LOWESS_times (void);
 
   // analyse ensembl
   void analyse_ensemble ( const std::string & s );

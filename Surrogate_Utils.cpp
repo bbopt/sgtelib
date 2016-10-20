@@ -126,7 +126,7 @@ bool SGTELIB::issubstring (const std::string S , const std::string s){
 /*-------------------------------*/
 double SGTELIB::dist ( const double * x , const double * y , int n ) {
   double s = 0.0;
-  double d;
+  double d = 0;
   for ( int i = 0 ; i < n ; ++i )
     d = x[i]-y[i];
     s += d*d;
@@ -260,7 +260,7 @@ std::string SGTELIB::model_type_to_str ( const SGTELIB::model_t t ) {
   case SGTELIB::RBF      : return "RBF";
   case SGTELIB::KRIGING  : return "KRIGING";
   case SGTELIB::SVN      : return "SVN";
-  case SGTELIB::LWR      : return "LWR";
+  case SGTELIB::LOWESS   : return "LOWESS";
   case SGTELIB::ENSEMBLE : return "ENSEMBLE";
   default:
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
@@ -404,7 +404,8 @@ SGTELIB::model_t SGTELIB::str_to_model_type ( const std::string & s ) {
   if ( ss=="RBF"            ){ return SGTELIB::RBF; }
   if ( ss=="KRIGING"        ){ return SGTELIB::KRIGING; }
   if ( ss=="SVN"            ){ return SGTELIB::SVN; }
-  if ( ss=="LWR"            ){ return SGTELIB::LWR; }
+  if ( ss=="LOWESS"            ){ return SGTELIB::LOWESS; }
+  if ( ss=="LOWESS"         ){ return SGTELIB::LOWESS; }
   if ( ss=="ENSEMBLE"       ){ return SGTELIB::ENSEMBLE; }
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unrecognised string \""+s+"\" ( "+ss+" )" );
 }//

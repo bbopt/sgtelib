@@ -1564,7 +1564,7 @@ SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const {
     SGTELIB::Matrix D = *this;
     R = SGTELIB::Matrix("R",1,m);
     double dmin;
-    int i,j,jmin;
+    int i,j,jmin=0;
     for (i=0 ; i<m ; i++){
       dmin = +INF;
       for (j=0 ; j<m ; j++){
@@ -2838,7 +2838,7 @@ SGTELIB::Matrix SGTELIB::Matrix::lu_inverse ( double * det ) const{
   const int N = _nbRows;
   SGTELIB::Matrix A (*this);
 
-  int i,j,k,ip;
+  int i,j,k,ip=0;
   double pivot,pivot_max;
 
   // Permuation vector

@@ -266,7 +266,7 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
 
       break;
 
-    case SGTELIB::LWR:
+    case SGTELIB::LOWESS:
       if (not strcmp(field,"DEGREE")) return true;
       if (not strcmp(field,"RIDGE")) return true;
       if (not strcmp(field,"KERNEL_TYPE")) return true;
@@ -365,7 +365,7 @@ void SGTELIB::Surrogate_Parameters::check ( void ) {
       }
       break;
 
-    case SGTELIB::LWR: 
+    case SGTELIB::LOWESS: 
       if ( (_degree < 0) or (_degree > 2) )
         throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"degree for DYNATREE model must be 0, 1 or 2" );
       if (_ridge<0)
@@ -379,7 +379,7 @@ void SGTELIB::Surrogate_Parameters::check ( void ) {
            (_preset!="RG" ) &&
            (_preset!="REN") &&
            (_preset!="RGN") ){
-        std::cout << "LWR preset : " << _preset << "\n";
+        std::cout << "LOWESS preset : " << _preset << "\n";
         std::cout << "Possible values: D, DEN, DGN, RE, RG, REN, RGN.\n";
         throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"preset not recognized" );
       if (!SGTELIB::kernel_is_decreasing(_kernel_type))
@@ -456,7 +456,7 @@ void SGTELIB::Surrogate_Parameters::display ( std::ostream & out ) const {
       out << "ridge: " << _ridge << std::endl;
       break;
 
-    case SGTELIB::LWR: 
+    case SGTELIB::LOWESS: 
       out << "Kernel coef: " << _kernel_coef << std::endl;
       out << "Distance_type: " << distance_type_to_str(_distance_type) << std::endl;
       out << "degree: " << _degree << std::endl;
@@ -549,7 +549,7 @@ void SGTELIB::Surrogate_Parameters::set_defaults ( void ) {
       _metric_type = SGTELIB::METRIC_AOECV;
       break;
 
-    case SGTELIB::LWR: 
+    case SGTELIB::LOWESS: 
       _kernel_coef = 1.0;
       _kernel_coef_status = SGTELIB::STATUS_OPTIM;
       _kernel_type = SGTELIB::KERNEL_D1;
@@ -626,7 +626,7 @@ std::string SGTELIB::Surrogate_Parameters::get_string ( void ) const {
       s += " Metric_Type " + metric_type_to_str(_metric_type);
       break;
 
-    case SGTELIB::LWR: 
+    case SGTELIB::LOWESS: 
       s += " Kernel_coef " + dtos(_kernel_coef);
       s += " Kernel_Type " + kernel_type_to_str(_kernel_type);
       s += " Distance_Type " + distance_type_to_str(_distance_type);
@@ -707,7 +707,7 @@ std::string SGTELIB::Surrogate_Parameters::get_short_string ( void ) const {
       break;
 
 
-    case SGTELIB::LWR: 
+    case SGTELIB::LOWESS: 
       s += " " + dtos(_kernel_coef);
       if (_distance_type != SGTELIB::DISTANCE_NORM2){
         s += " " + distance_type_to_str(_distance_type);
@@ -832,7 +832,7 @@ void SGTELIB::Surrogate_Parameters::get_x_bounds ( SGTELIB::Matrix * LB ,
     // --------- DEGREE --------------------
     if (_degree_status == SGTELIB::STATUS_OPTIM){
       LB->set(0,k,0);
-      if (_type==SGTELIB::LWR) {
+      if (_type==SGTELIB::LOWESS) {
         UB->set(0,k,2);
         domain[k] = SGTELIB::PARAM_DOMAIN_INTEGER;
       }

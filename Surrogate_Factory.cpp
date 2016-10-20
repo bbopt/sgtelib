@@ -42,12 +42,9 @@ SGTELIB::Surrogate * SGTELIB::Surrogate_Factory ( SGTELIB::TrainingSet & TS,
   case SGTELIB::LINEAR:
   case SGTELIB::TGP: 
   case SGTELIB::SVN: 
+  case SGTELIB::DYNATREE: 
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
       "Surrogate_Factory: not implemented yet! \""+s+"\"" );
-
-  case SGTELIB::DYNATREE: 
-    S = new Surrogate_dynaTree(TS,p);
-    break;
 
   case SGTELIB::PRS: 
     S = new Surrogate_PRS(TS,p);
@@ -69,8 +66,8 @@ SGTELIB::Surrogate * SGTELIB::Surrogate_Factory ( SGTELIB::TrainingSet & TS,
     S = new Surrogate_RBF(TS,p);
     break;
 
-  case SGTELIB::LWR: 
-    S = new Surrogate_LWR(TS,p);
+  case SGTELIB::LOWESS: 
+    S = new Surrogate_LOWESS(TS,p);
     break;
 
   case SGTELIB::ENSEMBLE: 

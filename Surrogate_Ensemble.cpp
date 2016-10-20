@@ -1049,7 +1049,7 @@ void SGTELIB::Surrogate_Ensemble::model_list_preset ( const std::string & preset
       model_list_add("TYPE KS   KERNEL_TYPE OPTIM KERNEL_COEF OPTIM");
       model_list_add("TYPE RBF  KERNEL_TYPE OPTIM KERNEL_COEF OPTIM RIDGE 0.001 PRESET I");
       model_list_add("TYPE PRS  DEGREE OPTIM RIDGE OPTIM");
-      model_list_add("TYPE LWR  DEGREE OPTIM RIDGE 0.001 KERNEL_COEF OPTIM KERNEL_TYPE D1");
+      model_list_add("TYPE LOWESS  DEGREE OPTIM RIDGE 0.001 KERNEL_COEF OPTIM KERNEL_TYPE D1");
     }
     else if (!strcmp(p,"SMALL")) {
       model_list_add("TYPE PRS");

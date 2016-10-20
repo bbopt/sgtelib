@@ -31,7 +31,7 @@ namespace SGTELIB {
     KRIGING  ,
     SVN      ,
     RBF      ,
-    LWR      ,
+    LOWESS      ,
     ENSEMBLE 
   };
   const int NB_MODEL_TYPES = 12;

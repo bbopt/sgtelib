@@ -9,9 +9,9 @@
 #include "Surrogate_PRS.hpp"
 #include "Surrogate_PRS_EDGE.hpp"
 #include "Surrogate_PRS_CAT.hpp"
-#include "Surrogate_dynaTree.hpp"
+//#include "Surrogate_dynaTree.hpp"
 #include "Surrogate_Ensemble.hpp"
-#include "Surrogate_LWR.hpp"
+#include "Surrogate_LOWESS.hpp"
 #include "Surrogate_Kriging.hpp"
 
 namespace SGTELIB {

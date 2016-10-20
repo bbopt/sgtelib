@@ -1,20 +1,28 @@
 #include "Surrogate_dynaTree.hpp"
 
+#include <stdexcept>
 
-#ifdef USE_DYNATREE
+#include <dlfcn.h>
+
 
 /*----------------------------*/
 /*         constructor        */
 /*----------------------------*/
 SGTELIB::Surrogate_dynaTree::Surrogate_dynaTree ( SGTELIB::TrainingSet & trainingset,
-                                                  SGTELIB::Surrogate_Parameters param) :
+                                                  SGTELIB::Surrogate_Parameters & param) :
   SGTELIB::Surrogate ( trainingset , param                 ),
   _model_handles     ( new int [_m]             ){
 
-  // TODO : take external seed into account
   std::cout << "constructor dynaTree\n";
+      
+  lib_handle = dlopen("libdynaTree.so", RTLD_NOW);
+  if (!lib_handle)
+    throw std::runtime_error(dlerror());
+  if ( ! ( dtm = reinterpret_cast<dynaTree_module *>(dlsym(lib_handle, "module_elem") ) ) )
+    throw std::runtime_error(dlerror());
 
-  for ( int j = 0 ; j < _m ; ++j ){
+  for ( int j = 0 ; j < _m ; ++j )
+  {
     _model_handles[j] = 0;
   }
   
@@ -26,9 +34,12 @@ SGTELIB::Surrogate_dynaTree::Surrogate_dynaTree ( SGTELIB::TrainingSet & trainin
 /*----------------------------*/
 SGTELIB::Surrogate_dynaTree::~Surrogate_dynaTree ( void ) {
   // clean dynaTree clouds:
-  delete_clouds_R();
+  dtm->delete_clouds_R();
   if (_model_handles)
     delete [] _model_handles;
+    
+  dlclose(lib_handle);
+  
 }//
 
 /*----------------------------*/
@@ -105,13 +116,13 @@ bool SGTELIB::Surrogate_dynaTree::build_private ( void ) {
       int verb   = 0;
       int bna    = 0;
 
-      my_set_seed ( ( _param.get_seed() != 0 ) ? _param.get_seed() : 1 , 77911 ); // seed=0 makes this function bug
+      dtm->my_set_seed ( ( _param.get_seed() != 0 ) ? _param.get_seed() : 1 , 77911 ); // seed=0 makes this function bug
   
       #ifdef SGTELIB_DEBUG
         std::cout << "dynaTree_R() ..." << std::flush;
       #endif
 
-      dynaTree_R ( &n_copy              ,
+      dtm->dynaTree_R ( &n_copy              ,
 		               &_p                  ,
 		               &N                   ,
 		               scaled_X             ,
@@ -268,21 +279,20 @@ void SGTELIB::Surrogate_dynaTree::predict_private (const SGTELIB::Matrix & XXs,
       double p0, p1, v0, v1, cdf_i, std_i, mean_i, ei_i;
       v0 = 0.0;
       v1 = 1.0;
-      // TODO : set v0 & v1 in a clean way.
 
       // Outputs for continuous
       double * p       = new double [2*pxx];
       double * entropy = new double [pxx];
       int byy = 0;
-      predclass_R ( &(_model_handles[j]) ,
-	                  scaled_XXs            ,
-	                  &byy                 , // = 0
-	                  NULL                 , // yy_in
-	                  &pxx                  ,
-	                  &verb                ,
-	                  p                    ,
-	                  NULL                 , // yypred_out
-	                  entropy                );
+      dtm->predclass_R ( &(_model_handles[j]) ,
+                  scaled_XXs            ,
+                  &byy                 , // = 0
+                  NULL                 , // yy_in
+                  &pxx                  ,
+                  &verb                ,
+                  p                    ,
+                  NULL                 , // yypred_out
+                  entropy                );
 
       // set ZZs and STD:
 
@@ -312,15 +322,15 @@ void SGTELIB::Surrogate_dynaTree::predict_private (const SGTELIB::Matrix & XXs,
       double * var_j     = new double [pxx];
       double * ei_j      = new double [pxx];
       double * cdf_j    = new double [pxx];
-      predict_R_complete (  &(_model_handles[j]) ,
-	                          scaled_XXs           ,
-	                          &pxx                 ,
-	                          &verb                ,
-                            &y0                  ,
-	                          mean_j               ,
-	                          var_j                ,
-	                          ei_j                 ,
-                            cdf_j                );
+      dtm->predict_R_complete (  &(_model_handles[j]) ,
+                          scaled_XXs           ,
+                          &pxx                 ,
+                          &verb                ,
+                          &y0                  ,
+                          mean_j               ,
+                          var_j                ,
+                          ei_j                 ,
+                          cdf_j                );
 
       // set ZZs, STD, CDF and EI
       for ( i = 0 ; i < pxx ; ++i )
@@ -352,7 +362,7 @@ void SGTELIB::Surrogate_dynaTree::predict_private (const SGTELIB::Matrix & XXs,
 /*--------------------------------------*/
 /*       get_matrix_Zvs                 */
 /*--------------------------------------*/
-const SGTELIB::Matrix SGTELIB::Surrogate_dynaTree::get_matrix_Zvs (void){
+const SGTELIB::Matrix * SGTELIB::Surrogate_dynaTree::get_matrix_Zvs (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
   if (not _Zvs){
     _Zvs = new SGTELIB::Matrix("Zvs",_p,_m);  
@@ -361,90 +371,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate_dynaTree::get_matrix_Zvs (void){
     _Zvs->replace_nan(+INF);
     _Zvs->set_name("Zvs");
   }
+    return _Zvs;
+
 }//
-
-
-#else // if not def USE_DYNATREE
-
-// DUMMY constructor
-SGTELIB::Surrogate_dynaTree::Surrogate_dynaTree ( SGTELIB::TrainingSet & trainingset,
-                                                  SGTELIB::Surrogate_Parameters param) :
-  SGTELIB::Surrogate ( trainingset , param ),
-  _model_handles     ( NULL                     ) {
-  std::cout << "DYNATREE NOT DEFINED !!\n";
-}//
-
-// destructor
-SGTELIB::Surrogate_dynaTree::~Surrogate_dynaTree ( void ) {}//
-
-// DUMMY build_private
-bool SGTELIB::Surrogate_dynaTree::build_private ( void ) { 
-  std::cout << "DYNATREE NOT DEFINED !!\n";
-  return false; 
-}//
-  
-// DUMMY predict
-void SGTELIB::Surrogate_dynaTree::predict_private ( const SGTELIB::Matrix & XXs,
-                                                    SGTELIB::Matrix       * ZZs ) {
-  ZZs->fill(-SGTELIB::INF);
-  std::cout << _model_handles << "\n";
-  std::cout << &XXs << " " << ZZs << "\n";
-  std::cout << "DYNATREE NOT DEFINED !!\n";
-}//
-
-// DUMMY predict
-void SGTELIB::Surrogate_dynaTree::predict_private (const SGTELIB::Matrix & XXs,
-                                                         SGTELIB::Matrix * ZZs ,
-                                                         SGTELIB::Matrix * std, 
-                                                         SGTELIB::Matrix * ei ,
-                                                         SGTELIB::Matrix * cdf) {
-  std::cout << _param.get_degree() << " " << _param.get_nb_particles() << " " << _param.get_seed() << "\n";
-  ZZs->fill(-SGTELIB::INF);
-  std->fill(-SGTELIB::INF);
-  ei->fill(-SGTELIB::INF);
-  cdf->fill(-SGTELIB::INF);
-  std::cout << &XXs << "\n";
-  std::cout << "DYNATREE NOT DEFINED !!\n";
-}//
-
-// DUMMY get_matrix_Zvs
-const SGTELIB::Matrix * SGTELIB::Surrogate_dynaTree::get_matrix_Zvs (void){
-  _Zvs = new SGTELIB::Matrix("Zvs",_p,_m); 
-  std::cout << "DYNATREE NOT DEFINED !!\n";
-  return _Zvs;
-}//
-
-// DUMMY display
-void SGTELIB::Surrogate_dynaTree::display_private ( std::ostream & out ) const {
-  out << "!! DYNATREE NOT DEFINED !!\n";
-}//
-
-
-#endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

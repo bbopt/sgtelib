@@ -84,11 +84,11 @@ void SGTELIB::sand_box (void){
 }
 
 
-void SGTELIB::test_LWR_times ( void ){
+void SGTELIB::test_LOWESS_times ( void ){
 
 
   std::cout << "====================================================================\n";
-  std::cout << "START LWR TIMES\n";
+  std::cout << "START LOWESS TIMES\n";
 
   const int m = 1;
   const int pp = 6;
@@ -127,7 +127,7 @@ void SGTELIB::test_LWR_times ( void ){
         SGTELIB::TrainingSet C0(X,Z);
         SGTELIB::Surrogate * S0;
         // Build model
-        S0 = SGTELIB::Surrogate_Factory(C0,"TYPE LWR RIDGE 0.001");
+        S0 = SGTELIB::Surrogate_Factory(C0,"TYPE LOWESS RIDGE 0.001");
         S0->build();
         // Build XX
         DX.set_random(-1,+1,false);
@@ -147,7 +147,7 @@ void SGTELIB::test_LWR_times ( void ){
     }// end loop id
   }// end loop in
 
-  std::cout << "FINISH LWR TIMES\n";
+  std::cout << "FINISH LOWESS TIMES\n";
   std::cout << "====================================================================\n";
 
 }//
