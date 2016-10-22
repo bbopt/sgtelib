@@ -3,19 +3,6 @@
 
 void SGTELIB::sand_box (void){
    
-
-  SGTELIB::Matrix R ("data_R.txt");
-  R.display(std::cout);
-  SGTELIB::Matrix Ri = R.lu_inverse();
-  Ri.display(std::cout);
-  (R*Ri).display(std::cout);
-  
-  const int ppp = R.get_nb_cols();
-  const SGTELIB::Matrix U = SGTELIB::Matrix::ones(ppp,1);
-  (U.transpose()*Ri*U).display(std::cout);
-  std::cout << "Risum = " <<Ri.sum() << "\n";
-
-
   const int n = 2;
   const int m = 2;
   const int p = 5;
@@ -85,7 +72,6 @@ void SGTELIB::sand_box (void){
 
 
 void SGTELIB::test_LOWESS_times ( void ){
-
 
   std::cout << "====================================================================\n";
   std::cout << "START LOWESS TIMES\n";
@@ -242,83 +228,6 @@ void SGTELIB::test_many_models ( const std::string & model_list_file ,
   out.close();  
 
 }
-
-
-
-/*----------------------------------------------------*/
-/*       TEST files                                   */
-/*----------------------------------------------------*/
-std::string SGTELIB::test_files (const std::string & s){
-
-  std::cout << "======================================================\n";
-  std::cout << "SGTELIB::test_files\n";
-  std::cout << s << "\n";
-
-  bool ready;
-
-  SGTELIB::Matrix X0 ("./data/02/X.txt");
-  SGTELIB::Matrix Z0 ("./data/02/Z.txt");
-  SGTELIB::Matrix XX ("./data/02/XX.txt");
-
-  #ifdef SGTELIB_DEBUG
-    X0.display(std::cout);
-    Z0.display(std::cout);
-    XX.display(std::cout);
-  #endif
-  // CONSTRUCT DATA
-  //const int n = X0.get_nb_cols();
-  //const int p = X0.get_nb_rows();
-  const int m = Z0.get_nb_cols();
-  const int pxx = XX.get_nb_rows();
-
-  // Build trainingset
-  SGTELIB::TrainingSet C0(X0,Z0);
-  #ifdef SGTELIB_DEBUG
-    C0.display(std::cout);
-  #endif
-
-  // Init model
-  SGTELIB::Surrogate * S0;
-  // Create model
-  S0 = SGTELIB::Surrogate_Factory(C0,s);
-  // Build model
-  ready = S0->build();
-
-  if (not ready){
-    surrogate_delete(S0);
-    std::cout << "test_files: model ("+s+") is not ready\n";
-    return       "test_files: model ("+s+") is not ready\n";
-  }
-
-  // Output matrices
-  SGTELIB::Matrix * ZZ  = new SGTELIB::Matrix("std",pxx,m);
-  SGTELIB::Matrix * std = new SGTELIB::Matrix("std",pxx,m);
-  SGTELIB::Matrix * ei  = new SGTELIB::Matrix("ei" ,pxx,m);
-  SGTELIB::Matrix * cdf = new SGTELIB::Matrix("cdf",pxx,m);
-
-  // Simple Prediction
-  S0->predict(XX,ZZ);
-  #ifdef SGTELIB_DEBUG
-    ZZ->display(std::cout);
-  #endif
-
-  // Complete Prediction
-  S0->predict(XX,ZZ,std,ei,cdf);
-  #ifdef SGTELIB_DEBUG
-    ZZ->display(std::cout);
-    std->display(std::cout);
-    ei->display(std::cout);
-    cdf->display(std::cout);
-  #endif
-
-  delete ZZ;
-  delete std;
-  delete ei;
-  delete cdf;
-  SGTELIB::surrogate_delete(S0);
-
-  return "test_files ok\n";
-}//
 
 
 /*----------------------------------------------------*/
@@ -1616,14 +1525,14 @@ void SGTELIB::build_test_data ( const std::string & function_name ,
     if (function_name=="hartman3"){
       n = 3;
       q = 4;
-      B = SGTELIB::Matrix("./data/hartman/hartman3b.txt");
-      D = SGTELIB::Matrix("./data/hartman/hartman3d.txt");
+      B = SGTELIB::Matrix("./data/hartman3b.txt");
+      D = SGTELIB::Matrix("./data/hartman3d.txt");
     }
     else if (function_name=="hartman6"){
       n = 6;
       q = 4;
-      B = SGTELIB::Matrix("./data/hartman/hartman6b.txt");
-      D = SGTELIB::Matrix("./data/hartman/hartman6d.txt");    
+      B = SGTELIB::Matrix("./data/hartman6b.txt");
+      D = SGTELIB::Matrix("./data/hartman6d.txt");    
     }
     m = 1;
 
