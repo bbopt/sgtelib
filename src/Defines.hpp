@@ -35,11 +35,6 @@
 #include <limits>
 #include <limits.h>
 
-// choose tgp or dynaTree:
-//#define USE_TGP
-//#define USE_DYNATREE
-// --> these options are defined in the makefile
-
 // debug flag:
 //#define SGTELIB_DEBUG
 //#define ENSEMBLE_DEBUG

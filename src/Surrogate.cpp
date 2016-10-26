@@ -242,6 +242,7 @@ bool SGTELIB::Surrogate::build ( void ) {
 
   // Number of points in the training set.
   _p_ts = _trainingset.get_nb_points();
+  //std::cout << _ready << " " << _p_ts << " " << _p_ts_old << "\n";
   if ( (_ready) and (_p_ts==_p_ts_old) ){
     #ifdef SGTELIB_DEBUG
       std::cout << "Surrogate build - SKIP Build\n";
@@ -1359,7 +1360,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   const int N = _param.get_nb_parameter_optimization();
   int i,j,k;
   double d;
-  const bool display = true;
+  const bool display = false;
 
   if (display){
     std::cout << "Begin parameter optimization\n";
@@ -1435,7 +1436,6 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   //---------------------------------------------
   int budget = 100*N;
 
-  std::cout << "dim f\n";
   SGTELIB::Matrix xtry ("xtry",1,N);
   double fmin = +INF;
   double pmin = +INF;
@@ -1600,11 +1600,11 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   _param.check();
 
   fmin = eval_objective();
-  _param.display(std::cout);
-  std::cout << "=================================\n";
 
   if (display){
+    _param.display(std::cout);
     std::cout << "End parameter optimization\n";
+    std::cout << "=================================\n";
   }
 
   // Check for Nan

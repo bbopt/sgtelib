@@ -213,63 +213,63 @@ int SGTELIB::Surrogate_PRS::get_nb_PRS_monomes(const int nvar, const int degree)
 /*----------------------------------*/
 SGTELIB::Matrix SGTELIB::Surrogate_PRS::get_PRS_monomes(const int nvar, const int degree){
 
-double * z = new double [nvar];
-SGTELIB::Matrix M("Monomes",1,nvar);
-bool continuer;
+  double * z = new double [nvar];
+  SGTELIB::Matrix M("Monomes",1,nvar);
+  bool continuer;
 
-int i,j,di,ci;
+  int i,j,di,ci;
 
-// Loop on the number of non null terms in z
-// c is the number of non-null terms of the monome.
-// We start with the monomes with only one non-null term.
-for (int c=1 ; c<=std::min(degree,nvar) ; c++){
-  for (int d=c ; d<=degree ; d++){
-        
-    // First monome (c,d)
-    z[0] = d-c+1;
-    for (i=1 ; i<c ; i++) 
-      z[i] = 1;
-    for (i=c ; i<nvar ; i++) 
-      z[i] = 0;
+  // Loop on the number of non null terms in z
+  // c is the number of non-null terms of the monome.
+  // We start with the monomes with only one non-null term.
+  for (int c=1 ; c<=std::min(degree,nvar) ; c++){
+    for (int d=c ; d<=degree ; d++){
+          
+      // First monome (c,d)
+      z[0] = d-c+1;
+      for (i=1 ; i<c ; i++) 
+        z[i] = 1;
+      for (i=c ; i<nvar ; i++) 
+        z[i] = 0;
 
-    continuer = true;
-    while (continuer){
-      M.add_row(z);
-      // Pivot
-      i = 0;
-      while ( (i<nvar-1) and (z[i]<=z[i+1]) and ( (z[i]<=1) or (z[i+1]>=d-c+1))  )
-        i++;
-      // Transfert
-      if (i < nvar-1){
-        z[i+1]++;
-        for (j=0; j<=i ; j++){
-          z[j] = 0;
-        }
-        ci = c;
-        di = d;
-        for (j=i+1 ; j<nvar ; j++){
-          ci -= (z[j]!=0);
-          di -= z[j];
-        }
-        if ( (ci==0) and (di>0) ){
-          z[i+1] = z[i+1]+di;
+      continuer = true;
+      while (continuer){
+        M.add_row(z);
+        // Pivot
+        i = 0;
+        while ( (i<nvar-1) and (z[i]<=z[i+1]) and ( (z[i]<=1) or (z[i+1]>=d-c+1))  )
+          i++;
+        // Transfert
+        if (i < nvar-1){
+          z[i+1]++;
+          for (j=0; j<=i ; j++){
+            z[j] = 0;
+          }
+          ci = c;
+          di = d;
+          for (j=i+1 ; j<nvar ; j++){
+            ci -= (z[j]!=0);
+            di -= z[j];
+          }
+          if ( (ci==0) and (di>0) ){
+            z[i+1] = z[i+1]+di;
+          }
+          else{
+            for (int j=0; j<ci; j++){
+              z[j] = 1;
+              z[0] -= z[j];
+            }
+            z[0] += di;
+          }
         }
         else{
-          for (int j=0; j<ci; j++){
-            z[j] = 1;
-            z[0] -= z[j];
-          }
-          z[0] += di;
+            continuer = false;
         }
-      }
-      else{
-          continuer = false;
-      }
-    } // loop while
-  }// loop d
-}// loop c
-delete [] z;
-return M;
+      } // loop while
+    }// loop d
+  }// loop c
+  delete [] z;
+  return M;
 }//
 
 

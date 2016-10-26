@@ -25,18 +25,22 @@ all: $(OBJS) $(LIB) $(EXE)
 
 $(BIN_DIR)/%.exe: $(BUILD_DIR)/%.o $(OBJS) 
 	@echo "=== building $@ from $< ==="
+	mkdir -p $(BIN_DIR)
 	$(COMPILATOR) -o $@ $(OBJS_LIB) $< $(LIBS) $(COMPILATOR_OPTIONS)
 
 %.a: $(OBJS_LIB)
 	@echo "=== building $@ ==="
+	mkdir -p $(LIB_DIR)
 	@ar -r $@ $(OBJS_LIB)
 	@ranlib $@
 
 $(LIB_DIR)/%.so: $(OBJS_LIB)
 	@echo "=== building $@ ==="
+	mkdir -p $(LIB_DIR)
 	$(COMPILATOR) -shared -o $@ $(OBJS_LIB) $(LIBS)
 
 $(BUILD_DIR)/%.o: %.cpp
+	mkdir -p $(BUILD_DIR)
 	$(COMPILE) $< -o $@
 
 clean:
