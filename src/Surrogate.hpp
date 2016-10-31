@@ -210,8 +210,8 @@ namespace SGTELIB {
     bool add_point  ( const double * xnew ,
                       const double * znew  );
 
-    // Tabou
-    SGTELIB::Matrix get_tabou_penalty ( const SGTELIB::Matrix & XX , const double tc ) const;
+    // exclusion_area
+    SGTELIB::Matrix get_exclusion_area_penalty ( const SGTELIB::Matrix & XX , const double tc ) const;
     SGTELIB::Matrix get_distance_to_closest ( const SGTELIB::Matrix & XX ) const;
 
     bool is_ready                (void) const {return _ready;};

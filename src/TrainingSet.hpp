@@ -182,7 +182,7 @@ namespace SGTELIB {
 
     double get_d1_over_d2 ( const SGTELIB::Matrix & XXs ) const;
     double get_d1         ( const SGTELIB::Matrix & XXs ) const;
-    SGTELIB::Matrix get_tabou_penalty       ( const SGTELIB::Matrix & XXs , const double tc ) const;
+    SGTELIB::Matrix get_exclusion_area_penalty ( const SGTELIB::Matrix & XXs , const double tc ) const;
     SGTELIB::Matrix get_distance_to_closest ( const SGTELIB::Matrix & XXs ) const;
  
     // Return the index of the closest point to point i    

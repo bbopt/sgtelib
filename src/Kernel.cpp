@@ -180,7 +180,6 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
   // kt : kernel type
   // ks : kernel shape
   // r : radius
-  const double PI = 3.14159265359;
 
   switch (kt){
     case SGTELIB::KERNEL_D1:

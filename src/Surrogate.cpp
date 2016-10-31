@@ -1327,14 +1327,14 @@ double SGTELIB::Surrogate::compute_aggregate_order_error (const SGTELIB::Matrix 
 }//
 
 /*--------------------------------------*/
-/*       get_tabou_penalty              */
+/*       get_exclusion_area_penalty     */
 /*--------------------------------------*/
-SGTELIB::Matrix SGTELIB::Surrogate::get_tabou_penalty ( const SGTELIB::Matrix & XX , const double tc ) const{
+SGTELIB::Matrix SGTELIB::Surrogate::get_exclusion_area_penalty ( const SGTELIB::Matrix & XX , const double tc ) const{
   // Scale the input
   SGTELIB::Matrix XXs(XX);
   XXs.set_name("XXs");
   _trainingset.X_scale(XXs);
-  return _trainingset.get_tabou_penalty ( XXs , tc );
+  return _trainingset.get_exclusion_area_penalty ( XXs , tc );
 }//
 
 

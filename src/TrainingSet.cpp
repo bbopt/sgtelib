@@ -1151,9 +1151,9 @@ double SGTELIB::TrainingSet::get_d1 ( const SGTELIB::Matrix & XXs ) const {
 
 
 /*--------------------------------------*/
-/*       get_tabou_penalty             */
+/*       get_exclusion_area_penalty     */
 /*--------------------------------------*/
-SGTELIB::Matrix SGTELIB::TrainingSet::get_tabou_penalty ( const SGTELIB::Matrix & XXs , const double tc ) const {
+SGTELIB::Matrix SGTELIB::TrainingSet::get_exclusion_area_penalty ( const SGTELIB::Matrix & XXs , const double tc ) const {
   const int pxx = XXs.get_nb_rows();
   double r12,p;
   //double logtc = log(tc);

@@ -1,58 +1,87 @@
-BUILD_DIR          = ../build
-BIN_DIR            = ../bin
+EXE                = ../bin/sgtelib_main.exe ../bin/sgtelib_server.exe
+LIB_NAME           = libsgtelib.so
 LIB_DIR            = ../lib
-EXE                = $(BIN_DIR)/sgtelib_main.exe $(BIN_DIR)/sgtelib_server.exe
-LIB                = $(LIB_DIR)/sgtelib.a $(LIB_DIR)/sgtelib.so
+LIB                = $(LIB_DIR)/$(LIB_NAME)
 COMPILATOR         = g++
-COMPILATOR_OPTIONS = -pedantic -Wall -Wextra -g3 -fpic
+COMPILATOR_OPTIONS = -O3 -pedantic -Wall -Wextra -g3 -fpic
 
+LIB_CURRENT_VERSION= 1.0.0
 
-LIBS               = -lc -lm
-INCLUDE            = -I. 
+LIBS               = -lc -lm  
+
+UNAME             := $(shell uname)
+
+ifeq ($(UNAME), Darwin)
+SHARED_OPTIONS     = -current_version $(LIB_CURRENT_VERSION) -compatibility_version $(LIB_CURRENT_VERSION) -install_name $(LIB_NAME) 
+endif
+
+ifeq ($(UNAME), Linux)
+SHARED_OPTIONS     = -Wl,-rpath,'$$ORIGIN/../lib'
+COMPILATOR_OPTIONS+= -ansi
+LIBS              += -ldl
+endif
+
+INCLUDE            = -I.
 COMPILE            = $(COMPILATOR) $(COMPILATOR_OPTIONS) $(INCLUDE) -c
 OBJS_LIB           = TrainingSet.o Surrogate_Parameters.o Surrogate_KS.o Surrogate_RBF.o \
-                     Surrogate_PRS.o Surrogate_PRS_EDGE.o Surrogate_LOWESS.o Surrogate_Kriging.o Surrogate_PRS_CAT.o Surrogate_Ensemble.o \
+                     Surrogate_PRS.o Surrogate_PRS_EDGE.o Surrogate_LOWESS.o Surrogate_Kriging.o\
+                     Surrogate_PRS_CAT.o Surrogate_Ensemble.o \
                      Surrogate.o Matrix.o Kernel.o Surrogate_Utils.o Surrogate_Factory.o \
                      Tests.o 
-OBJS               = $(OBJS_LIB) sgtelib_main.o sgtelib_server.o
+OBJS_MAIN          = sgtelib_main.o sgtelib_server.o
+
+ifdef BUILD_DIR
+else
+BUILD_DIR          = ../build
+endif
+
+OBJS_MAIN         := $(addprefix $(BUILD_DIR)/,$(OBJS_MAIN))
+OBJS_LIB          := $(addprefix $(BUILD_DIR)/,$(OBJS_LIB))
+
+.SECONDARY: %.o
+
+define DisplayCommand
+	@if $(1) ; then echo "---> $@ OK" ; else echo "compilation failed for $@" ; fi
+endef
+define DisplayCommand0
+	@if $(1) ; then echo " ----> OK" ; else echo " ----> FAILED" ; fi
+endef
 
 
+all: $(OBJS_LIB) $(OBJS_MAIN) $(LIB) $(EXE)
 
-OBJS     := $(addprefix $(BUILD_DIR)/,$(OBJS))
-OBJS_LIB := $(addprefix $(BUILD_DIR)/,$(OBJS_LIB))
 
-all: $(OBJS) $(LIB) $(EXE)
+%.exe: $(BUILD_DIR)/%.o $(OBJS_MAIN) $(OBJS_LIB) $(LIB)
+	@echo
+	@echo "== Making $@ =="
+	$(call DisplayCommand,$(COMPILATOR) -o $@ $(OBJS_LIB) $< $(LIBS) $(COMPILATOR_OPTIONS))
+	#$(COMPILATOR) -o $@ $(OBJS_LIB) $< $(LIBS) $(COMPILATOR_OPTIONS)
+	@echo
 
-$(BIN_DIR)/%.exe: $(BUILD_DIR)/%.o $(OBJS) 
-	@echo "=== building $@ from $< ==="
-	mkdir -p $(BIN_DIR)
-	$(COMPILATOR) -o $@ $(OBJS_LIB) $< $(LIBS) $(COMPILATOR_OPTIONS)
+$(LIB): $(OBJS_LIB) $(OBJS_MAIN)
+	@echo
+	@echo "== Making $@ =="
+	$(call DisplayCommand,$(COMPILATOR) -shared -o $@ $(OBJS_LIB) $(LIBS) $(SHARED_OPTIONS) $(COMPILATOR_OPTIONS))
 
-%.a: $(OBJS_LIB)
-	@echo "=== building $@ ==="
-	mkdir -p $(LIB_DIR)
-	@ar -r $@ $(OBJS_LIB)
-	@ranlib $@
-
-$(LIB_DIR)/%.so: $(OBJS_LIB)
-	@echo "=== building $@ ==="
-	mkdir -p $(LIB_DIR)
-	$(COMPILATOR) -shared -o $@ $(OBJS_LIB) $(LIBS)
 
 $(BUILD_DIR)/%.o: %.cpp
-	mkdir -p $(BUILD_DIR)
-	$(COMPILE) $< -o $@
-
+	@mkdir -p $(BUILD_DIR)	
+	$(call DisplayCommand,$(COMPILE) $< -o $@)
+	
 clean:
-	@echo "   cleaning obj files"
-	@rm -f $(OBJS)
+	@echo " --> cleaning obj files" 
+	$(call DisplayCommand0,rm -f $(OBJS_LIB) $(OBJS_MAIN))
 
 del:
-	@echo "   cleaning trash files"
-	@rm -f core *~
-	@echo "   cleaning obj files"
-	@rm -f $(OBJS)
-	@echo "   cleaning exe file"
-	@rm -f $(EXE)
-	@echo "   cleaning librery file"
-	@rm -f $(LIB)
+	@echo " --> cleaning trash files" 
+	$(call DisplayCommand0,rm -f core *~)
+	@echo " --> cleaning obj files"
+	$(call DisplayCommand0,rm -f $(OBJS_LIB) $(OBJ_MAIN))
+	@echo " --> cleaning exe file" 
+	$(call DisplayCommand0,rm -f $(EXE))
+	@echo " --> cleaning library file" 
+	$(call DisplayCommand0,rm -f $(LIB))
+
+mess: 
+	@echo " ===== Compiling Sgtelib objects ===== "
+
