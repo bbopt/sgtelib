@@ -2,7 +2,8 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 1.0.0                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -1372,7 +1373,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   // Number of parameters to optimize
   const int N = _param.get_nb_parameter_optimization();
   // Budget
-  int budget = 100*N;
+  int budget = N*_param.get_budget();
 
   int i,j,k;
   double d;

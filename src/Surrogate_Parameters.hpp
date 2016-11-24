@@ -69,6 +69,8 @@ namespace SGTELIB {
     std::string _preset;
     // Output file
     std::string _output;
+    // Optimization budget
+    int _budget;
 
     // Nb of parameters that are optimized
     int _nb_parameter_optimization;
@@ -107,7 +109,7 @@ namespace SGTELIB {
     std::string     get_preset          (void) const {return _preset;};
     std::string     get_output          (void) const {return _output;};
     SGTELIB::Matrix get_covariance_coef (void) const {return _covariance_coef;};
-
+    int             get_budget          (void) const {return _budget;};
     // Get the distance type (return OPTIM if the distance type has to be optimized).
     std::string get_distance_type_str (void) const {
       if (_distance_type_status==SGTELIB::STATUS_OPTIM) return "OPTIM";

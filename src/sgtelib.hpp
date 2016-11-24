@@ -37,6 +37,7 @@
 namespace SGTELIB {
   void sgtelib_server ( const std::string & model , const bool verbose );
   void sgtelib_predict ( const std::string & file_list , const std::string & model );
+  void sgtelib_best    ( const std::string & file_list );
   void sgtelib_help ( std::string word="GENERAL" );
   void sgtelib_test ( void );
 }

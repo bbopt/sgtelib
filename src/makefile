@@ -56,11 +56,11 @@ $(LIB): $(OBJS_LIB)
 	$(call DisplayCommand,$(COMPILATOR) -shared -o $@ $(OBJS_LIB) $(LIBS) $(COMPILATOR_OPTIONS) $(SHARED_OPTIONS_LIB))
 
 $(BUILD_DIR)/%.o: %.cpp %.hpp
-	@mkdir -p $(BUILD_DIR)	
+	@mkdir -p $(BUILD_DIR) $(LIB_DIR)	../bin
 	$(call DisplayCommand,$(COMPILE) $< -o $@)
 
 $(BUILD_DIR)/%.o: %.cpp
-	@mkdir -p $(BUILD_DIR)	
+	@mkdir -p $(BUILD_DIR) $(LIB_DIR) ../bin
 	$(call DisplayCommand,$(COMPILE) $< -o $@)
 
 .PHONY : clean	

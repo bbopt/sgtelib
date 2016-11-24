@@ -105,8 +105,15 @@ std::string SGTELIB::Surrogate_Parameters::to_standard_field_name (const std::st
   if ( streqi(field,"SHAPE") )          return "KERNEL_COEF";
   if ( streqi(field,"SHAPE_COEF") )     return "KERNEL_COEF";
 
-  if ( streqi(field,"METRIC_TYPE") )    return "METRIC_TYPE";
   if ( streqi(field,"METRIC") )         return "METRIC_TYPE";
+  if ( streqi(field,"METRIC_TYPE") )    return "METRIC_TYPE";
+  if ( streqi(field,"TYPE_METRIC") )    return "METRIC_TYPE";
+
+  if ( streqi(field,"BUDGET") )              return "BUDGET";
+  if ( streqi(field,"OPTIM_BUDGET") )        return "BUDGET";
+  if ( streqi(field,"BUDGET_OPTIM") )        return "BUDGET";
+  if ( streqi(field,"OPTIMIZATION_BUDGET") ) return "BUDGET";
+  if ( streqi(field,"BUDGET_OPTIMIZATION") ) return "BUDGET";
 
   if ( streqi(field,"PRESET") )         return "PRESET";
 
@@ -115,10 +122,8 @@ std::string SGTELIB::Surrogate_Parameters::to_standard_field_name (const std::st
 
   if ( streqi(field,"DISTANCE") )       return "DISTANCE_TYPE";
   if ( streqi(field,"DISTANCE_TYPE") )  return "DISTANCE_TYPE";
+  if ( streqi(field,"TYPE_DISTANCE") )  return "DISTANCE_TYPE";
 
-  if ( streqi(field,"METRIC") )         return "METRIC_TYPE";
-  if ( streqi(field,"METRIC_TYPE") )    return "METRIC_TYPE";
-  if ( streqi(field,"TYPE_METRIC") )    return "DISTANCE_TYPE";
 
   std::cout << "Field: " << field << "\n";
   throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Field not recognized: \""+field+"\"" );
@@ -224,6 +229,9 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
     else if ( streqi(field,"METRIC_TYPE") ){
       _metric_type = str_to_metric_type(content);
     }
+    else if ( streqi(field,"BUDGET") ){
+      _budget = stoi(content);
+    }
     else if ( streqi(field,"PRESET") ){
       _preset = content;
     }
@@ -244,6 +252,7 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
   if (streqi(field,"TYPE")) return true;
   if (streqi(field,"OUTPUT")) return true;
   if (streqi(field,"METRIC_TYPE")) return true;
+  if (streqi(field,"BUDGET")) return true;
 
   switch (_type) {
     case SGTELIB::LINEAR:
@@ -318,6 +327,7 @@ bool SGTELIB::Surrogate_Parameters::authorized_optim ( const std::string & field
   if (streqi(field,"OUTPUT"))        return false;
   if (streqi(field,"METRIC_TYPE"))   return false;
   if (streqi(field,"PRESET"))        return false;
+  if (streqi(field,"BUDGET"))        return false;
 
   std::cout << "Field : " << field << "\n";
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined field" );
@@ -486,18 +496,18 @@ void SGTELIB::Surrogate_Parameters::display ( std::ostream & out ) const {
 /*          Set defaults           */
 /*----------------------------*/
 void SGTELIB::Surrogate_Parameters::set_defaults ( void ) {
-  
+
+  _budget = 100;
   _metric_type = SGTELIB::METRIC_AOECV;
   _distance_type = SGTELIB::DISTANCE_NORM2;
   _distance_type_status = SGTELIB::STATUS_FIXED;
-  _covariance_coef = SGTELIB::Matrix("COVARIANCE_COEF",0,0);
   _covariance_coef_status = SGTELIB::STATUS_FIXED;
-  _weight = SGTELIB::Matrix("WEIGHT",0,0);
   _weight_status = SGTELIB::STATUS_MODEL_DEFINED;
-
   _ridge = 0.001;
-      _kernel_coef = 1;
-_kernel_type = SGTELIB::KERNEL_D1; 
+  _kernel_coef = 1;
+  _kernel_type = SGTELIB::KERNEL_D1; 
+  _covariance_coef = SGTELIB::Matrix("COVARIANCE_COEF",0,0);
+  _weight = SGTELIB::Matrix("WEIGHT",0,0);
 
 
   switch (_type) {
@@ -551,7 +561,6 @@ _kernel_type = SGTELIB::KERNEL_D1;
       _ridge = 0.001;
       _ridge_status = SGTELIB::STATUS_FIXED;
       _preset = "I";
-      _metric_type = SGTELIB::METRIC_AOECV;
       break;
 
     case SGTELIB::LOWESS: 
@@ -566,12 +575,10 @@ _kernel_type = SGTELIB::KERNEL_D1;
       _ridge = 0.001;
       _ridge_status = SGTELIB::STATUS_FIXED;
       _preset = "DGN";
-      _metric_type = SGTELIB::METRIC_AOECV;
       break;
 
     case SGTELIB::ENSEMBLE: 
-      _metric_type = SGTELIB::METRIC_OECV;
-      _weight_type = WEIGHT_WTA1; 
+      _weight_type = WEIGHT_SELECT; 
       _weight_status = SGTELIB::STATUS_MODEL_DEFINED;
       _preset = "DEFAULT";
       break;
@@ -603,44 +610,48 @@ std::string SGTELIB::Surrogate_Parameters::get_string ( void ) const {
       throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Not implemented yet!" );
 
     case SGTELIB::KRIGING: 
-      s += " Kernel " + kernel_type_to_str(_kernel_type);
-      s += " Distance " + distance_type_to_str(_distance_type);
+      s += " KERNEL_TYPE " + kernel_type_to_str(_kernel_type);
+      s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
       break;
 
     case SGTELIB::CN: 
-      s += " Distance_Type " + distance_type_to_str(_distance_type);
+      s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
       break;
 
     case SGTELIB::PRS: 
     case SGTELIB::PRS_EDGE: 
     case SGTELIB::PRS_CAT: 
-      s += " Degree " + itos(_degree);
-      s += " Ridge " + dtos(_ridge);
+      s += " DEGREE " + itos(_degree);
+      s += " RIDGE " + dtos(_ridge);
       break;
 
     case SGTELIB::KS: 
-      s += " Kernel " + kernel_type_to_str(_kernel_type) + " " + dtos(_kernel_coef);
-      s += " Distance_Type " + distance_type_to_str(_distance_type);
+      s += " KERNEL_TYPE " + kernel_type_to_str(_kernel_type);
+      s += " KERNEL_SHAPE " + dtos(_kernel_coef);
+      s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
       break;
 
     case SGTELIB::RBF: 
-      s += " Preset " + _preset;
-      s += " Kernel " + kernel_type_to_str(_kernel_type) + " " + dtos(_kernel_coef);
-      s += " Distance " + distance_type_to_str(_distance_type);
-      s += " Ridge " + dtos(_ridge);
+      s += " PRESET " + _preset;
+      s += " KERNEL_TYPE " + kernel_type_to_str(_kernel_type);
+      s += " KERNEL_SHAPE " + dtos(_kernel_coef);
+      s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
+      s += " RIDGE " + dtos(_ridge);
       break;
 
     case SGTELIB::LOWESS: 
-      s += " Kernel " + kernel_type_to_str(_kernel_type) + " " + dtos(_kernel_coef);
-      s += " Distance_Type " + distance_type_to_str(_distance_type);
-      s += " Degree " + itos(_degree);
-      s += " Ridge " + dtos(_ridge);
+      s += " DEGREE " + itos(_degree);
+      s += " KERNEL_TYPE " + kernel_type_to_str(_kernel_type);
+      s += " KERNEL_SHAPE " + dtos(_kernel_coef);
+      s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
+      s += " RIDGE " + dtos(_ridge);
       break;
 
     case SGTELIB::ENSEMBLE: 
-      s += " Metric_Type " + metric_type_to_str(_metric_type);
-      s += " Weight_Type " + weight_type_to_str(_weight_type);
-      s += " Preset " + _preset;
+      s += " METRIC_TYPE " + metric_type_to_str(_metric_type);
+      s += " WEIGHT_TYPE " + weight_type_to_str(_weight_type);
+      s += " PRESET " + _preset;
+      s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
       break;
 
     default: 
@@ -687,9 +698,6 @@ std::string SGTELIB::Surrogate_Parameters::get_short_string ( void ) const {
       if (_distance_type != SGTELIB::DISTANCE_NORM2){
         s += " " + distance_type_to_str(_distance_type);
       }
-      if (_metric_type != SGTELIB::METRIC_AOECV){
-        s += " " + metric_type_to_str(_metric_type);
-      }
       break;
 
     case SGTELIB::CN: 
@@ -708,9 +716,6 @@ std::string SGTELIB::Surrogate_Parameters::get_short_string ( void ) const {
       }
       s += " " + dtos(_ridge);
       s += " "+_preset;
-      if (_metric_type != SGTELIB::METRIC_AOECV){
-        s += " " + metric_type_to_str(_metric_type);
-      }
       break;
 
 
@@ -725,9 +730,6 @@ std::string SGTELIB::Surrogate_Parameters::get_short_string ( void ) const {
       if (_degree!=2) s += " Degree " + itos(_degree);
       if (_ridge>0) s+= " R "+dtos(_ridge);
       s += " "+_preset;
-      if (_metric_type != SGTELIB::METRIC_AOECV){
-        s += " " + metric_type_to_str(_metric_type);
-      }
       break;
 
     case SGTELIB::ENSEMBLE: 

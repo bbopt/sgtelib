@@ -46,6 +46,7 @@ int main ( int argc , char ** argv ) {
   keyword.push_back("-help");
   keyword.push_back("-test");
   keyword.push_back("-server");
+  keyword.push_back("-best");
 
   // Check that exactly one action is required.
   std::string action = "null";
@@ -144,6 +145,15 @@ int main ( int argc , char ** argv ) {
     std::cout << "Could not parse command.\n";
   }
 
+  //============================================ 
+  // Search for best model
+  //============================================ 
+  if (!strcmp(action.c_str(),"-best")){
+    for (i=0 ; i<NKW ; i++) {
+      if (!strcmp(keyword.at(i).c_str(),"-best")) break;
+    }
+    SGTELIB::sgtelib_best(info.at(i));
+  }
 
  
   
@@ -156,7 +166,6 @@ int main ( int argc , char ** argv ) {
   }
   model = info.at(i);
   if (!strcmp(model.c_str(),"")){
-    std::cout << "Use default model.\n";
     model = "TYPE ENSEMBLE PRESET SUPER1 METRIC PRESS";
   }
 
@@ -270,6 +279,101 @@ void SGTELIB::sgtelib_predict( const std::string & file_list , const std::string
   }
 }//
 
+
+
+
+
+
+/*--------------------------------------*/
+/* find best model for a set of data    */
+/*--------------------------------------*/
+void SGTELIB::sgtelib_best( const std::string & file_list ){
+  bool error = false;
+  std::string file;
+  SGTELIB::Matrix X,Z;
+  std::istringstream in_line (file_list);	
+  if ( (not error) and (in_line >> file) and (SGTELIB::exists(file)) ){
+    std::cout << "Read file " << file << "\n";
+    X = SGTELIB::Matrix(file);
+  }
+  else{
+    std::cout << "Could not find " << file << "\n";
+    error = true;
+  }
+  if ( (not error) and (in_line >> file) and (SGTELIB::exists(file)) ){
+    std::cout << "Read file " << file << "\n";
+    Z = SGTELIB::Matrix(file);
+  }
+  else{
+    std::cout << "Could not find " << file << "\n";
+    error = true;
+  }
+  if (error){
+    sgtelib_help();
+    return;
+  }
+
+  std::vector<std::string> model_list;
+  model_list.push_back("TYPE PRS DEGREE OPTIM RIDGE OPTIM");
+  model_list.push_back("TYPE KS  KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM");
+  model_list.push_back("TYPE RBF PRESET O KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM");
+  model_list.push_back("TYPE RBF PRESET R KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
+  model_list.push_back("TYPE RBF PRESET I KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
+  model_list.push_back("TYPE LOWESS DEGREE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
+  model_list.push_back("TYPE KRIGING");
+  model_list.push_back("TYPE CN");
+
+  std::vector<double> model_metric;
+  std::string m;
+  double v;
+
+  SGTELIB::TrainingSet TS(X,Z);
+  for (int i=0 ; i<2 ; i++){
+    std::cout << "=============================================================\n";
+    if (i==0){
+      std::cout << "Test models for optimization...\n";
+      m = "AOECV";
+    }
+    else{
+      std::cout << "Test models for prediction...\n";
+      m = "ARMSECV";
+    }
+    std::cout << "=============================================================\n";
+    model_metric.clear();
+    double vmin = +INF;
+    std::cout << "Testing ";
+    for (std::vector<std::string>::iterator it_model = model_list.begin() ; it_model != model_list.end(); ++it_model){
+      std::string model_def = *it_model+" METRIC "+m;
+      SGTELIB::Surrogate * S = Surrogate_Factory(TS,model_def);
+      std::cout << model_type_to_str(S->get_type()) << " ";
+      S->build();
+      if (S->is_ready()){
+        v = S->get_metric(SGTELIB::str_to_metric_type(m),0);
+        model_metric.push_back(v);
+        vmin = std::min(v,vmin);
+      }
+      else{
+        model_metric.push_back(+INF);
+      }
+      // Store model definition after parameter optimization
+      *it_model = S->get_string();
+      // Delete model
+      SGTELIB::surrogate_delete(S);
+    }
+    std::cout << "\n";
+    std::cout << "Best metric: " << vmin << "\n";
+    std::cout << "Best model(s):\n ";
+    for (int k=0 ; k<int(model_list.size()) ; k++){
+      if (model_metric.at(k)<=vmin+EPSILON){
+        std::cout << model_list.at(k) << "\n";
+      }
+    }
+
+  }
+  std::cout << "=============================================================\n";
+
+    
+}//
 
 
 /*--------------------------------------*/
