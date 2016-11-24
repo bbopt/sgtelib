@@ -46,29 +46,6 @@ SGTELIB::Surrogate_Ensemble::Surrogate_Ensemble ( SGTELIB::TrainingSet & trainin
   _param.set_weight(W);
 }
 
-/*----------------------------*/
-/*         constructor        */
-/*----------------------------*/
-/*
-SGTELIB::Surrogate_Ensemble::Surrogate_Ensemble ( SGTELIB::TrainingSet & trainingset,
-                                                  const std::string & s ) :
-  SGTELIB::Surrogate ( trainingset , s ),
-  _kmax              ( 0               ),
-  _kready            ( 0               ),
-  _active            ( NULL            ),
-  _metric            ( new double [_m] ){
-
-  #ifdef ENSEMBLE_DEBUG
-    std::cout << "constructor Ensemble 3\n";
-  #endif
-  // Init Model list
-  model_list_preset(_param.get_preset());
-  // Init the weight matrix in _param
-  SGTELIB::Matrix W ("W",_kmax,_m);
-  W.fill(1.0/double(_kmax));
-  _param.set_weight(W);
-}
-*/
 
 /*----------------------------*/
 /*          destructor        */
@@ -91,13 +68,22 @@ SGTELIB::Surrogate_Ensemble::~Surrogate_Ensemble ( void ) {
 /*              display                 */
 /*--------------------------------------*/
 void SGTELIB::Surrogate_Ensemble::display_private ( std::ostream & out ) const {
+
   out << "kmax: " << _kmax << "\n";
   out << "kready: " << _kready << "\n";
 
+  SGTELIB::Matrix W = _param.get_weight();
+  /*
+  out << "W = [ ";
+  for ( int k=0 ; k<_kmax ; k++) out << W.get(k,0) << " ";
+  out << " ]\n";
+  */
+/*
   for (int k=0 ; k<_kmax ; k++){
     out <<"model[" << k << "]: " << _surrogates.at(k)->get_string() << "\n";
   }
-  SGTELIB::Matrix W = _param.get_weight();
+*/
+  double w;
   for (int j=0 ; j<_m ; j++){
     out << "output " << j << ":\n";
     for ( int k=0 ; k<_kmax ; k++){
@@ -105,10 +91,17 @@ void SGTELIB::Surrogate_Ensemble::display_private ( std::ostream & out ) const {
       out.width(2); 
       out << k;
       out << "]: ";
-      out.width(14); 
-      out << _surrogates.at(k)->get_metric(_param.get_metric_type(),j) << " ; weight: ";
-      out.width(14); 
-      out << W.get(k,j);
+      out.width(12); 
+      out << _surrogates.at(k)->get_metric(_param.get_metric_type(),j) << " ; w: ";
+      
+      w = W.get(k,j);
+      if (w==0) out << "  0 %";
+      else if (w<=0.01) out << " <1 %";
+      else{
+        w = double(round(w*100));
+        out.width(3); 
+        out << w << " %";
+      }
       out << " ; ";
       out << _surrogates.at(k)->get_short_string();
       if (! is_ready(k))
@@ -116,10 +109,10 @@ void SGTELIB::Surrogate_Ensemble::display_private ( std::ostream & out ) const {
       out << "\n";
     }
     // Metric of the Ensemble
-    out << "  [xx]: ";
-    out.width(14); 
-    out << _metric[j];
-    out << " ; weight:             xx ; " << get_short_string() << "\n";
+    out << "  =====>";
+    out.width(8); 
+    out << _metric[j] ;
+    out << " ; weight:       N.A. ; " << get_short_string() << "\n";
   }
 
 }//
@@ -137,50 +130,6 @@ void SGTELIB::Surrogate_Ensemble::model_list_display ( std::ostream & out ) {
   for (int k=0 ; k<_kmax ; k++){
     out <<"  Model " << k << ": " << _surrogates.at(k)->get_string() << "\n";
   }
-
-}//
-
-/*-----------------------------------------*/
-/*     refine model list by type           */
-/* (remove all the models of a given type) */
-/*-----------------------------------------*/
-void SGTELIB::Surrogate_Ensemble::model_list_filter_by_type ( const std::string & s ){
-  const SGTELIB::model_t type = SGTELIB::str_to_model_type(s);
-  model_list_filter_by_type(type);
-}//
-
-/*-----------------------------------------*/
-/*     refine model list by type           */
-/*-----------------------------------------*/
-void SGTELIB::Surrogate_Ensemble::model_list_filter_by_type ( const SGTELIB::model_t type ){
-
-  #ifdef ENSEMBLE_DEBUG
-    std::cout << "model_list_filter_by_type\n";
-    std::cout << "Remove models of type " << SGTELIB::model_type_to_str(type) << "\n";
-    std::cout << "_kmax (before): " << _kmax << "\n";
-  #endif
-
-  std::vector<SGTELIB::Surrogate *>::iterator it = _surrogates.begin();
-  while (it != _surrogates.end()){
-    if ((*it)->get_type()==type){
-      #ifdef ENSEMBLE_DEBUG
-        std::cout <<"  Model: " << (*it)->get_string() << " (REMOVE)\n";
-      #endif
-      SGTELIB::surrogate_delete(*it);
-      it = _surrogates.erase(it);
-    }
-    else{
-      #ifdef ENSEMBLE_DEBUG
-        std::cout <<"  Model: " << (*it)->get_string() << " (KEEP)\n";
-      #endif
-      it++;
-    }
-  }
-  _kmax = _surrogates.size();
-
-  #ifdef ENSEMBLE_DEBUG
-    std::cout << "_kmax (after): " << _kmax << "\n";
-  #endif
 
 }//
 
@@ -229,12 +178,12 @@ bool SGTELIB::Surrogate_Ensemble::init_private ( void ) {
   int k;
   for (k=0 ; k<_kmax ; k++){
     #ifdef ENSEMBLE_DEBUG
-      std::cout << "Build model " << k << "/" << _kmax << ": " << _surrogates.at(k)->get_short_string();
+      std::cout << "Init model " << k << "/" << _kmax << ": " << _surrogates.at(k)->get_short_string();
     #endif
     if (_surrogates.at(k)->build()){
       _kready++;
       #ifdef ENSEMBLE_DEBUG
-        std::cout << " (ready)";
+        std::cout << " (ready)\n";
       #endif
     }
   }  
@@ -298,7 +247,6 @@ bool SGTELIB::Surrogate_Ensemble::build_private ( void ) {
          "Surrogate_Ensemble::build(): undefined aggregation method." );
   }
 
-
   if (check_weight_vector()){
     #ifdef ENSEMBLE_DEBUG
       std::cout << "Weights non valid\n";
@@ -306,22 +254,21 @@ bool SGTELIB::Surrogate_Ensemble::build_private ( void ) {
     _ready = false;
     return false;
   }
-
   compute_active_models();
+  _ready = true;
 
-  
-  /*
+
   // Memorize the value of the metric for each output
   for (int j=0 ; j<_m ; j++){
     _metric[j] = get_metric(_param.get_metric_type(),j);
   }
-  */
+
 
   #ifdef ENSEMBLE_DEBUG
     std::cout << "Surrogate_Ensemble : end build_private\n";
   #endif
 
-  _ready = true;
+
   return true;
 }//
 
@@ -704,7 +651,7 @@ void SGTELIB::Surrogate_Ensemble::predict_private ( const SGTELIB::Matrix & XXs,
   if (cdfk) delete cdfk;
 
 }//
-
+ 
 /*--------------------------------------*/
 /*       get_matrix_Zvs                 */
 /*--------------------------------------*/
@@ -782,7 +729,6 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Zhs (void){
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Shs (void){
   if (not _Shs){
-    check_ready(__FILE__,__FUNCTION__,__LINE__);
     const SGTELIB::Matrix W = _param.get_weight();
     _Shs = new SGTELIB::Matrix("Zv",_p,_m);
     _Shs->fill(0.0);
@@ -955,36 +901,40 @@ void SGTELIB::Surrogate_Ensemble::model_list_preset ( const std::string & preset
     model_list_remove_all();
 
     const std::string p = toupper(preset);
+    const std::string m = " METRIC_TYPE "+_param.get_metric_type_str();
+    const std::string d = " DISTANCE_TYPE "+_param.get_distance_type_str();
+    const std::string dm = d+m;
 
-    if (!strcmp(p,"DEFAULT")) {
+    if (SGTELIB::streqi(p,"DEFAULT")) {
       model_list_add("TYPE PRS DEGREE 1 RIDGE 0");
       model_list_add("TYPE PRS DEGREE 1 RIDGE 0.001");
       model_list_add("TYPE PRS DEGREE 2 RIDGE 0");
       model_list_add("TYPE PRS DEGREE 2 RIDGE 0.001");
       model_list_add("TYPE PRS DEGREE 3 RIDGE 0.0");
       model_list_add("TYPE PRS DEGREE 6 RIDGE 0.001");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.1");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.3");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 1  ");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 3  ");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 10 ");
-      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.3");
-      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 1  ");
-      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 3  ");
-      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 10 ");
-      model_list_add("TYPE RBF PRESET I KERNEL_TYPE I1");
-      model_list_add("TYPE RBF PRESET I KERNEL_TYPE I2");
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 0.1"+dm);
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 0.3"+dm);
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 1  "+dm);
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 3  "+dm);
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 10 "+dm);
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.3"+dm);
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 1  "+dm);
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 3  "+dm);
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 10 "+dm);
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE I1"+dm);
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE I2"+dm);
+      model_list_add("TYPE CN"+dm);
     }
-    else if (!strcmp(p,"KS")) {
-      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 0.1");
-      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 0.2"); 
-      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 0.5");
-      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 1  ");
-      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 2  ");
-      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 5  ");
-      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 10 ");
+    else if (SGTELIB::streqi(p,"KS")) {
+      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 0.1"+d);
+      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 0.2"+d); 
+      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 0.5"+d);
+      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 1  "+d);
+      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 2  "+d);
+      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 5  "+d);
+      model_list_add("TYPE KS KERNEL_TYPE D1 KERNEL_COEF 10 "+d);
     }
-    else if (!strcmp(p,"PRS")) {
+    else if (SGTELIB::streqi(p,"PRS")) {
       model_list_add("TYPE PRS DEGREE 1");
       model_list_add("TYPE PRS DEGREE 2");
       model_list_add("TYPE PRS DEGREE 3");
@@ -992,25 +942,25 @@ void SGTELIB::Surrogate_Ensemble::model_list_preset ( const std::string & preset
       model_list_add("TYPE PRS DEGREE 5");
       model_list_add("TYPE PRS DEGREE 6");
     }
-    else if (!strcmp(p,"IS0")) {
+    else if (SGTELIB::streqi(p,"IS0")) {
       model_list_add("TYPE PRS_EDGE DEGREE 2");
       model_list_add("TYPE PRS_EDGE DEGREE 3");
 
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_IS0"); 
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 1   DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 2   DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 5   DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 10  DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D1 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D1 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_IS0"); 
+      model_list_add("TYPE KS            KERNEL_TYPE D1 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D1 KERNEL_COEF 1   DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D1 KERNEL_COEF 2   DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D1 KERNEL_COEF 5   DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D1 KERNEL_COEF 10  DISTANCE_TYPE NORM2_IS0");
 
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_IS0"); 
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 1   DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 2   DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 5   DISTANCE_TYPE NORM2_IS0");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 10  DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D2 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D2 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_IS0"); 
+      model_list_add("TYPE KS            KERNEL_TYPE D2 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D2 KERNEL_COEF 1   DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D2 KERNEL_COEF 2   DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D2 KERNEL_COEF 5   DISTANCE_TYPE NORM2_IS0");
+      model_list_add("TYPE KS            KERNEL_TYPE D2 KERNEL_COEF 10  DISTANCE_TYPE NORM2_IS0");
 
       model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_IS0");
       model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_IS0"); 
@@ -1028,62 +978,54 @@ void SGTELIB::Surrogate_Ensemble::model_list_preset ( const std::string & preset
       model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 5   DISTANCE_TYPE NORM2_IS0");
       model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 10  DISTANCE_TYPE NORM2_IS0");
     }
-    else if (!strcmp(p,"CAT")) {
+    else if (SGTELIB::streqi(p,"CAT")) {
       model_list_add("TYPE PRS_CAT DEGREE 2");
       model_list_add("TYPE PRS_CAT DEGREE 3");
 
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D1 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D1 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
 
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D2 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D2 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
+      model_list_add("TYPE KS           KERNEL_TYPE D2 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D2 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D2 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D2 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE KS           KERNEL_TYPE D2 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
 
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D1 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D1 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
 
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
-      model_list_add("TYPE RBF  PRESET I KERNEL_TYPE D2 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D2 KERNEL_COEF 0.1 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D2 KERNEL_COEF 0.2 DISTANCE_TYPE NORM2_CAT"); 
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D2 KERNEL_COEF 0.5 DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D2 KERNEL_COEF 1   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D2 KERNEL_COEF 2   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D2 KERNEL_COEF 5   DISTANCE_TYPE NORM2_CAT");
+      model_list_add("TYPE RBF PRESET I KERNEL_TYPE D2 KERNEL_COEF 10  DISTANCE_TYPE NORM2_CAT");
     }
-    else if (!strcmp(p,"KS_TEST")) {
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 0.5 ");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 2   ");
-      model_list_add("TYPE KS   KERNEL_TYPE D2 KERNEL_COEF 10  ");
+    else if (SGTELIB::streqi(p,"SUPER1")) {
+      model_list_add("TYPE KS     KERNEL_TYPE OPTIM KERNEL_COEF OPTIM"+dm);
+      model_list_add("TYPE RBF    KERNEL_TYPE OPTIM KERNEL_COEF OPTIM RIDGE 0.001 PRESET I"+dm);
+      model_list_add("TYPE PRS    DEGREE OPTIM RIDGE OPTIM"+m);
+      model_list_add("TYPE LOWESS DEGREE OPTIM RIDGE 0.001 KERNEL_COEF OPTIM KERNEL_TYPE D1"+dm);
     }
-    else if (!strcmp(p,"SUPER1")) {
-      model_list_add("TYPE KS   KERNEL_TYPE OPTIM KERNEL_COEF OPTIM");
-      model_list_add("TYPE RBF  KERNEL_TYPE OPTIM KERNEL_COEF OPTIM RIDGE 0.001 PRESET I");
-      model_list_add("TYPE PRS  DEGREE OPTIM RIDGE OPTIM");
-      model_list_add("TYPE LOWESS  DEGREE OPTIM RIDGE 0.001 KERNEL_COEF OPTIM KERNEL_TYPE D1");
-    }
-    else if (!strcmp(p,"SMALL")) {
+    else if (SGTELIB::streqi(p,"SMALL")) {
       model_list_add("TYPE PRS");
       model_list_add("TYPE KS");
       model_list_add("TYPE RBF PRESET I");
     }
-    else if (!strcmp(p,"QUAD")) {
-      model_list_add("TYPE PRS DEGREE 2");
-    }
-    else if (!strcmp(p,"NONE")) {
+    else if (SGTELIB::streqi(p,"NONE")) {
       // None
     }
     else {

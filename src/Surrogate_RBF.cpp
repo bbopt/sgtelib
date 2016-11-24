@@ -74,14 +74,12 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
     std::cout << "Surrogate_RBF : init_private\n";
   #endif
 
-  if (_trainingset.get_pvar()<3){
-    // Not enough points
-    return false;
-  }
+  const int pvar = _trainingset.get_pvar();
+  if (pvar<3) return false;
 
   // Check preset
   const std::string preset = _param.get_preset();
-  const bool modeO = string_find(preset,"O");
+  const bool modeO = string_find(preset,"O") || string_find(preset,"0");
   const bool modeR = string_find(preset,"R");
   const bool modeI = string_find(preset,"I");
   if (modeO+modeR+modeI!=1){
@@ -92,7 +90,8 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
   if (modeI){
     // Select Incomplete basis
     const int nvar = _trainingset.get_nvar();
-    _qrbf = std::min(std::max(_p/2,3),100*nvar);
+    _qrbf = std::min(pvar/2,100*nvar);
+    if (_qrbf<3) return false;
     _selected_kernel.clear();
     _selected_kernel = _trainingset.select_greedy( get_matrix_Xs(),
                                                    _trainingset.get_i_min(),
@@ -101,7 +100,7 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
                                                    _param.get_distance_type());
   }
   else{
-    _qrbf = _trainingset.get_pvar();
+    _qrbf = pvar;
   }
 
   // Number of PRS basis functions
@@ -123,6 +122,8 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
   // Total number of basis function
   _q = _qrbf + _qprs;
 
+  if (_q>pvar) return false;
+
   return true;
 }//
 
@@ -138,7 +139,7 @@ bool SGTELIB::Surrogate_RBF::build_private ( void ) {
   const int pvar = _trainingset.get_pvar();
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
 
-  if ( string_find(_param.get_preset(),"O") ){
+  if ( string_find(_param.get_preset(),"O") ||  string_find(_param.get_preset(),"0") ){
     // =========================================
     // Solve with orthogonality constraints
     // =========================================

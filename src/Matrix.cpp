@@ -151,6 +151,7 @@ SGTELIB::Matrix::Matrix ( const std::string & file_name ) :
     _X[j] = all_rows[j];
 }//
 
+
 /*---------------------------*/
 /*        constructor 4      */
 /*---------------------------*/
@@ -176,6 +177,20 @@ SGTELIB::Matrix::Matrix ( const SGTELIB::Matrix & A ) :
       _X[i][j] = A._X[i][j];
   }
 }//
+
+
+/*---------------------------------------*/
+/*    affectation operator from string   */
+/*---------------------------------------*/
+SGTELIB::Matrix SGTELIB::Matrix::str2mat ( std::string s ) {
+
+  std::cout << "String:\n" << s << "\n";
+  SGTELIB::Matrix A ("A",3,3);
+  return A;
+
+
+}//
+
 
 /*---------------------------*/
 /*    affectation operator   */
@@ -826,6 +841,25 @@ void SGTELIB::Matrix::display ( std::ostream & out ) const {
     out << ";" << std::endl;
   }
   out << "];" << std::endl;
+}//
+
+/*---------------------------*/
+/*          display          */
+/*---------------------------*/
+void SGTELIB::Matrix::display_short ( std::ostream & out ) const {
+  if (get_numel()<5) display(out);
+  else{
+    out << std::endl << _name << " ( " << _nbRows << " x " << _nbCols << " ) =\n[";
+    out << "\t" << std::setw(10) << _X[0][0] << " ";
+    if (_nbCols>2) out << "... ";
+    out << "\t" << std::setw(10) << _X[0][_nbCols] << "\n";
+    if (_nbRows>2) out << "\t       ...";
+    if (_nbCols>2) out << "    ";
+    if (_nbRows>2) out << "\t       ...\n";
+    out << "\t" << std::setw(10) << _X[_nbRows-1][0] << " ";
+    if (_nbCols>2) out << "... ";
+    out << "\t" << std::setw(10) << _X[_nbRows-1][_nbCols] << "]\n";
+  }
 }//
 
 /*---------------------------*/

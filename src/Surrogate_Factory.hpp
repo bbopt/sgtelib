@@ -29,6 +29,7 @@
 #include "Exception.hpp"
 #include "Surrogate.hpp"
 #include "Surrogate_KS.hpp"
+#include "Surrogate_CN.hpp"
 #include "Surrogate_RBF.hpp"
 #include "Surrogate_PRS.hpp"
 #include "Surrogate_PRS_EDGE.hpp"

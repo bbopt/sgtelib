@@ -10,22 +10,23 @@ model = 'TYPE PRS DEGREE 2 RIDGE 0.01'
 %model = 'TYPE RBF DISTANCE_TYPE NORM2_IS0 KERNEL_COEF 2 KERNEL_TYPE D2'
 %model = 'TYPE KS DISTANCE_TYPE NORM2_IS0 KERNEL_COEF 10 KERNEL_TYPE D2'
 %model = 'TYPE ENSEMBLE WEIGHT SELECT METRIC RMSECV'
-model = 'TYPE ENSEMBLE WEIGHT OPTIM METRIC RMSE'
-model = 'TYPE KS'
-model = 'TYPE LOWESS'
+model = 'TYPE ENSEMBLE WEIGHT SELECT METRIC OECV'
+% model = 'TYPE KS'
+% model = 'TYPE LOWESS'
 
 
-f = @(x) sum(x.^2,2);
+%f = @(x) sum(x.^2,2);
 
-N = 100;
-
-
+N = 10;
 P = 100;
 
 
 M = 1;
 X = randn(P,N);
 Z = randn(P,M);
+
+toBeDelData;
+M = size(Z,2);
 
 PP = 100;
 
@@ -40,8 +41,7 @@ end
 
 sgtelib_server_start(model,true)
 sgtelib_server_ping;
-tic 
+
 sgtelib_server_newdata(X,Z);
 [ZZmodel,std,ei,cdf] = sgtelib_server_predict(XX);
-%m = sgtelib_server_metric('RMSECV')
-toc
+m = sgtelib_server_metric('RMSECV')

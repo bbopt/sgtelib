@@ -28,20 +28,27 @@
 /*-------------------------------*/
 /*     string comparison         */
 /*-------------------------------*/
-int SGTELIB::strcmp  ( const std::string & s1 , const std::string & s2 ){
-  return std::strcmp(s1.c_str(),s2.c_str()); 
+bool SGTELIB::streq  ( const std::string & s1 , const std::string & s2 ){
+  return !std::strcmp(s1.c_str(),s2.c_str()); 
 }//
 
-int SGTELIB::strcmpi ( const std::string & s1 , const std::string & s2 ){
-  std::string s1u = SGTELIB::toupper(s1);
-  std::string s2u = SGTELIB::toupper(s2);
-  return std::strcmp(SGTELIB::toupper(s1).c_str(),s2u.c_str()); 
+bool SGTELIB::streqi ( const std::string & s1 , const std::string & s2 ){
+  const std::string s1u = SGTELIB::toupper(s1);
+  const std::string s2u = SGTELIB::toupper(s2);
+  return !std::strcmp(SGTELIB::toupper(s1).c_str(),s2u.c_str()); 
 }//
 
-bool SGTELIB::string_find ( const std::string & s1 , const std::string & s2 ){
-  return ( s1.find(s2) < s1.size() );
+// Check if s is in S.
+bool SGTELIB::string_find ( const std::string & S , const std::string & s ){
+  const std::string Su = SGTELIB::toupper(S);
+  const std::string su = SGTELIB::toupper(s);
+  return ( Su.find(su) < Su.size() );
 }//
-
+/*
+bool SGTELIB::issubstring (const std::string S , const std::string s){
+  return result = (S.find(s) != std::string::npos);
+}
+*/
 
 /*-------------------------------*/
 /*      deblank                  */
@@ -130,20 +137,12 @@ bool SGTELIB::isdef ( const double x ) {
   if (std::isinf(x)) return false;
   if (fabs(x)>=SGTELIB::INF) return false;
   if (fabs(x)>=1e+16){
-    std::cout << "UD ";
-    //return false;
+    return false;
   }
   return true;
 }
 
-/*-------------------------------*/
-/*  issubstring                  */
-/*-------------------------------*/
-bool SGTELIB::issubstring (const std::string S , const std::string s){
 
-  bool result = (S.find(s) != std::string::npos);
-  return result;
-}
 
 /*-------------------------------*/
 /*  distance between two points  */
@@ -278,6 +277,7 @@ std::string SGTELIB::model_type_to_str ( const SGTELIB::model_t t ) {
   case SGTELIB::TGP      : return "TGP";
   case SGTELIB::DYNATREE : return "DYNATREE";
   case SGTELIB::KS       : return "KS";
+  case SGTELIB::CN       : return "CN";
   case SGTELIB::PRS      : return "PRS";
   case SGTELIB::PRS_EDGE : return "PRS_EDGE";
   case SGTELIB::PRS_CAT  : return "PRS_CAT";
@@ -422,13 +422,14 @@ SGTELIB::model_t SGTELIB::str_to_model_type ( const std::string & s ) {
   if ( ss=="TGP"            ){ return SGTELIB::TGP; }
   if ( ss=="DYNATREE"       ){ return SGTELIB::DYNATREE; }
   if ( ss=="KS"             ){ return SGTELIB::KS; }
+  if ( ss=="CN"             ){ return SGTELIB::CN; }
   if ( ss=="PRS"            ){ return SGTELIB::PRS; }
   if ( ss=="PRS_EDGE"       ){ return SGTELIB::PRS_EDGE; }
   if ( ss=="PRS_CAT"        ){ return SGTELIB::PRS_CAT; }
   if ( ss=="RBF"            ){ return SGTELIB::RBF; }
   if ( ss=="KRIGING"        ){ return SGTELIB::KRIGING; }
   if ( ss=="SVN"            ){ return SGTELIB::SVN; }
-  if ( ss=="LOWESS"            ){ return SGTELIB::LOWESS; }
+  if ( ss=="LWR"            ){ return SGTELIB::LOWESS; }
   if ( ss=="LOWESS"         ){ return SGTELIB::LOWESS; }
   if ( ss=="ENSEMBLE"       ){ return SGTELIB::ENSEMBLE; }
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unrecognised string \""+s+"\" ( "+ss+" )" );
@@ -453,7 +454,13 @@ SGTELIB::distance_t SGTELIB::str_to_distance_type ( const std::string & s ) {
   if ( ss=="NORM2"    ){ return SGTELIB::DISTANCE_NORM2; }
   if ( ss=="NORM1"    ){ return SGTELIB::DISTANCE_NORM1; }
   if ( ss=="NORMINF"  ){ return SGTELIB::DISTANCE_NORMINF; }
+
+  if ( ss=="ISO"      ){ return SGTELIB::DISTANCE_NORM2_IS0; }
+  if ( ss=="IS0"      ){ return SGTELIB::DISTANCE_NORM2_IS0; }
+  if ( ss=="NORM2_ISO"){ return SGTELIB::DISTANCE_NORM2_IS0; }
   if ( ss=="NORM2_IS0"){ return SGTELIB::DISTANCE_NORM2_IS0; }
+
+  if ( ss=="CAT"      ){ return SGTELIB::DISTANCE_NORM2_CAT; }
   if ( ss=="NORM2_CAT"){ return SGTELIB::DISTANCE_NORM2_CAT; }
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unrecognised string \""+s+"\" ( "+ss+" )" );
 }//
@@ -463,7 +470,7 @@ SGTELIB::distance_t SGTELIB::int_to_distance_type ( const int i ) {
 /*----------------------------------------------------------*/
   if ( (i<0) or (i>=SGTELIB::NB_DISTANCE_TYPES) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-      "int_to_distance_type: invalid integer "+i );
+      "int_to_distance_type: invalid integer "+itos(i) );
   }
   switch ( i ){
     case 0: return SGTELIB::DISTANCE_NORM2; 
@@ -473,7 +480,7 @@ SGTELIB::distance_t SGTELIB::int_to_distance_type ( const int i ) {
     case 4: return SGTELIB::DISTANCE_NORM2_CAT; 
     default:
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-        "int_to_kernel_type: invalid integer "+i );
+        "int_to_kernel_type: invalid integer "+itos(i) );
   }
 }//
 
@@ -498,55 +505,6 @@ SGTELIB::metric_t SGTELIB::str_to_metric_type ( const std::string & s ) {
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unrecognised string \""+s+"\" ( "+ss+" )" );
 }//
 
-
-
-
-
-/*----------------------------------------------*/
-/*       Find index of min value                */
-/*----------------------------------------------*/
-/*
-int SGTELIB::get_min_index ( const double * v , const int vsize ){
-  if (not v){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-             "Surrogate_Utils::get_min_index: array is NULL" );
-  }
-  double vmin = v[0];
-  double imin = 0;
-  for (int i=1 ; i<vsize ; i++){
-    if (v[i]<vmin){
-      vmin = v[i];
-      imin = i;
-    }
-  }
-  return imin;
-}//
-*/
-
-/*----------------------------------------------*/
-/*       Find index of min value                */
-/* but index i_exclude is excluded              */
-/* from the search                              */
-/*----------------------------------------------*/
-/*
-int SGTELIB::get_min_index ( const double * v , const int vsize , const int i_exclude){
-  if (not v){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-             "Surrogate_Utils::get_min_index: array is NULL" );
-  }
-  double vmin = v[0];
-  double imin = 0;
-  for (int i=1 ; i<vsize ; i++){
-    if (i!=i_exclude){
-      if (v[i]<vmin){
-        vmin = v[i];
-        imin = i;
-      }
-    }
-  }
-  return imin;
-}//
-*/
 
 
 /*----------------------------------------------*/

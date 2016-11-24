@@ -91,7 +91,6 @@ void SGTELIB::Surrogate_KS::predict_private ( const SGTELIB::Matrix & XXs,
   // Compute weights 
   SGTELIB::Matrix phi = kernel(_param.get_kernel_type(),ks,D);
 
-  SGTELIB::Matrix phi_ixx;
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
 
   SGTELIB::Matrix PhiZ = phi*Zs;

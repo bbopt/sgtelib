@@ -23,13 +23,13 @@
 /*-------------------------------------------------------------------------------------*/
 
 #include "TrainingSet.hpp"
-
+using namespace SGTELIB;
 
 /*--------------------------------------*/
 /*              constructor             */
 /*--------------------------------------*/
-SGTELIB::TrainingSet::TrainingSet ( const SGTELIB::Matrix & X ,
-                                    const SGTELIB::Matrix & Z  ) :
+SGTELIB::TrainingSet::TrainingSet ( const Matrix & X ,
+                                    const Matrix & Z  ) :
   _p            ( X.get_nb_rows()   ) , // Nb of points
   _n            ( X.get_nb_cols()   ) , // Nb of input
   _m            ( Z.get_nb_cols()   ) , // Nb of output
@@ -81,9 +81,9 @@ SGTELIB::TrainingSet::TrainingSet ( const SGTELIB::Matrix & X ,
   // Init the _bbo with standard values:
   // First is the objective,
   // Then constraints
-  _bbo[0] = SGTELIB::BBO_OBJ;
+  _bbo[0] = BBO_OBJ;
   for (int j=1 ; j<_m ; j++){
-    _bbo[j] = SGTELIB::BBO_CON;
+    _bbo[j] = BBO_CON;
     _Z_lb[j] = 0;
     _Z_ub[j] = 0;
   }
@@ -98,12 +98,12 @@ SGTELIB::TrainingSet::TrainingSet ( const SGTELIB::Matrix & X ,
 /*      copy constructor     */
 /*---------------------------*/
 
-SGTELIB::TrainingSet::TrainingSet ( const SGTELIB::TrainingSet & C ) : 
+SGTELIB::TrainingSet::TrainingSet ( const TrainingSet & C ) : 
               _p    ( C._p ) ,
               _n    ( C._n ) ,
               _m    ( C._m ) {
   info();
-  throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+  throw Exception ( __FILE__ , __LINE__ ,
        "TrainingSet: copy constructor forbiden." );
 
 }//
@@ -149,7 +149,7 @@ SGTELIB::TrainingSet::~TrainingSet ( void ) {
 /*--------------------------------------*/
 SGTELIB::TrainingSet & SGTELIB::TrainingSet::operator = ( const SGTELIB::TrainingSet & A ) {
   A.info();
-  throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+  throw Exception ( __FILE__ , __LINE__ ,
        "TrainingSet: operator \"=\" forbiden." );
   return *this;
 }
@@ -162,7 +162,7 @@ void SGTELIB::TrainingSet::set_bbo_type (const std::string & line){
   // BBOT must be separated by space
 
   if (_bbo_is_def){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
            "TrainingSet::set_bbo_type: _bbo must be defined before the first build." );
   }
   #ifdef SGTELIB_DEBUG
@@ -177,21 +177,21 @@ void SGTELIB::TrainingSet::set_bbo_type (const std::string & line){
   while (in_line.good()){
   	in_line >> s;
     if (j>=_m){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
            "TrainingSet::set_bbo_type: string error (j>_m)" );
     }
-    if ( (!strcmp(s,"OBJ")) or (!strcmp(s,"O")) ){
-      _bbo[j] = SGTELIB::BBO_OBJ;
+    if ( (streqi(s,"OBJ")) or (streqi(s,"O")) ){
+      _bbo[j] = BBO_OBJ;
       _j_obj = j;
     }
-    else if ( (!strcmp(s,"CON")) or (!strcmp(s,"C")) ){
-      _bbo[j] = SGTELIB::BBO_CON;
+    else if ( (streqi(s,"CON")) or (streqi(s,"C")) ){
+      _bbo[j] = BBO_CON;
     }
-    else if ( (!strcmp(s,"DUM")) or (!strcmp(s,"D")) ){
-      _bbo[j] = SGTELIB::BBO_DUM;
+    else if ( (streqi(s,"DUM")) or (streqi(s,"D")) ){
+      _bbo[j] = BBO_DUM;
     }
     else{
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
            "TrainingSet::set_bbo_type: string error (string "+s+" not recognized)" );
     }
     j++;
@@ -200,23 +200,23 @@ void SGTELIB::TrainingSet::set_bbo_type (const std::string & line){
   // Check the number of OBJ
   double n = 0;
   for (j=0 ; j<_m ; j++){
-    if (_bbo[j] == SGTELIB::BBO_OBJ){
+    if (_bbo[j] == BBO_OBJ){
       n++;
     }
   }
   if (n>1){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
            "TrainingSet::set_bbo_type: Only one obj is allowed" );
   }
 
   // Check the number of OBJ+CON
   for (j=0 ; j<_m ; j++){
-    if (_bbo[j] == SGTELIB::BBO_CON){
+    if (_bbo[j] == BBO_CON){
       n++;
     }
   }
   if (n==0){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
            "TrainingSet::set_bbo_type: all outputs are \"DUM\"" );
   }
 
@@ -245,12 +245,12 @@ void SGTELIB::TrainingSet::build ( void ){
 
   // check the dimensions:
   if ( _X.get_nb_rows() != _Z.get_nb_rows() )
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
              "TrainingSet::build(): dimension error" );
 
   // Check number of points
   if ( _p < 1 )
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
              "TrainingSet::build(): empty training set");
 
   if (not _ready){
@@ -306,7 +306,7 @@ void SGTELIB::TrainingSet::build ( void ){
 void SGTELIB::TrainingSet::check_ready (void) const{
   if (not _ready){
     std::cout << "TrainingSet: NOT READY!\n";
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "TrainingSet::check_ready(): TrainingSet not ready. Use method TrainingSet::build()" );
+    throw Exception ( __FILE__ , __LINE__ , "TrainingSet::check_ready(): TrainingSet not ready. Use method TrainingSet::build()" );
   }
 }//
 /*--------------------------------------*/
@@ -319,7 +319,7 @@ void SGTELIB::TrainingSet::check_ready (const std::string & file,
 void SGTELIB::TrainingSet::check_ready (const std::string & s) const{
   if (not _ready){
     std::cout << "TrainingSet: NOT READY! (" << s << ")\n";
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "TrainingSet::check_ready(): TrainingSet not ready. Use method TrainingSet::build()" );
+    throw Exception ( __FILE__ , __LINE__ , "TrainingSet::check_ready(): TrainingSet not ready. Use method TrainingSet::build()" );
   }
 }//
 
@@ -327,20 +327,20 @@ void SGTELIB::TrainingSet::check_ready (const std::string & s) const{
 /*--------------------------------------*/
 /*                 add_points           */
 /*--------------------------------------*/
-bool SGTELIB::TrainingSet::add_points ( const SGTELIB::Matrix & Xnew ,
-                                        const SGTELIB::Matrix & Znew ) {
+bool SGTELIB::TrainingSet::add_points ( const Matrix & Xnew ,
+                                        const Matrix & Znew ) {
 
   // Check dim
   if ( Xnew.get_nb_rows() != Znew.get_nb_rows() || Xnew.get_nb_cols() != _n || Znew.get_nb_cols() != _m ){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "TrainingSet::add_points(): dimension error" );
+    throw Exception ( __FILE__ , __LINE__ , "TrainingSet::add_points(): dimension error" );
   }
 
   // Check for nan
   if (Xnew.has_nan()){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "TrainingSet::add_points(): Xnew is nan" );
+    throw Exception ( __FILE__ , __LINE__ , "TrainingSet::add_points(): Xnew is nan" );
   }
   if (Znew.has_nan()){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "TrainingSet::add_points(): Znew is nan" );
+    throw Exception ( __FILE__ , __LINE__ , "TrainingSet::add_points(): Znew is nan" );
   }
 
   // Add the points in the trainingset
@@ -367,8 +367,8 @@ bool SGTELIB::TrainingSet::add_points ( const SGTELIB::Matrix & Xnew ,
 bool SGTELIB::TrainingSet::add_point ( const double * xnew ,
                                        const double * znew ) {
 
-  return add_points ( SGTELIB::Matrix::row_vector ( xnew , _n ),
-                      SGTELIB::Matrix::row_vector ( znew , _m ) );
+  return add_points ( Matrix::row_vector ( xnew , _n ),
+                      Matrix::row_vector ( znew , _m ) );
 }//
 
 
@@ -410,7 +410,7 @@ void SGTELIB::TrainingSet::check_singular_data ( void ){
   }
 
   if (e){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "TrainingSet::check_singular_data(): incorrect data !" );
+    throw Exception ( __FILE__ , __LINE__ , "TrainingSet::check_singular_data(): incorrect data !" );
   }
 
 }//
@@ -518,7 +518,7 @@ void SGTELIB::TrainingSet::compute_bounds ( void ){
 /*  compute the number of different values over      */
 /*  the columns of a matrix                          */
 /*---------------------------------------------------*/
-void SGTELIB::TrainingSet::compute_nbdiff ( const SGTELIB::Matrix & MAT , 
+void SGTELIB::TrainingSet::compute_nbdiff ( const Matrix & MAT , 
                                             int * nbdiff,
                                             int & njvar ){
   
@@ -575,11 +575,11 @@ void SGTELIB::TrainingSet::compute_scaling ( void ){
     _Z_scaling_b[j] = 0;
   }
 
-  switch (SGTELIB::scaling_method){
-  case SGTELIB::SCALING_NONE:
+  switch (scaling_method){
+  case SCALING_NONE:
     //Nothing to do!
     break;
-  case SGTELIB::SCALING_MEANSTD:
+  case SCALING_MEANSTD:
     // Compute mean and std over columns of X and Z
     compute_mean_std();
     // Compute scaling constants
@@ -592,7 +592,7 @@ void SGTELIB::TrainingSet::compute_scaling ( void ){
       _Z_scaling_b[j] = -_Z_mean[j]*_Z_scaling_a[j];
     }
     break;
-  case SGTELIB::SCALING_BOUNDS:
+  case SCALING_BOUNDS:
     // Compute bounds over columns of X and Z
     compute_bounds();
     // Compute scaling constants
@@ -700,7 +700,7 @@ void SGTELIB::TrainingSet::compute_f_min ( void ){
       // check the constraints
       feasible = true;
       for ( int j=0 ; j<_m ; j++ )
-        if (_bbo[j]==SGTELIB::BBO_CON)
+        if (_bbo[j]==BBO_CON)
           if (_Z.get(i,j)>0.0){ feasible = false; break; }
       // If the point is feasible, save the value.
       if (feasible){
@@ -723,7 +723,7 @@ double SGTELIB::TrainingSet::get_Xs ( const int i , const int j ) const {
     check_ready(); 
     // Check index
     if ( (i<0) or (i>=_p) or (j<0) or (j>=_n) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::TrainingSet(): dimension error" );
     }
   #endif
@@ -736,7 +736,7 @@ double SGTELIB::TrainingSet::get_Zs ( const int i , const int j ) const {
     check_ready(); 
     // Check index
     if ( (i<0) or (i>=_p) or (j<0) or (j>=_m) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::TrainingSet(): dimension error" );
     }
   #endif
@@ -749,7 +749,7 @@ void SGTELIB::TrainingSet::get_Xs ( const int i , double * x ) const {
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
     if ( (i<0) or (i>=_p) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::TrainingSet(): dimension error" );
     }
   #endif
@@ -768,7 +768,7 @@ void SGTELIB::TrainingSet::get_Zs ( const int i , double * z ) const {
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
     if ( (i<0) or (i>=_p) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Zs(): dimension error" );
     }
   #endif
@@ -787,7 +787,7 @@ double SGTELIB::TrainingSet::get_Zs_mean ( const int j ) const {
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
     if ( (j<0) or (j>=_m) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Zs_mean(): dimension error" );
     }
   #endif
@@ -801,7 +801,7 @@ int SGTELIB::TrainingSet::get_X_nbdiff ( const int i ) const {
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
     if ( (i<0) or (i>=_n) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_X_nbdiff(): dimension error" );
     }
   #endif
@@ -809,8 +809,8 @@ int SGTELIB::TrainingSet::get_X_nbdiff ( const int i ) const {
 }//
 
 /*---------------------------------------------------*/
-const SGTELIB::Matrix SGTELIB::TrainingSet::get_X_nbdiff ( void ) const {
-  SGTELIB::Matrix V ("NbDiff",1,_n);
+const Matrix SGTELIB::TrainingSet::get_X_nbdiff ( void ) const {
+  Matrix V ("NbDiff",1,_n);
   for (int j=0 ; j<_n ; j++){
     V.set(0,j,(double)_X_nbdiff[j]);
   }
@@ -824,7 +824,7 @@ int SGTELIB::TrainingSet::get_Z_nbdiff ( const int j ) const {
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
     if ( (j<0) or (j>=_m) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Z_nbdiff(): dimension error" );
     }
   #endif
@@ -837,7 +837,7 @@ double SGTELIB::TrainingSet::get_Ds ( const int i1 , const int i2 ) const {
     check_ready(); 
     // Check index
     if ( (i1<0) or (i1>=_p) or (i2<0) or (i2>=_p) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+      throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Ds(): dimension error" );
     }
   #endif
@@ -847,23 +847,23 @@ double SGTELIB::TrainingSet::get_Ds ( const int i1 , const int i2 ) const {
 /*--------------------------------------------------*/
 /* compute the distances between two sets of points */
 /*--------------------------------------------------*/
-SGTELIB::Matrix SGTELIB::TrainingSet::get_distances ( const SGTELIB::Matrix & A , 
-                                                      const SGTELIB::Matrix & B , 
+Matrix SGTELIB::TrainingSet::get_distances ( const Matrix & A , 
+                                                      const Matrix & B , 
                                                       const distance_t dt       ) const{
 
 
   switch (dt){
 
-    case SGTELIB::DISTANCE_NORM1:
-      return SGTELIB::Matrix::get_distances_norm1(A,B);
+    case DISTANCE_NORM1:
+      return Matrix::get_distances_norm1(A,B);
 
-    case SGTELIB::DISTANCE_NORM2:
-      return SGTELIB::Matrix::get_distances_norm2(A,B);
+    case DISTANCE_NORM2:
+      return Matrix::get_distances_norm2(A,B);
 
-    case SGTELIB::DISTANCE_NORMINF:
-      return SGTELIB::Matrix::get_distances_norminf(A,B);
+    case DISTANCE_NORMINF:
+      return Matrix::get_distances_norminf(A,B);
 
-    case SGTELIB::DISTANCE_NORM2_IS0:
+    case DISTANCE_NORM2_IS0:
       // Two points x and y are in the same "IS0-class" if (x_j==0 <=> y_j==0 for each j).
       // The distance "IS0" between two points of the same IS0-class is the norm 2 distance.
       // The distance "IS0" between two points of different IS0-class is INF.
@@ -873,7 +873,7 @@ SGTELIB::Matrix SGTELIB::TrainingSet::get_distances ( const SGTELIB::Matrix & A 
         const int pb = B.get_nb_rows();
         double v,d;
         int ia, ib, j;
-        SGTELIB::Matrix D = SGTELIB::Matrix::get_distances_norm2(A,B);
+        Matrix D = Matrix::get_distances_norm2(A,B);
         double * x0 = new double [n];
         for (j=0 ; j < n ; j++){
           x0[j] = X_scale( 0.0 , j ); 
@@ -897,7 +897,7 @@ SGTELIB::Matrix SGTELIB::TrainingSet::get_distances ( const SGTELIB::Matrix & A 
         return D;
       }
 
-    case SGTELIB::DISTANCE_NORM2_CAT:
+    case DISTANCE_NORM2_CAT:
       // Two points x and y are in the same "X0-class" if x_0==y_0.
       // The distance "IS0" between two points of the same X0-class is the norm 2 distance.
       // The distance "IS0" between two points of different X0-class is INF.
@@ -906,7 +906,7 @@ SGTELIB::Matrix SGTELIB::TrainingSet::get_distances ( const SGTELIB::Matrix & A 
         const int pb = B.get_nb_rows();
         double v,d;
         int ia, ib, j;
-        SGTELIB::Matrix D = SGTELIB::Matrix::get_distances_norm2(A,B);
+        Matrix D = Matrix::get_distances_norm2(A,B);
         j = 0;
         for (ib=0 ; ib < pb ; ib++){
           for (ia=0 ; ia < pa ; ia++){
@@ -925,7 +925,7 @@ SGTELIB::Matrix SGTELIB::TrainingSet::get_distances ( const SGTELIB::Matrix & A 
       }
 
     default:
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
+      throw Exception ( __FILE__ , __LINE__ ,"Undefined type" );
   }
 
   
@@ -993,11 +993,11 @@ double SGTELIB::TrainingSet::ZE_unscale ( double w , int output_index ) const {
 /*--------------------------------------*/
 /*    X scale: x->y: y = a.x + b        */
 /*--------------------------------------*/
-void SGTELIB::TrainingSet::X_scale ( SGTELIB::Matrix & X ) {
+void SGTELIB::TrainingSet::X_scale ( Matrix & X ) {
   int p = X.get_nb_rows();
   int n = X.get_nb_cols();
   if (n!=_n){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
                  "TrainingSet::TrainingSet(): dimension error" );
   }
   double v;
@@ -1015,11 +1015,11 @@ void SGTELIB::TrainingSet::X_scale ( SGTELIB::Matrix & X ) {
 /*--------------------------------------*/
 /*    Z unscale: w->z: z = (w-b)/a      */
 /*--------------------------------------*/
-void SGTELIB::TrainingSet::Z_unscale ( SGTELIB::Matrix * Z ) {
+void SGTELIB::TrainingSet::Z_unscale ( Matrix * Z ) {
   int p = Z->get_nb_rows();
   int m = Z->get_nb_cols();
   if (m!=_m){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
                  "TrainingSet::TrainingSet(): dimension error" );
   }
   double v;
@@ -1033,8 +1033,8 @@ void SGTELIB::TrainingSet::Z_unscale ( SGTELIB::Matrix * Z ) {
     }
   }
 }//
-SGTELIB::Matrix SGTELIB::TrainingSet::Z_unscale ( const SGTELIB::Matrix & Z ) {
-  SGTELIB::Matrix Z2 (Z);
+Matrix SGTELIB::TrainingSet::Z_unscale ( const Matrix & Z ) {
+  Matrix Z2 (Z);
   Z_unscale(&Z2);
   return Z2;
 }//
@@ -1042,11 +1042,11 @@ SGTELIB::Matrix SGTELIB::TrainingSet::Z_unscale ( const SGTELIB::Matrix & Z ) {
 /*--------------------------------------*/
 /*    ZE unscale: w->z: z = w/a      */
 /*--------------------------------------*/
-void SGTELIB::TrainingSet::ZE_unscale ( SGTELIB::Matrix * ZE ) {
+void SGTELIB::TrainingSet::ZE_unscale ( Matrix * ZE ) {
   int p = ZE->get_nb_rows();
   int m = ZE->get_nb_cols();
   if (m!=_m){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
                  "TrainingSet::TrainingSet(): dimension error" );
   }
   double v;
@@ -1060,8 +1060,8 @@ void SGTELIB::TrainingSet::ZE_unscale ( SGTELIB::Matrix * ZE ) {
     }
   }
 }//
-SGTELIB::Matrix SGTELIB::TrainingSet::ZE_unscale ( const SGTELIB::Matrix & ZE ) {
-  SGTELIB::Matrix ZE2 (ZE);
+Matrix SGTELIB::TrainingSet::ZE_unscale ( const Matrix & ZE ) {
+  Matrix ZE2 (ZE);
   ZE_unscale(&ZE2);
   return ZE2;
 }//
@@ -1070,9 +1070,9 @@ SGTELIB::Matrix SGTELIB::TrainingSet::ZE_unscale ( const SGTELIB::Matrix & ZE ) 
 /*--------------------------------------*/
 /*    get d1 over d2                    */
 /*--------------------------------------*/
-double SGTELIB::TrainingSet::get_d1_over_d2 ( const SGTELIB::Matrix & XXs ) const {
+double SGTELIB::TrainingSet::get_d1_over_d2 ( const Matrix & XXs ) const {
   if (XXs.get_nb_rows()>1){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
          "TrainingSet::get_d1_over_d2: XXs must have only one line." );
   } 
   double d1 = +INF;
@@ -1119,9 +1119,9 @@ double SGTELIB::TrainingSet::get_d1_over_d2 ( const SGTELIB::Matrix & XXs ) cons
 /*--------------------------------------*/
 /*    get d1 over d2                    */
 /*--------------------------------------*/
-double SGTELIB::TrainingSet::get_d1 ( const SGTELIB::Matrix & XXs ) const {
+double SGTELIB::TrainingSet::get_d1 ( const Matrix & XXs ) const {
   if (XXs.get_nb_rows()>1){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+    throw Exception ( __FILE__ , __LINE__ ,
          "TrainingSet::get_d1: XXs must have only one line." );
   } 
   double d;
@@ -1153,7 +1153,7 @@ double SGTELIB::TrainingSet::get_d1 ( const SGTELIB::Matrix & XXs ) const {
 /*--------------------------------------*/
 /*       get_exclusion_area_penalty     */
 /*--------------------------------------*/
-SGTELIB::Matrix SGTELIB::TrainingSet::get_exclusion_area_penalty ( const SGTELIB::Matrix & XXs , const double tc ) const {
+Matrix SGTELIB::TrainingSet::get_exclusion_area_penalty ( const Matrix & XXs , const double tc ) const {
   const int pxx = XXs.get_nb_rows();
   double r12,p;
   //double logtc = log(tc);
@@ -1163,7 +1163,7 @@ SGTELIB::Matrix SGTELIB::TrainingSet::get_exclusion_area_penalty ( const SGTELIB
   // Small value of tc (close to 0) => penalty is null nearly everywhere
   // Large value of tc (close to 1) => penalty is non null nearly everywhere
   
-  SGTELIB::Matrix P ("P",pxx,1);
+  Matrix P ("P",pxx,1);
   for (int i=0 ; i<pxx ; i++){
     r12 = get_d1_over_d2( XXs.get_row(i) );
     if ( r12<tc )
@@ -1179,13 +1179,13 @@ SGTELIB::Matrix SGTELIB::TrainingSet::get_exclusion_area_penalty ( const SGTELIB
 /*--------------------------------------*/
 /*       get_distance_to_closest        */
 /*--------------------------------------*/
-SGTELIB::Matrix SGTELIB::TrainingSet::get_distance_to_closest ( const SGTELIB::Matrix & XXs ) const {
+Matrix SGTELIB::TrainingSet::get_distance_to_closest ( const Matrix & XXs ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(); 
   #endif
   const int pxx = XXs.get_nb_rows();
   double d;
-  SGTELIB::Matrix P ("P",pxx,1);
+  Matrix P ("P",pxx,1);
   for (int i=0 ; i<pxx ; i++){
     d = get_d1 ( XXs.get_row(i) );
     P.set(i,0,d);
@@ -1193,13 +1193,15 @@ SGTELIB::Matrix SGTELIB::TrainingSet::get_distance_to_closest ( const SGTELIB::M
   return P;
 }//
 
+
+
 /*--------------------------------------*/
 /*       get_closest                    */
 /*--------------------------------------*/
 // Return the index of the closest point to point i    
 int SGTELIB::TrainingSet::get_closest ( const int i ) const {
   std::cout << i;
-  throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+  throw Exception ( __FILE__ , __LINE__ ,
        "TrainingSet::TrainingSet::get_closest ( const int i ): To be implemented." );
   return 0;
 }
@@ -1208,20 +1210,21 @@ int SGTELIB::TrainingSet::get_closest ( const int i ) const {
 /*       get_closest                    */
 /*--------------------------------------*/
  // Return the indexes of the nb_pts closest points to point i
+/*
 std::list<int> SGTELIB::TrainingSet::get_closest ( const int i_min , const int nb_pts ) const {
 
   #ifdef SGTELIB_DEBUG
     check_ready(); 
     // Check index
     if ( (i_min<0) or (i_min>=_p) or (nb_pts<0) or (nb_pts>=_p) ){
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"TrainingSet::TrainingSet(): dimension error" );
+      throw Exception ( __FILE__ , __LINE__ ,"TrainingSet::TrainingSet(): dimension error" );
     }
   #endif
 
 
-  //const SGTELIB::Matrix & Ds = get_matrix_Ds();
-  SGTELIB::Matrix d = get_matrix_Ds().get_row(i_min);
-  SGTELIB::Matrix ind("indexes",1,_p);
+  //const Matrix & Ds = get_matrix_Ds();
+  Matrix d = get_matrix_Ds().get_row(i_min);
+  Matrix ind("indexes",1,_p);
 
   int i;
   for (i=0 ; i<_p ; i++) ind.set(0,i,i);
@@ -1244,11 +1247,12 @@ std::list<int> SGTELIB::TrainingSet::get_closest ( const int i_min , const int n
   return list;
 
 }
+*/
 
 /*--------------------------------------*/
 /*       select points                  */
 /*--------------------------------------*/
-std::list<int> SGTELIB::TrainingSet::select_greedy ( const SGTELIB::Matrix & X,
+std::list<int> SGTELIB::TrainingSet::select_greedy ( const Matrix & X,
                                                      const int imin,
                                                      const int pS,
                                                      const double lambda0, 
@@ -1259,20 +1263,20 @@ std::list<int> SGTELIB::TrainingSet::select_greedy ( const SGTELIB::Matrix & X,
 
   if ( pS<3 or pS>=p ){
     std::cout << "pS = " << pS << "\n";
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"TrainingSet::TrainingSet(): wrong value of pS" );
+    throw Exception ( __FILE__ , __LINE__ ,"TrainingSet::TrainingSet(): wrong value of pS" );
   }
 
   std::list<int> S;
   S.clear();
   
   int inew;
-  SGTELIB::Matrix xnew("xnew",1,n);
-  SGTELIB::Matrix x   ("x"   ,1,n);
+  Matrix xnew("xnew",1,n);
+  Matrix x   ("x"   ,1,n);
 
   // Select the best point (here, the set B is only the point i_min)
   xnew = X.get_row(imin);
   // Distance vector between the set B and the cache
-  SGTELIB::Matrix dB = get_distances(X,xnew,dt);
+  Matrix dB = get_distances(X,xnew,dt);
   dB.set_name("dB");
   // Add to S
   S.push_back(imin);
@@ -1285,7 +1289,7 @@ std::list<int> SGTELIB::TrainingSet::select_greedy ( const SGTELIB::Matrix & X,
   inew = dB.get_max_index();
   xnew = X.get_row(inew);
   // Distance vector between the set S and the cache
-  SGTELIB::Matrix dS = get_distances(X,xnew,dt);
+  Matrix dS = get_distances(X,xnew,dt);
   dS.set_name("dS");
   // Add to S
   S.push_back(inew);
@@ -1294,7 +1298,7 @@ std::list<int> SGTELIB::TrainingSet::select_greedy ( const SGTELIB::Matrix & X,
   #endif
   
   // As B is in S, we can take the min of both distances
-  dS = SGTELIB::Matrix::min(dS,dB);
+  dS = Matrix::min(dS,dB);
 
   // Compute lambda init :
   #ifdef SGTELIB_DEBUG
@@ -1341,7 +1345,7 @@ std::list<int> SGTELIB::TrainingSet::select_greedy ( const SGTELIB::Matrix & X,
       // Get coordinates of new points
       xnew = X.get_row(inew);
       // Update dS
-      dS = SGTELIB::Matrix::min( dS , get_distances(X,xnew,dt) );
+      dS = Matrix::min( dS , get_distances(X,xnew,dt) );
       dS.set_name("dS");
     }
   }// End while

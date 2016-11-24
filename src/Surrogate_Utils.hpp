@@ -52,6 +52,7 @@ namespace SGTELIB {
     PRS_EDGE ,
     PRS_CAT  ,
     KS       ,
+    CN       ,
     KRIGING  ,
     SVN      ,
     RBF      ,
@@ -93,9 +94,12 @@ namespace SGTELIB {
   int diff_ms(timeval t1, timeval t2);
 
   // Compare strings
-  int strcmp       ( const std::string & s1 , const std::string & s2 );
-  int strcmpi      ( const std::string & s1 , const std::string & s2 );
-  bool string_find ( const std::string & s1 , const std::string & s2 );
+  bool streq       ( const std::string & s1 , const std::string & s2 );
+  bool streqi      ( const std::string & s1 , const std::string & s2 );
+  // Check if s is a substring of S
+  bool string_find ( const std::string & S  , const std::string & s );
+  //bool issubstring (const std::string S , const std::string s);
+
 
   // Remove useless spaces in string
   std::string deblank ( const std::string & s_input );
@@ -115,8 +119,6 @@ namespace SGTELIB {
   // isdef (not nan nor inf)
   bool isdef ( const double x );
 
-  // Check if s is a substring of S
-  bool issubstring (const std::string S , const std::string s);
 
   // rounding:
   int round ( double d );

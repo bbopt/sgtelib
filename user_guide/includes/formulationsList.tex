@@ -1,0 +1,54 @@
+\begin{center}
+\begin{tabular}{| c | l | }
+  \hline %-------------------------------------------------------
+  Name & Formulation 
+  \\\hline\hline %-------------------------------------------------------
+  {\tt FS } &	$\begin{array}{l l}
+		  \min\limits_{x \in \chi} &  \fh(x) - \lambda~\sh_f(x) \\
+		  st:                      &  \ch_j(x) - \lambda~\sh_j(x) \le 0
+	  \end{array}$
+  \\\hline  %-------------------------------------------------------
+  {\tt FSP } &	$\begin{array}{l l}
+		  \min\limits_{x \in \chi} &  \fh(x) - \lambda~\sh_f(x) \\
+		  st:                      &  P(x) \ge 1/2
+	  \end{array} $
+  \\\hline%-------------------------------------------------------
+  {\tt EIS } & $\begin{array}{l l}
+		  \min\limits_{x \in \chi} &  -\EI(x) - \lambda~\sh_f(x) \\
+		  st:                      &  \ch_j(x) - \lambda~\sh_j(x) \le 0
+	  \end{array} $
+  \\\hline%-------------------------------------------------------
+  {\tt EFI } & $
+		  \begin{array}{l l}
+			  \min\limits_{x \in \chi} & -\EFI(x)
+		  \end{array} 
+	  $
+  \\\hline%-------------------------------------------------------
+  {\tt EFIS } & $
+		  \begin{array}{l l}
+			  \min\limits_{x \in \chi} & -\EFI(x)-\lambda\,\hat{\sigma}_f(x)
+		  \end{array} 
+	  $
+  \\\hline%-------------------------------------------------------
+  {\tt EFIM } & 	$
+		  \begin{array}{l l}
+			  \min\limits_{x \in \chi} & -\EFI(x)-\lambda\,\hat{\sigma}_f(x)\,\FU(x)
+		  \end{array} 
+	  $
+  \\\hline%-------------------------------------------------------
+  {\tt EFIC } & $
+		  \begin{array}{l l}
+			  \min\limits_{x \in \chi} & -\EFI(x) - \lambda \Big(  \EI(x)\FU(x) + P(x)\sh_f(x)       \Big)   
+		  \end{array} 
+	  $
+  \\\hline%-------------------------------------------------------
+  {\tt PFI } & $
+	    \begin{array}{l l}
+		    \min\limits_{x \in \chi} & -PFI(x)
+	    \end{array} 
+    $
+  \\\hline %-------------------------------------------------------
+\end{tabular}
+\end{center}
+
+

@@ -1,0 +1,294 @@
+  %--------------------------------------------------------------
+  %\kwa{MODEL}
+  %\kwb{MODEL DESCRIPTION}
+  %\kwc{
+  %Name "TYPE" test. 
+  %}
+
+  %--------------------------------------------------------------
+  \kwa{GENERAL}
+  \kwb{GENERAL SGTELIB SERVER PREDICTION HELP}
+  \kwc{
+    
+    sgtelib is a dynamic surrogate modeling library. Given a set of data points $[X,z(X)]$, it allows
+    to estimate the value of $z(x)$ for any $x$.\newline
+
+    sgtelib can be called in 4 modes:
+    \begin{itemize}
+      \item -predict: build a model on a set of data points and perform a prediction on a set of prediction points. 
+        See \ref{PREDICT} for more information.
+        This requires the definition of a model with the option -model, see \ref{MODEL}.
+        \example{sgtelib.exe -model <model description> -predict <input/output files>}
+      \item -server: starts a server that can be interrogated to perform predictions or compute the error metric of a model.
+        The server should be used via the matlab interface (see \ref{SERVER}).
+        This requires the definition of a model with the option -model, see \ref{MODEL}. 
+        \example{sgtelib.exe -server -model <mode description>}
+      \item -help: allows to ask for some information about some keyword.
+        \example{sgtelib.exe -help keyword}
+      \item -test: runs a test of the sgtelib library.
+        \example{sgtelib.exe -test}
+    \end{itemize}
+
+  }
+
+  %--------------------------------------------------------------
+  \kwa{MODEL}
+  \kwb{MODEL DESCRIPTION MODEL\_DESCRIPTION DEFINITION MODEL\_DEFINITION}
+  \kwc{
+    Models in sgtelib should be defined by using a succession of field names (see \ref{FIELD} for the list of possible fields) and field value. Each field name is made of one single word. Each field value is made of one single word or numerical value. It is good pratice to start by the field name "TYPE", followed by the model type. See \ref{TYPE} for the list of available model types. 
+  }
+
+  %--------------------------------------------------------------
+  \kwa{FIELD}
+  \kwb{FIELD NAME FIELD\_NAME}
+  \kwc{
+
+  }
+
+
+
+
+  %--------------------------------------------------------------
+  \kwa{SERVER}
+  \kwb{SERVER MATLAB }
+  \kwc{
+
+  }
+
+
+
+  %--------------------------------------------------------------
+  \kwa{TYPE}
+  \kwb{PRS KS RBF LOWESS ENSEMBLE KRIGING CN}
+  \kwc{
+    The keyword \quote{{\tt TYPE}} defines which type of model is used.    
+    \myUnderline{Possible values}:
+      \begin{itemize}
+        \item {\tt PRS} : Polynomial Response Surface  
+        \item {\tt KS}  : Kernel Smoothing  
+        \item {\tt PRS\_EDGE } : PRS EDGE model  
+        \item {\tt PRS\_CAT } : PRS CAT model  
+        \item {\tt RBF} :  Radial Basis Function Model  
+        \item {\tt RBFI }: RBF model with incomplete basis  
+        \item {\tt LWR }: Locally Weighted Regression  
+        \item {\tt ENSEMBLE }: Ensemble of surrogates  \hline 
+        \item {\tt DYNATREE}  : dynaTree model \textbf{(not supported yet)} 
+        \item {\tt TGP}  : TGP model          \textbf{(not supported yet)} 
+        \item {\tt KRIGING} : Kriging model \textbf{(not supported yet)} 
+      \end{itemize}
+    \myUnderline{Default value} This parameter does not have a default value. It must always be defined.
+    \myUnderline{Example}\newline
+      \quote{{\tt TYPE PRS}} defines a PRS model.\\
+      \quote{{\tt TYPE ENSEMBLE}} defines an ensemble of models.
+  }
+
+  %--------------------------------------------------------------
+  \kwa{DEGREE} 
+  \kwb{PRS LOWESS}
+  \kwc{
+    The keyword \quote{{\tt DEGREE}} defines the degree of a polynomial response surface.
+
+    \myUnderline{Allowed for models of type} PRS, PRS\_EDGE, PRS\_CAT, LWR, RBFI.
+
+    \myUnderline{Possible values}
+    The value must be an integer $\ge 1$.
+
+    \myUnderline{Default values} DEGREE = 1 for models of type RBFI. DEGREE = 2 for models of type PRS, PRS\_EDGE, PRS\_CAT and LWR.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE PRS DEGREE 3}} defines a PRS model of degree 3.\\
+       \quote{{\tt TYPE PRS\_EDGE DEGREE 2}} defines a PRS\_EDGE model of degree 2.
+  }
+
+
+  %--------------------------------------------------------------
+  \kwa{RIDGE}
+  \kwb{PRS RBF LOWESS}
+  \kwc{  
+  The keyword \quote{{\tt RIDGE}} defines the regularization parameter of the model.
+
+    \myUnderline{Allowed for models of type} PRS, PRS\_EDGE, PRS\_CAT, LWR, RBFI.
+ 
+    \myUnderline{Possible values} Real value $\ge 0$. Recommended values are $0$ and $0.001$.
+
+    \myUnderline{Default values} Default value is 0.01.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE PRS DEGREE 3 RIDGE 0}} defines a PRS model of degree 3 with no regularization.
+}
+
+
+  %--------------------------------------------------------------
+  \kwa{KERNEL\_TYPE}
+  \kwb{KS RBF LOWESS}
+  \kwc{
+    The keyword \quote{{\tt KERNEL\_TYPE}} defines the type of kernel used in the model. The keyword\quote{{\tt KERNEL}} is equivalent. 
+
+    \myUnderline{Allowed for models of type} RBF, RBFI, KS.
+
+    \myUnderline{Possible values}
+      \begin{itemize}
+          \item {\tt D1} : Gaussian kernel $\phi(d) = \exp\left( \frac{r_\phi^2 d^2}{d_{mean}^2}\right)$ \\   \hline 
+          \item {\tt D2} : Inverse Quadratic Kernel, $\phi(d) = \left( 1+\frac{r_\phi^2 d^2}{d_{mean}^2}\right) ^{-1}$ 
+          \item {\tt D3} : Inverse Multiquadratic Kernel, $\phi(d) = \left( 1+\frac{r_\phi^2 d^2}{d_{mean}^2}\right) ^{-1/2}$ 
+          \item {\tt I0} : Multiquadratic Kernel, $\phi(d) = \sqrt{ 1+\frac{r_\phi^2 d^2}{d_{mean}^2} }$ 
+          \item {\tt I1} : Polyharmonic splines, $k=1$, $\phi(d) = d$  
+          \item {\tt I2} : Polyharmonic splines, $k=2$, $\phi(d) = d^2 \log(d)$ 
+          \item {\tt I3} : Polyharmonic splines, $k=3$, $\phi(d) = d^3$  
+          \item {\tt I4} : Polyharmonic splines, $k=4$, $\phi(d) = d^4 \log(d)$ 
+      \end{itemize}
+
+    \myUnderline{Default values}
+    Default value is \quote{{\tt D1}}.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE KS KERNEL\_TYPE D1}} defines a KS model with Inverse Quadratic Kernel.
+
+  }
+
+
+
+
+  %--------------------------------------------------------------
+  \kwa{KERNEL\_COEF}
+  \kwb{KS RBF LOWESS}
+  \kwc{
+    The keyword \quote{{\tt KERNEL\_COEF}} defines the shape coefficient $r_\phi$ of the kernel function. Note that this keyword has no impact for KERNEL\_TYPES I1, I2, I3 and I4 because this kernels do not depend on $r_\phi$. 
+
+    \myUnderline{Alternative keyword name} {\tt SHAPE\_COEF} 
+
+    \myUnderline{Allowed for models of type} RBF, RBFI, KS.
+
+    \myUnderline{Possible values} Real value $\ge 0$. Recommended range is $[0.1 , 10]$. Small values lead to smoother models.
+
+    \myUnderline{Default values} Default value is 5.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE RBF KERNEL\_COEF 10}} defines a RBF model with $r_\phi=10$.
+  }
+
+
+
+
+  %--------------------------------------------------------------
+  \kwa{DISTANCE\_TYPE}
+  \kwb{KS RBF}
+  \kwc{
+    The keyword \quote{{\tt DISTANCE\_TYPE}} defines the distance function used in the model. The keyword\quote{{\tt SHAPE\_COEF}} is equivalent.
+
+    \myUnderline{Allowed for models of type} RBF, RBFI, KS.
+
+    \myUnderline{Possible values}
+      \begin{itemize}
+          \item {\tt NORM1}  : Euclidian distance 
+          \item {\tt NORM2}  : Distance based on norm 1 
+          \item {\tt NORMINF} : Distance based on norm $\infty$ 
+          \item {\tt NORM2\_IS0} : Tailored distance for discontinuity in 0. 
+          \item {\tt NORM2\_CAT} : Tailored distance for categorical models. 
+      \end{itemize}
+
+    \myUnderline{Default values} Default value is \quote{{\tt NORM2}}.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE KS DISTANCE NORM2\_IS0}} defines a KS model tailored for VAN optimization.
+  }
+
+
+  %--------------------------------------------------------------
+  \kwa{WEIGHT}
+  \kwb{ENSEMBLE SELECTION WTA1 WTA2 WTA3 WTA4 WTA}
+  \kwc{
+
+    The keyword \quote{{\tt WEIGHT}} defines the method used to compute the weights $\w$ of the ensemble of models. The keyword\quote{{\tt WEIGHT\_TYPE}} is equivalent.
+
+    \myUnderline{Allowed for models of type} ENSEMBLE.
+
+    \myUnderline{Possible values}
+      \begin{itemize}
+          \item {\tt WTA1}  : $w_k \propto \metric_{sum} - \metric_k$ 
+          \item {\tt WTA3}  : $w_k \propto (\metric_k + \alpha \metric_{mean})^\beta$ 
+          \item {\tt SELECT} : $w_k \propto \ind_{\metric_k = \metric_{min}}$ 
+          \item {\tt OPTIM} : $\w$ minimizes $\metric(\w)/(1+\var(\w)$ 
+          \item {\tt NORM2\_IS0} : Tailored distance for discontinuity in 0. 
+      \end{itemize}
+
+
+    \myUnderline{Default values} Default value is WTA1.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE ENSEMBLE WEIGHT SELECT METRIC RMSECV}} defines an ensemble of models which selects the model that has the best RMSECV.\\
+       \quote{{\tt TYPE ENSEMBLE WEIGHT OPTIM METRIC RMSECV}} defines an ensemble of models where the weights $\w$ are computed by minimizing RMSECV$/(1-\var(\w))$.\\
+
+  }
+
+
+  %--------------------------------------------------------------
+  \kwa{METRIC}
+  \kwb{PARAMETER OPTIMIZATION CHOICE SELECTION OPTIM}
+  \kwc{
+    The keyword \quote{{\tt METRIC}} defines the metric used to compute the weights $\w$ of the ensemble of models. The keyword\quote{{\tt METRIC\_TYPE}} is equivalent.
+
+
+    \myUnderline{Allowed for models of type} ENSEMBLE.
+
+
+    \myUnderline{Possible values}
+      \begin{itemize}
+          \item {\tt EMAX}  : Error Max. 
+          \item {\tt EMAXCV}: Error Max with Cross-Validation.  
+          \item {\tt RMSE}  : Root Mean Square Error. 
+          \item {\tt RMSECV}: RMSE with Cross-Validation.  
+          \item {\tt OE}  : Order Error. 
+          \item {\tt OECV}: Order Error with Cross-Validation.  
+          \item {\tt LINV} : Inverte of the Likelihood.  
+      \end{itemize}
+
+    \myUnderline{Default values} Default value is \quote{{\tt RMSE}}.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE ENSEMBLE WEIGHT SELECT METRIC RMSECV}} defines an ensemble of models which selects the model that has the best RMSECV.
+  }
+
+
+  %--------------------------------------------------------------
+  \kwa{PRESET}
+  \kwb{RBF ENSEMBLE LOWESS}
+  \kwc{
+    The keyword \quote{{\tt PRESET}} defines the set of simple
+    models used to build the ensemble of models.
+
+
+    \myUnderline{Allowed for models of type} ENSEMBLE.
+
+
+    \myUnderline{Possible values}
+      \begin{itemize}
+          \item {\tt DEFAULT}: Set of 17 models (PRS, KS and RBFI). 
+          \item {\tt KS}: Set of 7 KS models with Gaussian kernels.  
+          \item {\tt PRS}: Set of 6 PRS models (degree 1 to 6).  
+          \item {\tt SMALL}: Set of 3 models (PRS, KS and RBFI) with default parameters.
+          \item {\tt IS0}: Set of 30 models that handles the discontinuity in 0. 
+          \item {\tt CAT}: Set of 30 models that handles categorical data. 
+      \end{itemize}
+
+    The preset \quote{{\tt IS0}} is recommended for VAN problems. The preset \quote{{\tt DEFAULT}} is recommended for other problems.
+
+    \myUnderline{Default values} Default value is \quote{{\tt DEFAULT}}.
+
+    \myUnderline{Example}\newline
+       \quote{{\tt TYPE ENSEMBLE PRESET DEFAULT}} defines the default ensemble of models.\\
+       \quote{{\tt TYPE ENSEMBLE PRESET IS0}} defines an ensemble of models tailored for VAN optimization.\\
+       \quote{{\tt TYPE ENSEMBLE PRESET CAT}} defines an ensemble of models tailored the 2D problem.\\
+  }
+
+
+  %--------------------------------------------------------------
+  \kwa{OUTPUT}
+  \kwb{OUT}
+  \kwc{
+    Define a text file in which informations will be recorded.
+  }
+
+
+
+

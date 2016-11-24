@@ -80,7 +80,6 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
 
   // Compute alpha
   if (not compute_alpha()) return false;
-  _alpha.display(std::cout);
   
   _ready = true; 
   return true;

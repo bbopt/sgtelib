@@ -164,6 +164,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( co
       cov = exp(-cov);
       // Add noise if the distance is 0.
       //if (dsum==0) cov += coef[0];
+      cov *= (1.0-coef[0]);
       R.set(i1,i2,cov);
     }
   }

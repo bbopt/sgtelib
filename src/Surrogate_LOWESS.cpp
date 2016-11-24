@@ -28,7 +28,7 @@
 //#define SGTELIB_DEBUG
 
 
-const int GAMMA_EXP = 1;
+const int GAMMA_EXP = 2;
 
 /*----------------------------*/
 /*         constructor        */
@@ -308,7 +308,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
     const SGTELIB::Matrix R = D.rank();
     i = 0;
     while (R.get(i)!=_q-1) i++;
-    const double dq = D.get(i);
+    const double dq = 2.0*D.get(i);
     for (i=0 ; i<pvar ; i++) _W[i] = D.get(i)/dq;
   }
   else if (preset=="DGN"){

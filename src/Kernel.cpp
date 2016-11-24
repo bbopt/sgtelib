@@ -151,7 +151,7 @@ SGTELIB::kernel_t SGTELIB::int_to_kernel_type ( const int i ) {
 /*----------------------------------------------------------*/
   if ( (i<0) or (i>=SGTELIB::NB_KERNEL_TYPES) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-      "int_to_kernel_type: invalid integer "+i );
+      "int_to_kernel_type: invalid integer "+itos(i) );
   }
   switch ( i ){
     case 0:  return SGTELIB::KERNEL_D1; 
@@ -167,7 +167,7 @@ SGTELIB::kernel_t SGTELIB::int_to_kernel_type ( const int i ) {
     case 10: return SGTELIB::KERNEL_I4; 
     default:
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-        "int_to_kernel_type: invalid integer "+i );
+        "int_to_kernel_type: invalid integer "+itos(i) );
   }
 }//
 

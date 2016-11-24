@@ -32,5 +32,13 @@
 #include "Matrix.hpp"
 #include "Defines.hpp"
 #include "Surrogate_Utils.hpp"
+#include "sgtelib_help.hpp"
+
+namespace SGTELIB {
+  void sgtelib_server ( const std::string & model , const bool verbose );
+  void sgtelib_predict ( const std::string & file_list , const std::string & model );
+  void sgtelib_help ( std::string word="GENERAL" );
+  void sgtelib_test ( void );
+}
 
 #endif

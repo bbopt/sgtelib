@@ -108,41 +108,17 @@ namespace SGTELIB {
     // Test if basic model k is ready.
     bool is_ready (const int k) const;
 
-/*
-    int get_kmax(void){return _kmax;};
-    // Set the weight method
-    void set_weight_type (const SGTELIB::weight_t wt){
-      _param.set_weight_type( wt );
-    };
-    void set_weight_type (const std::string & s){
-      _param.set_weight_type( SGTELIB::str_to_weight_type(s) );
-    };
-    // Use model k for all outputs
-    void set_weight_vector (const int k);
-    // Use model k for output j 
-    void set_weight_vector (const int k , const int j);
-    // Provide the whole matrix    
-    void set_weight_vector (const SGTELIB::Matrix & W);
-*/
-
     // Compute the boolean array _active
     void compute_active_models ( void ) ;
     // Check the weight vector
     bool check_weight_vector ( void ) const;
 
-/*
-    // Display stats on the weight vector
-    void stat_weight_vector ( void ) const;
-    // Compute the variance of the weight vector for output j
-    double get_weight_variance ( const int j ) const;
-*/
+
 
     // ==============================================//
     // Method to define the model_list //
     // ==============================================//
     void model_list_display        ( std::ostream & out );
-    void model_list_filter_by_type ( const std::string & s );
-    void model_list_filter_by_type ( const SGTELIB::model_t type );
     void model_list_preset         ( const std::string & preset );
     void model_list_remove_all ( void );
     void model_list_add ( const std::string & definition );

@@ -5,22 +5,19 @@ if nargin==1
     keepopen=false;
 end
 
-% if nargin==0
-%     model = '';
-% end
-
 if nargin>=1
     model = ['\"' model '\"'];
 else
     model = '';
 end
 
-disp('Launch sgtelib_server.exe');
+disp('Launch sgtelib.exe in server mode.');
 
 if keepopen
-    command = ['gnome-terminal -t sgtelib_server --hide-menubar -e "/bin/bash -c ''LD_LIBRARY_PATH=.; gdb -ex run --args $SGTELIB_HOME/bin/sgtelib_server.exe ' model ' ; exec /bin/bash -i''" &'];
+    %command = ['gnome-terminal -t sgtelib_server --hide-menubar -e "/bin/bash -c ''LD_LIBRARY_PATH=.; gdb -q -ex run --args sgtelib.exe -server -model ' model ' ; exec /bin/bash -i''" &'];
+    command = ['gnome-terminal -t sgtelib_server --hide-menubar -e "/bin/bash -c ''LD_LIBRARY_PATH=.; gdb -q -ex run --args sgtelib.exe -verbose -server -model ' model ' ''"'];
 else
-    command = ['gnome-terminal -t sgtelib_server --hide-menubar -e "/bin/bash -c ''LD_LIBRARY_PATH=.; $SGTELIB_HOME/bin/sgtelib_server.exe ' model ' ''"'];
+    command = ['gnome-terminal -t sgtelib_server --hide-menubar -e "/bin/bash -c ''LD_LIBRARY_PATH=.; sgtelib.exe -server -model ' model ' ''"'];
 end
 disp(command)
 [status,response] = system(command);
@@ -32,3 +29,4 @@ if status || length(response)
     status
     response
 end
+pause(0.5);

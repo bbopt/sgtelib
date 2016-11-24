@@ -86,6 +86,10 @@ SGTELIB::Surrogate * SGTELIB::Surrogate_Factory ( SGTELIB::TrainingSet & TS,
     S = new Surrogate_KS(TS,p);
     break;
 
+  case SGTELIB::CN: 
+    S = new Surrogate_CN(TS,p);
+    break;
+
   case SGTELIB::RBF: 
     S = new Surrogate_RBF(TS,p);
     break;

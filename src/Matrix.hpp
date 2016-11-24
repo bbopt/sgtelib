@@ -36,9 +36,7 @@
 
 namespace SGTELIB {
 
-  /*--------------------------------------*/
-  /*              nbRows x nbCols matrix            */
-  /*--------------------------------------*/
+
   class Matrix {
 
   private:
@@ -73,7 +71,8 @@ namespace SGTELIB {
     Matrix ( const Matrix & );
 
     // affectation operator:
-    Matrix & operator = ( const Matrix & );
+    static Matrix str2mat ( std::string s );
+    Matrix & operator = ( const Matrix & A );
 
     //Matrix & operator * ( const Matrix & B);
 
@@ -352,6 +351,7 @@ namespace SGTELIB {
 
     // display:
     void display      ( std::ostream & out       ) const;
+    void display_short( std::ostream & out       ) const;
     void write        ( const std::string  & file_name ) const;
     void display_size ( std::ostream & out       ) const;
 

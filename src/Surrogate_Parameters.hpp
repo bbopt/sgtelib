@@ -67,10 +67,6 @@ namespace SGTELIB {
     metric_t _metric_type;
     // Preset
     std::string _preset;
-    // Nb Particles
-    int _nb_particles;
-    // Seed
-    int _seed;
     // Output file
     std::string _output;
 
@@ -106,12 +102,18 @@ namespace SGTELIB {
     SGTELIB::Matrix get_weight          (void) const {return _weight;};
     weight_t        get_weight_type     (void) const {return _weight_type;};
     metric_t        get_metric_type     (void) const {return _metric_type;};
+    std::string     get_metric_type_str (void) const {return SGTELIB::metric_type_to_str(_metric_type);};
     distance_t      get_distance_type   (void) const {return _distance_type;};
-    int             get_nb_particles    (void) const {return _nb_particles;};
-    int             get_seed            (void) const {return _seed;};
     std::string     get_preset          (void) const {return _preset;};
     std::string     get_output          (void) const {return _output;};
     SGTELIB::Matrix get_covariance_coef (void) const {return _covariance_coef;};
+
+    // Get the distance type (return OPTIM if the distance type has to be optimized).
+    std::string get_distance_type_str (void) const {
+      if (_distance_type_status==SGTELIB::STATUS_OPTIM) return "OPTIM";
+      else return SGTELIB::distance_type_to_str(_distance_type);
+    };
+
 
     // Set
     void set_kernel_coef     ( const double v          ) { _kernel_coef = v;      };

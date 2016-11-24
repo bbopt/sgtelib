@@ -188,7 +188,7 @@ namespace SGTELIB {
     // Return the index of the closest point to point i    
     int            get_closest ( const int i ) const;
     // Return the indexes of the nb_pts closest points to point i
-    std::list<int> get_closest ( const int i , const int nb_pts ) const;
+    //std::list<int> get_closest ( const int i , const int nb_pts ) const;
 
     // Get basic information
     int get_nb_points      ( void ) const { return _p; };

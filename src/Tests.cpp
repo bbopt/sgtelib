@@ -26,7 +26,7 @@
 #include "Surrogate_Ensemble.hpp"
 
 void SGTELIB::sand_box (void){
-   
+
   const int n = 2;
   const int m = 2;
   const int p = 5;
@@ -1549,7 +1549,9 @@ void SGTELIB::build_test_data ( const std::string & function_name ,
     if (function_name=="hartman3"){
       n = 3;
       q = 4;
-      B = SGTELIB::Matrix("./data/hartman3b.txt");
+      //B = SGTELIB::Matrix("./data/hartman3b.txt");
+      B = SGTELIB::Matrix("B",4,3);
+
       D = SGTELIB::Matrix("./data/hartman3d.txt");
     }
     else if (function_name=="hartman6"){

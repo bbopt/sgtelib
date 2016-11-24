@@ -24,7 +24,7 @@
 
 #include "Surrogate.hpp"
 
-
+using namespace SGTELIB;
 
 /*--------------------------------------*/
 /*              constructor             */
@@ -156,12 +156,14 @@ void SGTELIB::Surrogate::display ( std::ostream & out ) const {
   out << "p: " << _p << " (nb points)\n";
   display_private ( out );
 
+  /*
   std::list<int>::const_iterator it;
   out << "selected_points: { ";
   for ( it = _selected_points.begin() ; it != _selected_points.end() ; ++it ) {
     out << *it << " ";
   }
   out << "}\n";
+  */
 }//
 
 /*--------------------------------------*/
@@ -226,7 +228,7 @@ bool SGTELIB::Surrogate::build ( void ) {
     std::cout << "Surrogate build - BEGIN\n";
   #endif
 
-  if (!strcmpi(_param.get_output(),"NULL")){
+  if (streqi(_param.get_output(),"NULL")){
     _display = false;
   }
   else{
@@ -402,6 +404,8 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
                  "predict(): dimension error" );
   }
 
+  *ZZ = SGTELIB::Matrix("ZZ",XX.get_nb_rows(),_m);
+
   // Scale the input
   SGTELIB::Matrix XXs(XX);
   XXs.set_name("XXs");
@@ -426,18 +430,11 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
     }
   }
 
-  /*
-  if (ZZ) ZZ->display(std::cout);
-  if (std) std->display(std::cout);
-  if (ei) ei->display(std::cout);
-  if (cdf) cdf->display(std::cout);
-*/  
 
-  //#ifdef SGTELIB_DEBUG
+  #ifdef SGTELIB_DEBUG
     if (ZZ){
       if (ZZ->has_nan()){
-        display(std::cout); 
-        throw SGTELIB::Exception ( __FILE__ , __LINE__ , "predict(): ZZ has nan" );
+        ZZ->replace_nan (+INF);
       }
     }
     if (std){
@@ -458,7 +455,12 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
         throw SGTELIB::Exception ( __FILE__ , __LINE__ , "predict(): cdf has nan" );
       }
     }
-  //#endif
+  #endif
+
+  ZZ->replace_nan (+INF);
+  std->replace_nan (+INF);
+  ei->replace_nan (-INF);
+  cdf->replace_nan (0);
 
   // UnScale the output
   if (ZZ ){
@@ -505,12 +507,10 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
                                                 SGTELIB::Matrix * cdf) {
   check_ready(__FILE__,__FUNCTION__,__LINE__);
 
+
   const int pxx = XXs.get_nb_rows();
   const double fs_min = _trainingset.get_fs_min();
-  double s;
   int i,j;
-
-
 
   // Prediction of ZZs
   if ( (ZZs) or (ei) or (cdf) ){
@@ -521,32 +521,31 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
   if ( (std) or (ei) or (cdf) ){
 
     if (std) std->fill(-SGTELIB::INF);
+    else std = new SGTELIB::Matrix("std",pxx,_m);
+
     if (ei)   ei->fill(-SGTELIB::INF);
     if (cdf) cdf->fill(-SGTELIB::INF);
 
+    // Use distance to closest as std
+    SGTELIB::Matrix dtc = _trainingset.get_distance_to_closest(XXs);
+    dtc.set_name("dtc");
+    compute_metric_rmse();
+
     for (j=0 ; j<_m ; j++){
-
-      // Scaled estimate of the std
-      compute_metric_rmsecv();
-      s = _metric_rmsecv[j]; 
-
-      // Compute STD
-      if (std){
-        for (i=0 ; i<pxx ; i++){
-          std->set(i,j,s);
-        }
-      }
+      // Set std
+      double s = _metric_rmse[j]; 
+      std->set_col( dtc+s , j );
 
       if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
         // Compute CDF
         if (cdf){
           for (i=0 ; i<pxx ; i++){
-            cdf->set(i,j, normcdf( fs_min , ZZs->get(i,j) , s ) );
+            cdf->set(i,j, normcdf( fs_min , ZZs->get(i,j) , std->get(i,j) ) );
           }
         }
         if (ei){
           for (i=0 ; i<pxx ; i++){
-            ei->set(i,j, normei( ZZs->get(i,j) , s , fs_min ) );
+            ei->set(i,j, normei( ZZs->get(i,j) , std->get(i,j) , fs_min ) );
           }
         }
       }// END CASE OBJ
@@ -556,7 +555,7 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
           // Scaled Feasibility Threshold
           double cs = _trainingset.Z_scale(0.0,j);
           for (i=0 ; i<pxx ; i++){
-            cdf->set(i,j, normcdf( cs , ZZs->get(i,j) , s ) );
+            cdf->set(i,j, normcdf( cs , ZZs->get(i,j) , std->get(i,j) ) );
           }
         }
       }// END CASE CON
@@ -585,14 +584,15 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
                  "predict(): dimension error" );
   }
+  *ZZ = SGTELIB::Matrix("ZZ",XX.get_nb_rows(),_m);
 
   // Scale the input
   SGTELIB::Matrix XXs(XX);
   _trainingset.X_scale(XXs);
 
+
   // Call the private prediction with normalize input XXs
   predict_private( XXs , ZZ );
-
   #ifdef SGTELIB_DEBUG
     if (ZZ->has_nan()){
       display(std::cout); 
@@ -610,9 +610,11 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
 /*       get metric (general)           */
 /*--------------------------------------*/
 double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
+
   // Check dimension
   if ( (j<0) or (j>_m) ){
     display(std::cout); 
+    std::cout << "j = "<< j << "\n";
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
                  "get_metric(): dimension error" );
   }
@@ -737,8 +739,17 @@ const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Shs (void){
 // If no specific method is defined, consider Svs = Shs.
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Svs (void){
   if (not _Svs){
-    std::cout << "Svs <---- Copy Shs\n";
-    _Svs = new SGTELIB::Matrix(*get_matrix_Shs());
+    _Svs = new SGTELIB::Matrix("Svs",_p,_m);
+    const SGTELIB::Matrix Ds = _trainingset.get_matrix_Ds();
+    for (int i=0 ; i<_p ; i++){
+      double dmin = +INF;
+      for (int j=0 ; j<_p ; j++){
+        if (i!=j){
+          dmin = std::min(dmin,Ds.get(i,j));
+        }
+      }
+      _Svs->set_row(dmin,i);
+    }
   }
   return _Svs;
 }//
@@ -800,9 +811,9 @@ const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Zh (void){
 /*       get_Sh                         */
 /*--------------------------------------*/
 const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Sh (void){
-  // Return unscaled matrix Zh
+  // Return unscaled matrix Shs
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  SGTELIB::Matrix Sh (*get_matrix_Shs()); // Get scaled matrix
+  SGTELIB::Matrix Sh = (*get_matrix_Shs());
   _trainingset.ZE_unscale(&Sh); // Unscale
   return Sh; // Return unscaled
 }//
@@ -1357,11 +1368,15 @@ SGTELIB::Matrix SGTELIB::Surrogate::get_distance_to_closest ( const SGTELIB::Mat
 /*--------------------------------------*/
 bool SGTELIB::Surrogate::optimize_parameters ( void ) {
 
+
+  // Number of parameters to optimize
   const int N = _param.get_nb_parameter_optimization();
+  // Budget
+  int budget = 100*N;
+
   int i,j,k;
   double d;
   const bool display = false;
-
   if (display){
     std::cout << "Begin parameter optimization\n";
     std::cout << "Metric: " << SGTELIB::metric_type_to_str(_param.get_metric_type()) << "\n";
@@ -1412,9 +1427,8 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
     std::cout << "]\n";
   }
 
-
   // Build set of starting points
-  const int nx0 = 100;
+  const int nx0 = 1+budget/10;
   SGTELIB::Matrix X0 ("X0",nx0,N);
   X0.set_row(_param.get_x(),0);
   for (j=0 ; j<N ; j++){
@@ -1427,14 +1441,10 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
       X0.set(i,j,d);
     } 
   }
-  bool eval_x0 = true;
-
-
   
   //---------------------------------------------
   // Budget, poll size, success and objectives
   //---------------------------------------------
-  int budget = 100*N;
 
   SGTELIB::Matrix xtry ("xtry",1,N);
   double fmin = +INF;
@@ -1449,11 +1459,10 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   SGTELIB::Matrix CACHE ("CACHE",0,N);
   bool cache_hit;
 
-
   //------------------------
   // LOOP
   //------------------------
-
+  int iter=0;
   while (budget>0){
 
     success = false;
@@ -1468,12 +1477,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
       std::cout << "] => " << fmin << " / " << pmin <<  "\n\n";
     }
 
-
-    if (eval_x0){
-      // Evaluate starting points
-      POLL = X0;
-    }
-    else{
+    if (iter){
       // Create POLL candidates
       POLL = SGTELIB::Matrix::get_poll_directions(scaling,domain,psize);
       //POLL.display(std::cout);
@@ -1490,6 +1494,10 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
       POLL.set_name("POLL-CANDIDATES");
       //POLL.display(std::cout);
     }
+    else{
+      // If iter==0, then evaluate starting points
+      POLL = X0;
+    }
 
     // Evaluate POLL
     for (i=0 ; i<POLL.get_nb_rows() ; i++){
@@ -1500,8 +1508,8 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
 
       // Display candidate
       if (display){
-        if (eval_x0) std::cout << "X0= [ " ;
-        else std::cout << "X = [ " ;
+        if (iter) std::cout << "X = [ " ;
+        else std::cout << "X0= [ " ;
         for (j=0 ; j<N ; j++) std::cout << xtry[j] << " ";
         std::cout << "] => ";
       }
@@ -1574,33 +1582,33 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
         if (display) std::cout << "\n";
       } // End Evaluation (i.e. No Cache Hit)
 
-      if ( (not eval_x0) and (success) ) break;
+      if ( (iter) and (success) ) break;
 
     }// END LOOP ON POLL (for i...)
 
-    if (eval_x0){
-      // End of the evaluation of the starting points.
-      eval_x0 = false;
-    }
-    else{
+    if (iter){
       // Update poll size
       if (success) psize*=2;
       else psize/=2;
     }
+    iter++;
 
     // Check convergence
     if (psize<1e-6) break;
     if (budget<=0) break;
 
   }// End of optimization
-  
 
   // Set param to optimal value
   _param.set_x(xmin);
   _param.check();
 
   fmin = eval_objective();
-
+  /*
+  _param.display(std::cout);
+  std::cout << "fmin = " << fmin << "\n";
+  std::cout << "=================================\n";
+  */
   if (display){
     _param.display(std::cout);
     std::cout << "End parameter optimization\n";
@@ -1636,7 +1644,7 @@ double SGTELIB::Surrogate::eval_objective ( void ){
 
   double metric = 0;
   if (SGTELIB::metric_multiple_obj(mt)){
-    for (int i=0 ; i<_trainingset.get_nvar() ; i++) metric += get_metric(mt,i);
+    for (int i=0 ; i<_m ; i++) metric += get_metric(mt,i);
   }
   else{
     metric = get_metric(mt,0);
