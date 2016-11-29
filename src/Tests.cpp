@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -27,72 +28,19 @@
 
 void SGTELIB::sand_box (void){
 
-  const int n = 2;
-  const int m = 2;
-  const int p = 5;
-  const int pp = 200;
+  std::string m = "X=   [[[  1 2  \t3 \n 3.43,4  5 ;\n  7 8 9 ; 10 11 12.5   ;]";
 
-  SGTELIB::Matrix X ("X",p,n);
-  SGTELIB::Matrix XX ("XX",pp,n);
-  SGTELIB::Matrix Z ("Z",p,m);
-  X.set_random(0,+10,false);
-  XX.set_random(0,+10,false);
-  Z.set_random(0,+10,false);
+  SGTELIB::Matrix M;
+  M = SGTELIB::Matrix::string_to_matrix(m);
+  M.display(std::cout);
+  //M = SGTELIB::Matrix::import_data("../example/X.txt");
+  M = SGTELIB::Matrix("../example/XX.txt");
+  M.display(std::cout);
+  M.display_size(std::cout);
 
-
-  SGTELIB::TrainingSet C0(X,Z);
-  SGTELIB::Surrogate * S0;
-  S0 = SGTELIB::Surrogate_Factory(C0,"TYPE PRS DEGREE OPTIM");
-  //S0 = SGTELIB::Surrogate_Factory(C0,"TYPE ENSEMBLE PRESET SUPER1 WEIGHT OPTIM METRIC AOECV OUTPUT outxxx.txt");
-  //S0 = SGTELIB::Surrogate_Factory(C0,"TYPE KRIGING METRIC AOECV OUTPUT outxxx.txt");
-
-  for (int i=0 ; i<3 ; i++){
-
-    S0->build();
-    SGTELIB::Matrix * ZZ  = new SGTELIB::Matrix("ZZ",pp,m);
-    // Simple Prediction
-    S0->predict(XX,ZZ);
-    double m1,m2;
-    std::cout << "------------------------------------------------------\n";
-    m1 = S0->get_metric(SGTELIB::METRIC_AOE,0);
-    m2 = S0->get_metric(SGTELIB::METRIC_OE,0);
-    std::cout << "AOE      : " << m1 << "\n";
-    std::cout << "OE[0]    : " << m2 << "\n";
-    std::cout << "------------------------------------------------------\n";
-    m1 = S0->get_metric(SGTELIB::METRIC_AOECV,0);
-    m2 = S0->get_metric(SGTELIB::METRIC_OECV,0);
-    std::cout << "AOECV     : " << m1 << "\n";
-    std::cout << "OECV[0]   : " << m2 << "\n";
-    std::cout << "------------------------------------------------------\n";
-    std::cout << "------------------------------------------------------\n";
-    m1 = S0->get_metric(SGTELIB::METRIC_ARMSE,0);
-    m2 = S0->get_metric(SGTELIB::METRIC_RMSE,0);
-    std::cout << "ARMSE   : " << m1 << "\n";
-    std::cout << "RMSE[0] : " << m2 << "\n";
-    std::cout << "Ratio : " << m1/m2 << "\n";
-    std::cout << "------------------------------------------------------\n";
-    m1 = S0->get_metric(SGTELIB::METRIC_ARMSECV,0);
-    m2 = S0->get_metric(SGTELIB::METRIC_RMSECV,0);
-    std::cout << "ARMSECV   : " << m1 << "\n";
-    std::cout << "RMSECV[0] : " << m2 << "\n";
-    std::cout << "Ratio : " << m1/m2 << "\n";
-    std::cout << "------------------------------------------------------\n";
-  
-
-    std::cout << "Delete ZZ\n";
-    delete ZZ;
-
-
-    X.set_random(0,+10,false);
-    Z.set_random(0,+10,false);
-    C0.add_points(X,Z);
-
-  }
-
-  SGTELIB::surrogate_delete(S0);
 
   std::cout << "End of sandbox\nEXIT\n";
-}
+}//
 
 
 void SGTELIB::test_LOWESS_times ( void ){
@@ -173,8 +121,6 @@ void SGTELIB::test_many_models ( const std::string & model_list_file ,
   std::cout << "SGTELIB::test_many_models\n";
 
   // Data information
-  //const int n = X0.get_nb_cols();
-  //const int p = X0.get_nb_rows();
   const int m = Z0.get_nb_cols();
 
   // TrainingSet creation
@@ -199,11 +145,8 @@ void SGTELIB::test_many_models ( const std::string & model_list_file ,
 
   metric_list.push_back( METRIC_RMSE   );
   metric_list.push_back( METRIC_RMSECV  );
-//  metric_list.push_back( METRIC_EMAX   );
-//  metric_list.push_back( METRIC_EMAXCV );
   metric_list.push_back( METRIC_OE   );
   metric_list.push_back( METRIC_OECV   );
-//  metric_list.push_back( METRIC_LINV   );
 
   // Open an output file
   std::ofstream out;
@@ -228,30 +171,23 @@ void SGTELIB::test_many_models ( const std::string & model_list_file ,
 
     // Loop on the outputs    
     for (int j=0 ; j<m ; j++){
-      //std::cout << "output " << j << ;
       out << "output " << j << "\n";
       out << "metrics ";
       // Loop on the metrics
       for (std::vector<SGTELIB::metric_t>::iterator it_metric = metric_list.begin() ; it_metric != metric_list.end(); ++it_metric){
-        //std::cout << " " << SGTELIB::metric_type_to_str(*it_metric); 
         if (ready)
           out << S0->get_metric (*it_metric,j) << " ";
         else
           out << "-999 ";
       }
-      //std::cout << "\n"; 
       out << "\n";
     }
-
     out << "\n";
-
     SGTELIB::surrogate_delete(S0);
-
   }
-
   out.close();  
 
-}
+}//
 
 
 /*----------------------------------------------------*/
@@ -264,9 +200,7 @@ std::string SGTELIB::test_quick (const std::string & s , const SGTELIB::Matrix &
   std::cout << "SGTELIB::test_quick\n";
   std::cout << s << "\n";
 
-
   // CONSTRUCT DATA
-  //const int p = X0.get_nb_rows();
   SGTELIB::Matrix Z0 = test_functions(X0);
   const int m = Z0.get_nb_cols();
   bool ready;
@@ -298,7 +232,6 @@ std::string SGTELIB::test_quick (const std::string & s , const SGTELIB::Matrix &
     oecv[j] = S0->get_metric(SGTELIB::METRIC_OECV,j);
     linv[j] = S0->get_metric(SGTELIB::METRIC_LINV,j);
   }
-
 
   // Display
   std::ostringstream oss;
@@ -580,7 +513,7 @@ std::string SGTELIB::test_update (const std::string & s , const SGTELIB::Matrix 
 
   return "test_update ok\n";
 
-}
+}//
 
 
 
@@ -593,7 +526,6 @@ std::string SGTELIB::test_singular_data (const std::string & s ) {
   std::cout << "SGTELIB::test_singular_data\n";
   std::cout << s << "\n";
 
-
   // CONSTRUCT DATA
   const int n = 3;
   const int p = 10;
@@ -602,7 +534,6 @@ std::string SGTELIB::test_singular_data (const std::string & s ) {
   SGTELIB::Matrix Z0 = test_functions(X0);
   const int m = Z0.get_nb_cols();
   Z0.set_name("Z0");
-
 
   // Column 0 of X0 is constant (= 0.0);
   X0.set_col(0.0,0);
@@ -659,7 +590,6 @@ std::string SGTELIB::test_singular_data (const std::string & s ) {
   }
   oss << "---|--------------|--------------|\n";
 
-
   for (int j=0 ; j<m ; j++){
     if ( (not isdef(rmse[j])) or (not isdef(rmse[j])) ){
       std::cout << "There are some nan !";
@@ -674,7 +604,7 @@ std::string SGTELIB::test_singular_data (const std::string & s ) {
   delete [] rmsecv;
   return oss.str();
 
-}
+}//
 
 
 
@@ -807,7 +737,7 @@ std::string SGTELIB::test_scale (const std::string & s , const SGTELIB::Matrix &
 
   std::cout << "test_scale OK for model " << s << "\n";
   return "test_scale ok\n";
-}
+}//
 
 
 
@@ -897,7 +827,6 @@ std::string SGTELIB::test_dimension (const std::string & s ){
     S0 = SGTELIB::Surrogate_Factory(*C0,s);
     ready = S0->build();
 
-
     // Loop on the metrics
     std::vector<SGTELIB::metric_t>::iterator it;
     int j;
@@ -930,10 +859,6 @@ std::string SGTELIB::test_dimension (const std::string & s ){
     else{
       std::cout << "Not Ready\n" ;
     }
-
-    // Bu
-
-
   }
 
   // Free space
@@ -943,7 +868,7 @@ std::string SGTELIB::test_dimension (const std::string & s ){
   std::cout << "test_dimension OK for model " << s << "\n";
   std::cout << "======================================================\n";
   return "test_dimension ok\n";
-}
+}//
 
 
 /*----------------------------------------------------*/
@@ -1029,10 +954,7 @@ std::string SGTELIB::test_rmse (const std::string & s , const SGTELIB::Matrix & 
 
 
   return oss.str();
-}
-
-
-
+}//
 
 
 /*----------------------------------------------------*/
@@ -1078,10 +1000,6 @@ std::string SGTELIB::test_rmsecv (const std::string & s , const SGTELIB::Matrix 
     std::cout << "test_rmsecv: model ("+s+") is not ready\n";
     return       "test_rmsecv: model ("+s+") is not ready\n";
   }
-  // GET THE CV OUTPUT
-//  const SGTELIB::Matrix Zv = S0->get_matrix_Zv();
-
-
 
   // Get the RMSECV metric
   double * rmsecv = new double [m];
@@ -1113,11 +1031,8 @@ std::string SGTELIB::test_rmsecv (const std::string & s , const SGTELIB::Matrix 
   // (Supposed to be identical to _Zv of class Surrogate)
   SGTELIB::Matrix Zv_verif  ("Zv_verif",p,m);
 
- 
-  //std::cout << "SGTELIB::CV\n";
   // BUILD THE CV MODELS
   for (int i=0 ; i<p ; i++){
-    //std::cout << "BUILD CV MODELS " << i << "\n";
     // Build the trainingset (without point i);
     Cv = new SGTELIB::TrainingSet(X0i,Z0i);
     Cv->build();
@@ -1125,24 +1040,20 @@ std::string SGTELIB::test_rmsecv (const std::string & s , const SGTELIB::Matrix 
     xsav = Cv->get_X_scaling_a(0);
     // Init surrogate
     Sv = SGTELIB::Surrogate_Factory(*Cv,s);
-
     // Correct ks for RBF and KS
     kcv = kc0*(dmeanv/dmean0)*(xsa0/xsav);
     if (mt==SGTELIB::RBF) static_cast<SGTELIB::Surrogate_RBF*>(Sv)->set_kernel_coef(kcv);
     if (mt==SGTELIB::KS)  static_cast<SGTELIB::Surrogate_KS* >(Sv)->set_kernel_coef(kcv);
     // Build
     Sv->build();
-    
     // Do the prediction on point i
     Sv->predict(X0.get_row(i),&Zvi);
     Zv_verif.set_row(Zvi,i);
-
     // update the matrices so that they lack the point i+1
     if (i<p-1){
       X0i.set_row(X0.get_row(i),i);
       Z0i.set_row(Z0.get_row(i),i);
     }
-
     delete Cv;
     surrogate_delete(Sv);
   }
@@ -1189,15 +1100,12 @@ std::string SGTELIB::test_rmsecv (const std::string & s , const SGTELIB::Matrix 
 
   std::cout << oss.str();
   return oss.str();
-}
-
-
-
+}//
 
 
 
 /*----------------------------------------------------*/
-/*       TEST RMSECV                                  */
+/*       TEST MULTIPLE                                */
 /*----------------------------------------------------*/
 std::string SGTELIB::test_multiple_occurrences (const std::string & s ){
 
@@ -1356,7 +1264,7 @@ std::string SGTELIB::test_multiple_occurrences (const std::string & s ){
   std::cout << oss.str();
 
   return oss.str();
-}
+}//
 
 
 
@@ -1367,7 +1275,6 @@ std::string SGTELIB::test_multiple_occurrences (const std::string & s ){
 /*       test functions                               */
 /*----------------------------------------------------*/
 SGTELIB::Matrix SGTELIB::test_functions (const SGTELIB::Matrix & X){
-  // TESTED : OK.
 
   const int n = X.get_nb_cols(); // Input dim
   const int p = X.get_nb_rows(); // Nb of points
@@ -1406,9 +1313,10 @@ SGTELIB::Matrix SGTELIB::test_functions (const SGTELIB::Matrix & X){
   return Z;
 }//
 
-
+/*----------------------------------------------------*/
+/*       Create some 1D test functions                */
+/*----------------------------------------------------*/
 double SGTELIB::test_functions_1D (const double t, const int function_index){
-  // TESTED : OK.
 
   switch (function_index){
     case 0:
@@ -1423,15 +1331,16 @@ double SGTELIB::test_functions_1D (const double t, const int function_index){
       return 5.0*t-17.0*pow(t,3)+13*pow(t,5); // Oscillations/polynomial
     case 5:
       return sin(6.0*t)+cos(15.0*sqrt(fabs(t))); // Difficult function
-
-
-
     default:
       std::cout << "function_index : " << function_index << "\n";
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"test_function_1D : function_index not recognized" );
     }
 }//
 
+
+/*----------------------------------------------------*/
+/*       Create some 1D test functions                */
+/*----------------------------------------------------*/
 SGTELIB::Matrix SGTELIB::test_functions_1D (const SGTELIB::Matrix & T, const int function_index){
   if (T.get_nb_cols()!=1){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"test_function_1D : only for column vector!" );
@@ -1445,7 +1354,9 @@ SGTELIB::Matrix SGTELIB::test_functions_1D (const SGTELIB::Matrix & T, const int
 }//
 
 
-
+/*----------------------------------------------------*/
+/*       Check differences between two matrices       */
+/*----------------------------------------------------*/
 void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix * B){
   // Check not NULL
   if (not A){
@@ -1468,16 +1379,6 @@ void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"check_matrix_diff : != nb of cols" );
   }
   const int n = A->get_nb_cols();
-
-  /*
-  // Check nan
-  if (A->has_nan()){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"check_matrix_diff : A has_nan" );
-  }
-  if (B->has_nan()){
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"check_matrix_diff : A has_nan" );
-  }
-  */
 
   double va,vb,dab;
   bool eij = false; // true if there is a problem with value (i,j)
@@ -1521,11 +1422,10 @@ void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix
   if (e){
     A->display(std::cout);
     B->display(std::cout);
-    //throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"check_matrix_diff : error" );  
   }
 
 
-}
+}//
 
 
 
@@ -1535,6 +1435,9 @@ void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix
 
 
 
+/*----------------------------------------------------*/
+/*       build test data                              */
+/*----------------------------------------------------*/
 void SGTELIB::build_test_data ( const std::string & function_name , 
                                 SGTELIB::Matrix & X0 , 
                                 SGTELIB::Matrix & Z0 ){
@@ -1546,20 +1449,34 @@ void SGTELIB::build_test_data ( const std::string & function_name ,
   if ( (function_name=="hartman3") or (function_name=="hartman6") ){
     int q = 0;    
     SGTELIB::Matrix B,D;
+    std::string B_str,D_str;
     if (function_name=="hartman3"){
-      n = 3;
-      q = 4;
-      //B = SGTELIB::Matrix("./data/hartman3b.txt");
-      B = SGTELIB::Matrix("B",4,3);
+      B_str = "3.0 10.0 30.0 ;"
+              "0.1 10.0 35.0 ;"
+              "3.0 10.0 30.0 ;"
+              "0.1 10.0 35.0 ;";
 
-      D = SGTELIB::Matrix("./data/hartman3d.txt");
+      D_str = "0.3689 0.1170 0.2673  ;"
+              "0.4699 0.4387 0.7470  ;"
+              "0.1091 0.8732 0.5547  ;"
+              "0.03815 0.5743 0.8828 ;";
     }
     else if (function_name=="hartman6"){
-      n = 6;
-      q = 4;
-      B = SGTELIB::Matrix("./data/hartman6b.txt");
-      D = SGTELIB::Matrix("./data/hartman6d.txt");    
+      B_str = "10.0 3.0  17.0 3.5  1.7  8.0  ;"
+              "0.05 10.0 17.0 0.1  8.0  14.0 ;"
+              "3.0  3.5  1.7  10.0 17.0 8.0  ;"
+              "17.0 8.0  0.05 10.0 0.1  14.0 ;";
+
+      D_str = "0.1312 0.1696 0.5569 0.0124 0.8283 0.5886 ;"
+              "0.2329 0.4135 0.8307 0.3736 0.1004 0.9991 ;"
+              "0.2348 0.1451 0.3522 0.2883 0.3047 0.6650 ;"
+              "0.4047 0.8828 0.8732 0.5743 0.1091 0.0381 ;";
     }
+
+    B = SGTELIB::Matrix::string_to_matrix(B_str);
+    D = SGTELIB::Matrix::string_to_matrix(D_str);   
+    n = B.get_nb_cols();
+    q = B.get_nb_rows();
     m = 1;
 
     p = 100*(n+1);
@@ -1567,7 +1484,7 @@ void SGTELIB::build_test_data ( const std::string & function_name ,
     Z0 = SGTELIB::Matrix("Z0",p,m);
     X0.set_random(0.0,1.0,false);
 
-    double zi,eik,ak;
+    double zi,eik,ak=0;
     for (int i=0 ; i<p ; i++){
       zi = 0;
       for (int k=0 ; k<q ; k++){
@@ -1665,8 +1582,6 @@ void SGTELIB::build_test_data ( const std::string & function_name ,
 
 
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"build_test_data : function name not recognized" );
-
-
 
 }
 

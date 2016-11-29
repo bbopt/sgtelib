@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -37,7 +38,7 @@
 namespace SGTELIB {
   void sgtelib_server ( const std::string & model , const bool verbose );
   void sgtelib_predict ( const std::string & file_list , const std::string & model );
-  void sgtelib_best    ( const std::string & file_list );
+  void sgtelib_best    ( const std::string & file_list , const bool verbose );
   void sgtelib_help ( std::string word="GENERAL" );
   void sgtelib_test ( void );
 }

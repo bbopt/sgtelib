@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -265,9 +266,8 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
       break;
 
     case SGTELIB::KRIGING: 
-      if (streqi(field,"KERNEL_TYPE")) return true;
+      if (streqi(field,"RIDGE"))         return true;
       if (streqi(field,"DISTANCE_TYPE")) return true;
-      if (streqi(field,"COVARIANCE_COEF")) return true;
 
     case SGTELIB::PRS: 
     case SGTELIB::PRS_EDGE: 
@@ -437,8 +437,6 @@ void SGTELIB::Surrogate_Parameters::display ( std::ostream & out ) const {
   out << "Type: " << SGTELIB::model_type_to_str(_type) << std::endl;
 
   switch (_type) {
-    case SGTELIB::LINEAR:
-    case SGTELIB::TGP: 
 
     case SGTELIB::SVN: 
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
@@ -450,14 +448,16 @@ void SGTELIB::Surrogate_Parameters::display ( std::ostream & out ) const {
 
     case SGTELIB::KRIGING: 
       out << "Covariance coefs: " << "\n";
+      out << "Ridge: " << _ridge << std::endl;
       _covariance_coef.display(out);
       break;
 
     case SGTELIB::PRS: 
     case SGTELIB::PRS_EDGE: 
     case SGTELIB::PRS_CAT: 
-      out << "degree: " << _degree << std::endl;
-      out << "ridge: " << _ridge << std::endl;
+      out << "Degree: " << _degree << std::endl;
+      out << "Ridge: " << _ridge << std::endl;
+      out << "Distance_type: " << distance_type_to_str(_distance_type) << std::endl;
       break;
 
     case SGTELIB::KS: 
@@ -517,18 +517,17 @@ void SGTELIB::Surrogate_Parameters::set_defaults ( void ) {
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Not implemented yet!" );
 
     case SGTELIB::KRIGING: 
-      _kernel_type = SGTELIB::KERNEL_D1; 
-      _kernel_type_status = SGTELIB::STATUS_FIXED;
       _distance_type = SGTELIB::DISTANCE_NORM2;
       _distance_type_status = SGTELIB::STATUS_FIXED;
-      _covariance_coef = SGTELIB::Matrix("COVARIANCE_COEF",1,3);
+      _ridge = 1e-16;
+      _ridge_status = SGTELIB::STATUS_OPTIM;
+      _covariance_coef = SGTELIB::Matrix("COVARIANCE_COEF",1,2);
       {
-        const double default_noise  = 1e-6;
         const double default_exponent = 2;
-        const double default_factor  = 1;
-        _covariance_coef.set(0,0,default_noise);
-        _covariance_coef.set(0,1,default_exponent);
-        _covariance_coef.set(0,2,default_factor);
+        _covariance_coef.set(0,0,default_exponent);
+
+        const double default_factor   = 1;
+        _covariance_coef.set(0,1,default_factor);
       }
       _covariance_coef_status = SGTELIB::STATUS_OPTIM;
       break;
@@ -891,13 +890,7 @@ void SGTELIB::Surrogate_Parameters::get_x_bounds ( SGTELIB::Matrix * LB ,
     }
     // --------- COVARIANCE COEF --------------------
     if (_covariance_coef_status == SGTELIB::STATUS_OPTIM){
-      // Noise parameter
-      LB->set(0,k,1e-9);
-      UB->set(0,k,1e-3);
-      domain[k] = SGTELIB::PARAM_DOMAIN_CONTINUOUS;
-      logscale[k] = true;
-      k++;
-      const int v = (_covariance_coef.get_nb_cols()-1)/2;
+      const int v = _covariance_coef.get_nb_cols()/2;
       for (j=0 ; j<v ; j++){
         // Exponent parameter
         LB->set(0,k,0.5);
@@ -912,7 +905,6 @@ void SGTELIB::Surrogate_Parameters::get_x_bounds ( SGTELIB::Matrix * LB ,
         logscale[k] = true;
         k++;
       }
-
     }
     // --------- WEIGHT --------------------
     if (_weight_status == SGTELIB::STATUS_OPTIM){
@@ -1127,7 +1119,7 @@ double SGTELIB::Surrogate_Parameters::get_x_penalty ( void ){
   double pen = 0;
   
   if (_degree_status        == SGTELIB::STATUS_OPTIM) pen += _degree;
-  if (_ridge_status         == SGTELIB::STATUS_OPTIM) pen += log(_ridge+1e-9)+9; // Can be 0.
+  if (_ridge_status         == SGTELIB::STATUS_OPTIM) pen += log(_ridge); 
   if (_kernel_coef_status   == SGTELIB::STATUS_OPTIM) pen += log(_kernel_coef);
   if (_distance_type_status == SGTELIB::STATUS_OPTIM){
     switch (_distance_type){
@@ -1145,19 +1137,13 @@ double SGTELIB::Surrogate_Parameters::get_x_penalty ( void ){
     }
   }
   if (_covariance_coef_status == SGTELIB::STATUS_OPTIM){
-    int v = (_covariance_coef.get_nb_cols()-1)/2;
-    double c;
+    int v = _covariance_coef.get_nb_cols()/2;
     int ip=0;
-    // Noise (the smaller, the smoother)
-    c = _covariance_coef.get(ip++);
-    pen += log(c);
     for (int i=0 ; i<v ; i++){ 
       // Exponent (the larger, the smoother) 
-      c = _covariance_coef.get(ip++);
-      pen -= c;
+      pen -= _covariance_coef.get(ip++);
       // Factor (the smaller, the smoother)
-      c = _covariance_coef.get(ip++);
-      pen += log(c);
+      pen += log( _covariance_coef.get(ip++) );
     }
   }
   if (_weight_status == SGTELIB::STATUS_OPTIM){
@@ -1186,7 +1172,7 @@ double SGTELIB::Surrogate_Parameters::get_x_penalty ( void ){
 void SGTELIB::Surrogate_Parameters::update_covariance_coef ( const int v ){
 
   // Check the old dimension
-  const int v0 = (_covariance_coef.get_nb_cols()-1)/2;
+  const int v0 = _covariance_coef.get_nb_cols()/2;
   if (v<v0) throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"v < v0" );
   if (v0 == v) return;
 

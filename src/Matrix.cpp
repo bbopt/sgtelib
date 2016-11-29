@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -83,72 +84,7 @@ SGTELIB::Matrix::Matrix ( const std::string & file_name ) :
                   _nbRows    ( 0         ) ,
                   _nbCols    ( 0         ) ,
                   _X    ( NULL      )   {
-
-  // TOTO: faiblesse de cette fonction: ne fonctionne pas si dans mon fichier j'ai les ";" sans espace devant
-  //       --> a corriger
-
-  std::ifstream in ( file_name.c_str() );
-  std::string tmp;
-
-  if ( in.fail() ) {
-    in.close();
-    std::ostringstream oss;
-    oss << "Matrix::constructor 3: cannot open file " << file_name;
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , oss.str() );
-  }
-
-  getline ( in , _name , '=' );
-  getline ( in , tmp , '[' );
-  std::vector<double *> all_rows;
-
-  int j , tmp_nbCols;
-
-  while ( ( tmp != "]" ) and ( tmp != "];" ) and ( tmp != ";]" ) and ( tmp != ";];" ) ) {
-    
-    std::vector<double> one_row;
-
-    in >> tmp;
-    if ( ( tmp == "]" ) or ( tmp == "];" ) or ( tmp == ";]" ) or ( tmp == ";];" ) )
-      break;
-
-    while ( ( tmp != ";" ) and ( tmp != ";]" )  and ( tmp != ";];" ) ) {
-      one_row.push_back ( std::atof ( tmp.c_str() ) );
-      in >> tmp;
-    }
-
-    tmp_nbCols = static_cast<int> ( one_row.size() );
-
-    if ( _nbCols == 0 )
-      _nbCols = tmp_nbCols;
-    else if ( _nbCols != tmp_nbCols ) {
-      in.close();
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-         "Matrix::constructor 3: dimension error" );
-    }
-
-    all_rows.push_back ( new double [_nbCols] );
-    
-    for ( j = 0 ; j < _nbCols ; ++j )
-      all_rows[all_rows.size()-1][j] = one_row[j];
-
-  }
-
-  if ( in.fail() ) {
-    in.close();
-    _nbCols = 0;
-    std::ostringstream oss;
-    oss << "Matrix::constructor 3: problem with file " << file_name;
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , oss.str() );
-  }
-
-  in.close();
-
-  _nbRows = static_cast<int> ( all_rows.size() );
-
-  _X = new double * [_nbRows];
-
-  for ( j = 0 ; j < _nbRows ; ++j )
-    _X[j] = all_rows[j];
+  *this = import_data(file_name);
 }//
 
 
@@ -179,17 +115,6 @@ SGTELIB::Matrix::Matrix ( const SGTELIB::Matrix & A ) :
 }//
 
 
-/*---------------------------------------*/
-/*    affectation operator from string   */
-/*---------------------------------------*/
-SGTELIB::Matrix SGTELIB::Matrix::str2mat ( std::string s ) {
-
-  std::cout << "String:\n" << s << "\n";
-  SGTELIB::Matrix A ("A",3,3);
-  return A;
-
-
-}//
 
 
 /*---------------------------*/
@@ -229,6 +154,8 @@ SGTELIB::Matrix & SGTELIB::Matrix::operator = ( const SGTELIB::Matrix & A ) {
   return *this;
 }//
 
+
+
 /*---------------------------*/
 /*     import data           */
 /*---------------------------*/
@@ -243,29 +170,74 @@ SGTELIB::Matrix SGTELIB::Matrix::import_data  ( const std::string & file_name ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ , oss.str() );
   }
 
-  int nbCols=-1; 
+  std::string s;
   std::string line;
-  SGTELIB::Matrix M;
+  while (std::getline(in, line)) s += line+";";
 
-  while (in.good()){
-    getline ( in , line );
-    if (nbCols==-1){
-      nbCols= SGTELIB::count_words(line);
-      M = SGTELIB::Matrix("M",0,nbCols);
+  return string_to_matrix(s);
+
+}//
+
+
+/*---------------------------------------*/
+/*    affectation operator from string   */
+/*---------------------------------------*/
+SGTELIB::Matrix SGTELIB::Matrix::string_to_matrix ( std::string s ) {
+
+  // Replace tabs, newline etc.
+  std::replace( s.begin(), s.end(), '\t', ' ');
+  std::replace( s.begin(), s.end(), '\n', ';');
+  std::replace( s.begin(), s.end(), '\r', ';');
+  std::replace( s.begin(), s.end(), ',' , ' ');
+
+  // Remove extra spaces
+  s = SGTELIB::deblank(s);
+  size_t i;
+  std::string curline;
+
+  // Find name
+  std::string name = "MAT"; // default name
+  i = std::min(s.find("="),s.find("["));
+  if (i!=std::string::npos){
+    curline = SGTELIB::deblank(s.substr(0,i));
+    if (curline.size()){
+      name = curline;
     }
-    if (line.size()>0){
-      M.add_rows(SGTELIB::Matrix::string_to_row(line,nbCols));
-    }
+    s = s.substr(i+1);
   }
-  in.close();
+
+  // Replace closing brakets by semi-colon.
+  std::replace( s.begin(), s.end(), '=', ' ');
+  std::replace( s.begin(), s.end(), '[', ' ');
+  std::replace( s.begin(), s.end(), ']', ' ');
+
+  // Read data
+  int nbCols=-1;
+  SGTELIB::Matrix M;
+  while (true){
+
+    i = s.find(";");
+    if (i==std::string::npos) break;
+    curline = SGTELIB::deblank(s.substr(0,i));
+    s = s.substr(i+1);
+    if (curline.size()){
+      if (nbCols==-1){
+        nbCols= SGTELIB::count_words(curline);
+        M = SGTELIB::Matrix(name,0,nbCols);
+      }
+      M.add_rows(SGTELIB::Matrix::string_to_row(curline,nbCols));
+    }
+
+  }
   return M;
+
 }//
 
 /*------------------------------*/
 /* convert string to row vector */
 /*------------------------------*/
-SGTELIB::Matrix SGTELIB::Matrix::string_to_row  ( const std::string & s , int nbCols /* =0 */ ){
-  if (nbCols==0){
+SGTELIB::Matrix SGTELIB::Matrix::string_to_row  ( const std::string & s , int nbCols ){
+  if (nbCols<=0){
     nbCols = count_words(s);
   }
   SGTELIB::Matrix row("r",1,nbCols);
@@ -273,6 +245,13 @@ SGTELIB::Matrix SGTELIB::Matrix::string_to_row  ( const std::string & s , int nb
   std::stringstream ss( s );
   int i=0;
   while( ss >> v ) row._X[0][i++] = v;
+  if (i++!=nbCols){
+    std::cout << "In line \"" << s << "\"\n";
+    std::cout << "Found " << i << " components\n";
+    std::cout << "Expected " << nbCols << " components\n";
+    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+       "Matrix::string_to_row : cannot read line "+s );
+  }
   return row;
 }//
 

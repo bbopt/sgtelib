@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -71,7 +72,6 @@ namespace SGTELIB {
     Matrix ( const Matrix & );
 
     // affectation operator:
-    static Matrix str2mat ( std::string s );
     Matrix & operator = ( const Matrix & A );
 
     //Matrix & operator * ( const Matrix & B);
@@ -357,6 +357,7 @@ namespace SGTELIB {
 
     // import data in plain format
     static SGTELIB::Matrix import_data   ( const std::string & file_name );
+    static SGTELIB::Matrix string_to_matrix ( std::string s );
     static SGTELIB::Matrix string_to_row ( const std::string & s , int nbCols = 0 );
 
     // distances

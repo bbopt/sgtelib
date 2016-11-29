@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -80,13 +81,12 @@ bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
   // The build mainly consists of computing alpha  
 
   // Compute scaling distance for each training point
-  const int pvar = _trainingset.get_pvar();
   const int mvar = _trainingset.get_mvar();
   const int nvar = _trainingset.get_nvar();
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
 
   _R = compute_covariance_matrix(get_matrix_Xs());
-  _H = SGTELIB::Matrix::ones(pvar,1);
+  _H = SGTELIB::Matrix::ones(_p,1);
   _Ri = _R.lu_inverse(&_detR);
 
   if (_detR<=0){
@@ -112,7 +112,7 @@ bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
     Zj = Zs.get_col(j);
     Zj = (Zj-_H*_beta.get_col(j));
     Vj = Zj.transpose() * _Ri * Zj;
-    v = Vj.get(0,0) / (pvar-nvar);
+    v = Vj.get(0,0) / (_p-nvar);
     if (v<0) return false;
     _var.set(0,j,v);
     
@@ -134,23 +134,39 @@ const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( co
 
   // Xs can be, either the training set, to build the model, or prediction points.
 
-  const int pvar = _trainingset.get_pvar();
   const int nvar = _trainingset.get_nvar();
   const int pxx = XXs.get_nb_rows();
   const SGTELIB::Matrix Xs = get_matrix_Xs();
 
   const SGTELIB::Matrix coef = _param.get_covariance_coef();
-  const int clength = coef.get_nb_cols();
+  //const int clength = coef.get_nb_cols();
 
-  SGTELIB::Matrix R ("R",pxx,pvar);
 
+  const SGTELIB::Matrix D = _trainingset.get_distances(XXs,get_matrix_Xs(),_param.get_distance_type());
+
+  SGTELIB::Matrix R ("R",pxx,_p);
+
+  int ip; // Index of the current covariance coefficient
+  double d, cov;// dsum;
+  for (int i1=0 ; i1<pxx ; i1++){
+    for (int i2=0 ; i2<_p ; i2++){
+      d = D.get(i1,i2);
+      cov = coef[1] * pow(d,coef[0]);
+      cov = exp(-cov);
+      // Add noise if the distance is 0.
+      if (d==0) cov = 1.0+_param.get_ridge();
+      R.set(i1,i2,cov);
+    }
+  }
+
+/*
   int ip; // Index of the current covariance coefficient
   double d, cov, dsum;
   for (int i1=0 ; i1<pxx ; i1++){
-    for (int i2=0 ; i2<pvar ; i2++){
+    for (int i2=0 ; i2<_p ; i2++){
       cov = 0;
       dsum = 0;
-      ip = 1;
+      ip = 0; // index of the parameter to read
       for (int j=0 ; j<nvar ; j++){
         d = fabs(XXs.get(i1,j)-Xs.get(i2,j));
         dsum += d;
@@ -159,15 +175,15 @@ const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( co
         cov += d;
         // In the case where coef has only 3 components (isotropique model)
         // Then we go back to the 2nd component (index = 1).
-        if (ip==clength) ip=1;
+        if (ip==clength) ip=0;
       }
       cov = exp(-cov);
       // Add noise if the distance is 0.
-      //if (dsum==0) cov += coef[0];
-      cov *= (1.0-coef[0]);
+      if (dsum==0) cov += _param.get_ridge();
       R.set(i1,i2,cov);
     }
   }
+*/
    
   return R;
 }//
@@ -275,7 +291,6 @@ bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
 
   if ((_Zvs) and (_Svs)) return true;
 
-  const int pvar = _trainingset.get_pvar();
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
   const SGTELIB::Matrix RiH = _Ri*_H;
   const SGTELIB::Matrix Q = _Ri - RiH*( _H.transpose()*_Ri*_H)*RiH.transpose();
@@ -290,9 +305,9 @@ bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
   }
     
   if (not _Svs){
-    _Svs = new SGTELIB::Matrix ("Svs",pvar,_m);
+    _Svs = new SGTELIB::Matrix ("Svs",_p,_m);
     double q;
-    for (int i=0 ; i<pvar ; i++){
+    for (int i=0 ; i<_p ; i++){
       q = dQ.get(i,i);
       for (int j=0 ; j<_m ; j++){
         _Svs->set(i,j,sqrt(_var[j]*q));
@@ -327,10 +342,9 @@ void SGTELIB::Surrogate_Kriging::compute_metric_linv (void){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_linv\n";
     #endif
-    const int pvar = _trainingset.get_pvar();
     _metric_linv = new double [_m];
     for (int j=0 ; j<_m ; j++){
-      _metric_linv[j] = pow(_var[j],pvar)*_detR;
+      _metric_linv[j] = pow(_var[j],_p)*_detR;
     }
   }
 

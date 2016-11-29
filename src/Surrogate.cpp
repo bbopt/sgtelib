@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -1377,7 +1377,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
 
   int i,j,k;
   double d;
-  const bool display = false;
+  const bool display = true;
   if (display){
     std::cout << "Begin parameter optimization\n";
     std::cout << "Metric: " << SGTELIB::metric_type_to_str(_param.get_metric_type()) << "\n";

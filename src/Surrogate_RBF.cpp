@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -100,7 +101,7 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
                                                    _param.get_distance_type());
   }
   else{
-    _qrbf = pvar;
+    _qrbf = _p;
   }
 
   // Number of PRS basis functions
@@ -121,8 +122,8 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
 
   // Total number of basis function
   _q = _qrbf + _qprs;
-
-  if (_q>pvar) return false;
+ 
+  if ( (modeO) & (_q>pvar) ) return false;
 
   return true;
 }//
@@ -133,10 +134,9 @@ bool SGTELIB::Surrogate_RBF::init_private ( void ) {
 /*--------------------------------------*/
 bool SGTELIB::Surrogate_RBF::build_private ( void ) {
 
-  // The build mainly consists of computing alpha  
+  // The build primarily consists of computing alpha  
 
   // Compute scaling distance for each training point
-  const int pvar = _trainingset.get_pvar();
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
 
   if ( string_find(_param.get_preset(),"O") ||  string_find(_param.get_preset(),"0") ){
@@ -148,7 +148,7 @@ bool SGTELIB::Surrogate_RBF::build_private ( void ) {
     // Inverte matrix
     _Ai = _H.lu_inverse();
     // Product (only the p first rows of Ai)
-    _ALPHA = SGTELIB::Matrix::subset_product(_Ai,Zs,-1,pvar,-1);
+    _ALPHA = SGTELIB::Matrix::subset_product(_Ai,Zs,-1,_p,-1);
   }
   else{
     // =========================================
@@ -302,26 +302,4 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_RBF::get_matrix_Zvs (void){
   return _Zvs;
 }//
 
-
-/*--------------------------------------*/
-/*       get bumpiness                  */
-/*--------------------------------------*/
-/*
-SGTELIB::Matrix SGTELIB::Surrogate_RBF::get_bumpiness (void){
-  // aj is the set of coefficients for the output j
-  SGTELIB::Matrix aj;
-  // Y is a buffer.
-  SGTELIB::Matrix Y;
-  SGTELIB::Matrix bumpiness ("B",1,_m);
-  for (int j=0 ; j<_m ; j++){
-    aj = _ALPHA.get_col(j);
-    Y = SGTELIB::Matrix::subset_product(_H,aj,_qrbf,_qrbf,1);
-    Y = SGTELIB::Matrix::subset_product(aj.transpose(),Y,1,_qrbf,1);
-    bumpiness.set(0,j,Y.get(0));
-  }
-  // TODO: add sign (-1)^dmin
-  return bumpiness;
-
-}//
-*/
 

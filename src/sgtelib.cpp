@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -152,7 +153,7 @@ int main ( int argc , char ** argv ) {
     for (i=0 ; i<NKW ; i++) {
       if (!strcmp(keyword.at(i).c_str(),"-best")) break;
     }
-    SGTELIB::sgtelib_best(info.at(i));
+    SGTELIB::sgtelib_best(info.at(i),verbose);
   }
 
  
@@ -287,7 +288,7 @@ void SGTELIB::sgtelib_predict( const std::string & file_list , const std::string
 /*--------------------------------------*/
 /* find best model for a set of data    */
 /*--------------------------------------*/
-void SGTELIB::sgtelib_best( const std::string & file_list ){
+void SGTELIB::sgtelib_best( const std::string & file_list , const bool verbose){
   bool error = false;
   std::string file;
   SGTELIB::Matrix X,Z;
@@ -342,18 +343,22 @@ void SGTELIB::sgtelib_best( const std::string & file_list ){
     model_metric.clear();
     double vmin = +INF;
     std::cout << "Testing ";
+    if (verbose) std::cout << "...\n";
     for (std::vector<std::string>::iterator it_model = model_list.begin() ; it_model != model_list.end(); ++it_model){
       std::string model_def = *it_model+" METRIC "+m;
       SGTELIB::Surrogate * S = Surrogate_Factory(TS,model_def);
-      std::cout << model_type_to_str(S->get_type()) << " ";
+      if (verbose) std::cout << *it_model << "\n";
+      else std::cout << model_type_to_str(S->get_type()) << " ";
       S->build();
       if (S->is_ready()){
         v = S->get_metric(SGTELIB::str_to_metric_type(m),0);
         model_metric.push_back(v);
         vmin = std::min(v,vmin);
+        if (verbose) std::cout << "===> " << v << "\n";
       }
       else{
         model_metric.push_back(+INF);
+        if (verbose) std::cout << "===> no ready\n";
       }
       // Store model definition after parameter optimization
       *it_model = S->get_string();

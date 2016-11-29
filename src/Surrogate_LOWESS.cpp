@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -130,17 +131,14 @@ bool SGTELIB::Surrogate_LOWESS::build_private ( void ) {
   if ((pvar>q20) & (degree_max>=2)){
     _q = q20;
     _degree = 20;
-    //std::cout << "pvar = " << pvar << " => D 20\n";
   }
   else if ((pvar>q15) & (degree_max>=2)){
     _q = q15;
     _degree = 15;
-    //std::cout << "pvar = " << pvar << " => D 15\n";
   }
   else if ((pvar>q10) & (degree_max>=1)){
     _q = q10;
     _degree = 10;
-    //std::cout << "pvar = " << pvar << " => D 10\n";
   }
   else{
     _q = 1;
@@ -247,7 +245,6 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
   // Distance Matrix
   // D : distance between points of XXs and other points of the trainingset
   SGTELIB::Matrix D = _trainingset.get_distances(XXs,get_matrix_Xs(),_param.get_distance_type());
-  const int pvar = D.get_nb_cols();
 
   // Preset
   const std::string preset = _param.get_preset();
@@ -257,14 +254,14 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
   // GAMMA DISTRIBUTION
   // ==================================
   // Number of points taken into account
-  // = pvar if no point is excluded
-  // = pvar-1 if one point is excluded (ie:i_exclude!=-1).
-  const double pvar_divide = double(pvar)-double(i_exclude != -1);
+  // = p if no point is excluded
+  // = p-1 if one point is excluded (ie:i_exclude!=-1).
+  const double p_divide = double(_p)-double(i_exclude != -1);
   // Empirical mean & variance of the distances
   SGTELIB::Matrix Distances = D;
   if (GAMMA_EXP==2) Distances=SGTELIB::Matrix::hadamard_square(Distances);
-  const double mean = Distances.sum()/pvar_divide;
-  const double var  = SGTELIB::Matrix::hadamard_square(Distances+(-mean)).sum()/pvar_divide;
+  const double mean = Distances.sum()/p_divide;
+  const double var  = SGTELIB::Matrix::hadamard_square(Distances+(-mean)).sum()/p_divide;
   #ifdef SGTELIB_DEBUG
     std::cout << "mean var = " << mean << " " << var << "\n";
   #endif
@@ -286,11 +283,11 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
       i = 0;
       while (R.get(i)!=_q-1) i++;
       const double dq_emp = D.get(i);
-      const double dq_gam = pow(SGTELIB::gammacdfinv(double(_q)/double(pvar),gamma_shape,gamma_scale),1./GAMMA_EXP);
+      const double dq_gam = pow(SGTELIB::gammacdfinv(double(_q)/double(_p),gamma_shape,gamma_scale),1./GAMMA_EXP);
 
       std::ofstream fileout;
       fileout.open ("data_dq.txt" , std::fstream::out | std::fstream::app);
-      fileout << dq_emp << " " << dq_gam << " " << _q << " " << pvar << " " << gamma_shape << " " << gamma_scale << "\n";
+      fileout << dq_emp << " " << dq_gam << " " << _q << " " << _p << " " << gamma_shape << " " << gamma_scale << "\n";
       fileout.close();
     }
   #endif
@@ -300,7 +297,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
   if (preset=="D"){
     // ========================================================
     // Distance only
-    for (i=0 ; i<pvar ; i++) _W[i] = D.get(i);
+    for (i=0 ; i<_p ; i++) _W[i] = D.get(i);
   }
   else if (preset=="DEN"){
     // ========================================================
@@ -309,32 +306,32 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
     i = 0;
     while (R.get(i)!=_q-1) i++;
     const double dq = 2.0*D.get(i);
-    for (i=0 ; i<pvar ; i++) _W[i] = D.get(i)/dq;
+    for (i=0 ; i<_p ; i++) _W[i] = D.get(i)/dq;
   }
   else if (preset=="DGN"){
     // ========================================================
     // Distance, normalized with Gamma method
-    const double dq = pow(SGTELIB::gammacdfinv(double(_q)/double(pvar_divide),gamma_shape,gamma_scale),1./GAMMA_EXP);
-    for (i=0 ; i<pvar ; i++) _W[i] = D.get(i)/dq;
+    const double dq = pow(SGTELIB::gammacdfinv(double(_q)/double(p_divide),gamma_shape,gamma_scale),1./GAMMA_EXP);
+    for (i=0 ; i<_p ; i++) _W[i] = D.get(i)/dq;
   }
   else if ( (preset=="RE") || (preset=="REN") ){
     // ========================================================
     // Rank, computed with empirical method
     const SGTELIB::Matrix R = D.rank();
-    for (i=0 ; i<pvar ; i++) _W[i] = R.get(i);
+    for (i=0 ; i<_p ; i++) _W[i] = R.get(i);
     if (preset=="REN"){
-      for (i=0 ; i<pvar ; i++) _W[i] /= (double(pvar)-1.0);
+      for (i=0 ; i<_p ; i++) _W[i] /= (double(_p)-1.0);
     }
   }
   else if ( (preset=="RG") || (preset=="RGN") ){
     // ========================================================
     // Rank, computed with gamma method
-    for (i=0 ; i<pvar ; i++){
+    for (i=0 ; i<_p ; i++){
       _W[i] = SGTELIB::gammacdf(pow(D.get(i),GAMMA_EXP),gamma_shape,gamma_scale);
     }
     // DE-Normalization
     if (preset=="RG"){
-      for (i=0 ; i<pvar ; i++) _W[i] *= (double(pvar)-1.0);
+      for (i=0 ; i<_p ; i++) _W[i] *= (double(_p)-1.0);
     }
   }
 
@@ -345,10 +342,10 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
   double wsum;
   // For Gamma methods, Handle special case where the variance of the distances is null
   if (var==0){
-    for (i=0 ; i<pvar ; i++){
+    for (i=0 ; i<_p ; i++){
       _W[i] = 1.0;
     }
-    wsum = pvar;
+    wsum = _p;
   }
   // Normal case
   else{
@@ -359,7 +356,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
     const SGTELIB::kernel_t kt = _param.get_kernel_type();
     // Weights
     wsum = 0;
-    for (i=0 ; i<pvar ; i++){
+    for (i=0 ; i<_p ; i++){
       _W[i] = kernel(kt,lambda,_W[i]);
       wsum += _W[i];
     }
@@ -376,8 +373,14 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
 
 
   if (wsum>EPSILON){
-    for (i=0 ; i<pvar ; i++){
+    for (i=0 ; i<_p ; i++){
       _W[i] /= wsum;
+    }
+  }
+  else{
+    // If all the weights are negligible, put 1 everywhere
+    for (i=0 ; i<_p ; i++){
+      _W[i] = 1;
     }
   }
 
@@ -462,7 +465,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
     }
   }
   #ifdef SGTELIB_DEBUG
-    std::cout << "non null w : " << w_count << " / " << pvar << "\n";
+    std::cout << "non null w : " << w_count << " / " << _p << "\n";
   #endif
   // Symmetry of A
   for (i=0 ; i<_q ; i++){

@@ -1,8 +1,9 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 1.0.0                                                                      */
+/*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Bastien Talgorn - McGill University, Montreal             */
+/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
 /*  email: bastientalgorn@fastmail.com                                                 */
@@ -56,17 +57,11 @@ SGTELIB::Surrogate * SGTELIB::Surrogate_Factory ( SGTELIB::TrainingSet & TS,
   SGTELIB::Surrogate * S;
   SGTELIB::Surrogate_Parameters p ( s );
   
-  //std::cout << "Surrogate_factory. Parameters:\n";
-  //p.display(std::cout);
-
-  //TS.build();
 
 
   switch ( p.get_type() ) {
-  case SGTELIB::LINEAR:
-  case SGTELIB::TGP: 
+
   case SGTELIB::SVN: 
-  case SGTELIB::DYNATREE: 
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
       "Surrogate_Factory: not implemented yet! \""+s+"\"" );
 
