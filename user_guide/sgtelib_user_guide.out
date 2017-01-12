@@ -1,0 +1,37 @@
+\BOOKMARK [1][-]{section.1}{General use of sgtelib}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{GENERAL}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{PREDICT}{section.1}% 3
+\BOOKMARK [2][-]{subsection.1.3}{BEST}{section.1}% 4
+\BOOKMARK [2][-]{subsection.1.4}{SERVER}{section.1}% 5
+\BOOKMARK [2][-]{subsection.1.5}{MODEL}{section.1}% 6
+\BOOKMARK [2][-]{subsection.1.6}{FIELD}{section.1}% 7
+\BOOKMARK [1][-]{section.2}{Types of models}{}% 8
+\BOOKMARK [2][-]{subsection.2.1}{PRS}{section.2}% 9
+\BOOKMARK [2][-]{subsection.2.2}{PRS\137EDGE}{section.2}% 10
+\BOOKMARK [2][-]{subsection.2.3}{PRS\137CAT}{section.2}% 11
+\BOOKMARK [2][-]{subsection.2.4}{RBF}{section.2}% 12
+\BOOKMARK [2][-]{subsection.2.5}{KS}{section.2}% 13
+\BOOKMARK [2][-]{subsection.2.6}{KRIGING}{section.2}% 14
+\BOOKMARK [2][-]{subsection.2.7}{LOWESS}{section.2}% 15
+\BOOKMARK [2][-]{subsection.2.8}{ENSEMBLE}{section.2}% 16
+\BOOKMARK [1][-]{section.3}{Main model parameters}{}% 17
+\BOOKMARK [2][-]{subsection.3.1}{TYPE}{section.3}% 18
+\BOOKMARK [2][-]{subsection.3.2}{DEGREE}{section.3}% 19
+\BOOKMARK [2][-]{subsection.3.3}{RIDGE}{section.3}% 20
+\BOOKMARK [2][-]{subsection.3.4}{KERNEL\137TYPE}{section.3}% 21
+\BOOKMARK [2][-]{subsection.3.5}{KERNEL\137COEF}{section.3}% 22
+\BOOKMARK [2][-]{subsection.3.6}{DISTANCE\137TYPE}{section.3}% 23
+\BOOKMARK [2][-]{subsection.3.7}{WEIGHT}{section.3}% 24
+\BOOKMARK [2][-]{subsection.3.8}{OUTPUT}{section.3}% 25
+\BOOKMARK [1][-]{section.4}{Parameter optimization and selection}{}% 26
+\BOOKMARK [2][-]{subsection.4.1}{OPTIM}{section.4}% 27
+\BOOKMARK [2][-]{subsection.4.2}{METRIC}{section.4}% 28
+\BOOKMARK [2][-]{subsection.4.3}{BUDGET}{section.4}% 29
+\BOOKMARK [1][-]{section.5}{Interface with Matlab}{}% 30
+\BOOKMARK [2][-]{subsection.5.1}{sgtelib\137server\137start}{section.5}% 31
+\BOOKMARK [2][-]{subsection.5.2}{sgtelib\137server\137newdata}{section.5}% 32
+\BOOKMARK [2][-]{subsection.5.3}{sgtelib\137server\137predict}{section.5}% 33
+\BOOKMARK [2][-]{subsection.5.4}{sgtelib\137server\137info}{section.5}% 34
+\BOOKMARK [2][-]{subsection.5.5}{sgtelib\137server\137metric}{section.5}% 35
+\BOOKMARK [2][-]{subsection.5.6}{sgtelib\137server\137reset}{section.5}% 36
+\BOOKMARK [2][-]{subsection.5.7}{sgtelib\137server\137stop}{section.5}% 37
