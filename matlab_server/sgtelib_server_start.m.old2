@@ -4,29 +4,28 @@ sgtelib_server_stop;
 if nargin==1
     keepopen=false;
 end
+keepopen = false;
 
-disp('Start sgtelib.exe in server mode.');
+disp('Launch sgtelib.exe in server mode.');
 
 
-% Selection of the terminal software
-TERMINAL_SOFTWARE_LIST = { 'gnome-terminal' 'lxterm' 'uxterm' 'xterm' 'konsole'};
+TERMINAL_SOFTWARE_LIST = {'gnome-terminal' 'xterm' 'konsole'};
+
 for i=1:length(TERMINAL_SOFTWARE_LIST)
     termprog = TERMINAL_SOFTWARE_LIST{i};
     if ~system(['which ' termprog]);
+        disp(['Selected terminal software: ' termprog]);
         break;
     else
         disp(['Could not find terminal software: ' termprog]);
-        termprog = 'bg';
     end
 end
 
-termprog = 'bg'
-
-disp(['Selected terminal software: ' termprog]);
+%termprog = 'konsole'
 
 
 % Option to start sgtelib in gdb
-gdboption = ' ';
+gdboption = ' '
 % Verbose option of sgtelib.
 verboseoption = ' ';
 % Option of keep open
@@ -37,12 +36,15 @@ if keepopen
     verboseoption = ' -verbose ';
 end
 % command to start sgtelib.
-sgtelibcmd = [' sgtelib.exe -server -model ' model verboseoption];
+sgtelibexe = [' sgtelib.exe -server -model ' model verboseoption];
+
 
 
 % Reset ld_library_path
-old_ld_library_path = getenv('LD_LIBRARY_PATH');
-setenv('LD_LIBRARY_PATH','.');
+old_ld_library_path = getenv('LD_LIBRARY_PATH')
+setenv('LD_LIBRARY_PATH','.')
+% liboption = ' LD_LIBRARY_PATH=.; '
+liboption = ' '
 
 switch termprog
     case 'gnome-terminal'
@@ -53,23 +55,21 @@ switch termprog
         else
             endoption = ' ';
         end
-        command = [termprog termoption '"/bin/bash -c '' ' gdboption sgtelibcmd endoption '''" &'];
-    case {'xterm','lxterm','uxterm'}
+        command = [termprog termoption '"/bin/bash -c '' ' liboption gdboption sgtelibexe endoption '''" &'];
+    case 'xterm'
         if keepopen
             termoption = ' -hold -e ';
         else
             termoption = ' -e ';
         end
-        command = [termprog termoption gdboption sgtelibcmd ' &'];
+        command = [termprog termoption  liboption gdboption sgtelibexe ' &'];
     case 'konsole'
         if keepopen
             termoption = ' --hold -e ';
         else
             termoption = ' -e ';
         end
-        command = [termprog termoption gdboption sgtelibcmd ' &'];
-    case 'bg'
-        command = [sgtelibcmd ' &'];
+        command = [termprog termoption liboption gdboption sgtelibexe ' &'];
 end
 
 disp(command)
@@ -85,5 +85,5 @@ end
 pause(1);
 
 % Old LD_LIBRARY_PATH
-setenv('LD_LIBRARY_PATH',old_ld_library_path);
+setenv('LD_LIBRARY_PATH',old_ld_library_path)
 

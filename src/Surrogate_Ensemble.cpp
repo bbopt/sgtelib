@@ -84,6 +84,7 @@ void SGTELIB::Surrogate_Ensemble::display_private ( std::ostream & out ) const {
     out <<"model[" << k << "]: " << _surrogates.at(k)->get_string() << "\n";
   }
 */
+/*
   double w;
   for (int j=0 ; j<_m ; j++){
     out << "output " << j << ":\n";
@@ -115,6 +116,20 @@ void SGTELIB::Surrogate_Ensemble::display_private ( std::ostream & out ) const {
     out << _metric[j] ;
     out << " ; weight:       N.A. ; " << get_short_string() << "\n";
   }
+
+*/
+
+ double w;
+  for (int j=0 ; j<_m ; j++){
+    out << "output " << _p << " " << j << ":";
+    for ( int k=0 ; k<_kmax ; k++){    
+      w = W.get(k,j);
+      if (w>EPSILON) out << " " << k ;
+    }
+    out << "\n";
+  }
+
+
 
 }//
 
@@ -247,6 +262,9 @@ bool SGTELIB::Surrogate_Ensemble::build_private ( void ) {
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
          "Surrogate_Ensemble::build(): undefined aggregation method." );
   }
+
+
+  _out << "BUILD...\n";
 
   if (check_weight_vector()){
     #ifdef ENSEMBLE_DEBUG

@@ -4,7 +4,9 @@ clc
 disp('=========== EXPLORER =============');
 
 ! make -j 4
-model = 'TYPE LOWESS DISTANCE OPTIM'
+model = 'TYPE LOWESS DISTANCE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM RIDGE OPTIM METRIC OECV'
+
+model = 'TYPE KRIGING DISTANCE NORM2_IS0 METRIC OECV'
 
 % creation of model
 sgtelib_server_start(model,true)
@@ -42,7 +44,7 @@ ZZ = f(XX);
 
 
 % Selection of some training points
-P = 20;
+P = 30;
 i = randperm(PP);
 i = i(1:P);
 X = XX(i,:);

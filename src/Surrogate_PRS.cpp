@@ -81,7 +81,7 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
 
   // Compute alpha
   if (not compute_alpha()) return false;
-  
+
   _ready = true; 
   return true;
 }//

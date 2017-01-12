@@ -609,7 +609,6 @@ std::string SGTELIB::Surrogate_Parameters::get_string ( void ) const {
       throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Not implemented yet!" );
 
     case SGTELIB::KRIGING: 
-      s += " KERNEL_TYPE " + kernel_type_to_str(_kernel_type);
       s += " DISTANCE_TYPE " + distance_type_to_str(_distance_type);
       break;
 

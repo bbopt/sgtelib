@@ -1,0 +1,69 @@
+function sgtelib_server_start(model,keepopen)
+
+sgtelib_server_stop;
+if nargin==1
+    keepopen=false;
+end
+keepopen = true;
+
+disp('Launch sgtelib.exe in server mode.');
+
+termprog  = 'gnome-terminal';
+termprog  = 'xterm';
+%termprog  = 'konsole';
+
+% Option to start sgtelib in gdb
+gdboption = ' '
+
+% Verbose option of sgtelib.
+
+verboseoption = ' ';
+if keepopen
+    gdboption = ' gdb -q -ex run --args ';
+    verboseoption = ' -verbose ';
+end
+sgtelibexe = [' sgtelib.exe -server -model ' model verboseoption];
+liboption = ' LD_LIBRARY_PATH=.; '
+
+
+
+!echo $LD_LIBRARY_PATH
+
+
+switch termprog
+    case 'gnome-terminal'
+        termoption = ' -t sgtelib_server --hide-menubar -e ';
+        % Command to run after the end of sgtelib
+        if keepopen
+            endoption = ' ; exec /bin/bash -i ';
+        else
+            endoption = ' ';
+        end
+        command = [termprog termoption '"/bin/bash -c '' ' liboption gdboption sgtelibexe endoption '''" &'];
+    case 'xterm'
+        if keepopen
+            termoption = ' -hold -e ';
+        else
+            termoption = ' -e ';
+        end
+        command = [termprog termoption '"' liboption sgtelibexe '" &'];
+    case 'konsole'
+        if keepopen
+            termoption = ' --hold -e ';
+        else
+            termoption = ' -e ';
+        end
+        command = [termprog termoption '"' liboption sgtelibexe '" &'];
+end
+
+disp(command)
+[status,response] = system(command);
+if keepopen
+    pause(1);
+end
+if status || ~isempty(response)
+    disp(command);
+    disp(status)
+    disp(response)
+end
+pause(1);

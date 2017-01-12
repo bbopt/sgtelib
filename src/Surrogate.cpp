@@ -156,15 +156,6 @@ void SGTELIB::Surrogate::display ( std::ostream & out ) const {
   out << "m: " << _m << " (output dim)\n";
   out << "p: " << _p << " (nb points)\n";
   display_private ( out );
-
-  /*
-  std::list<int>::const_iterator it;
-  out << "selected_points: { ";
-  for ( it = _selected_points.begin() ; it != _selected_points.end() ; ++it ) {
-    out << *it << " ";
-  }
-  out << "}\n";
-  */
 }//
 
 /*--------------------------------------*/
@@ -234,7 +225,6 @@ bool SGTELIB::Surrogate::build ( void ) {
   }
   else{
     _display = true;
-    _out.open(_param.get_output().c_str() , std::ios::out | std::ios::app);
   } 
 
   // Check the parameters of the model:
@@ -308,12 +298,17 @@ bool SGTELIB::Surrogate::build ( void ) {
   #endif
   
   if (_display){
+    _out.open(_param.get_output().c_str() , std::ios::out | std::ios::app);
+    if (_out.fail()) std::cout << "Out.fail1!!!\n";
     std::cout << "Write in " << _param.get_output() << "\n";
+    if (_out.fail()) std::cout << "Out.fail2!!!\n";
     display(_out);
-    _out << "AOECV: " << get_metric(SGTELIB::METRIC_AOECV,0) << "\n";
-    _out << "ARMSECV: " << get_metric(SGTELIB::METRIC_ARMSECV,0) << "\n";
+    if (_out.fail()) std::cout << "Out.fail3!!!\n";
+    //_out << "AOECV: " << get_metric(SGTELIB::METRIC_AOECV,0) << "\n";
+    //_out << "ARMSECV: " << get_metric(SGTELIB::METRIC_ARMSECV,0) << "\n";
     _out.close();
   }
+
 
   _ready = true;
   return true;
@@ -578,6 +573,8 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
                                          SGTELIB::Matrix * ZZ ) {
 
   check_ready(__FILE__,__FUNCTION__,__LINE__);
+
+
 
   // Check the number of columns in XX
   if (XX.get_nb_cols() != _n){
@@ -1377,7 +1374,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
 
   int i,j,k;
   double d;
-  const bool display = true;
+  const bool display = false;
   if (display){
     std::cout << "Begin parameter optimization\n";
     std::cout << "Metric: " << SGTELIB::metric_type_to_str(_param.get_metric_type()) << "\n";

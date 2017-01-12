@@ -39,6 +39,7 @@ namespace SGTELIB {
     KERNEL_D4 ,
     KERNEL_D5 ,
     KERNEL_D6 ,
+    KERNEL_D7 ,
     KERNEL_I0 ,
     KERNEL_I1 ,
     KERNEL_I2 ,

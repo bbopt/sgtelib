@@ -38,6 +38,7 @@ std::string SGTELIB::kernel_type_to_str ( SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_D4: return "D4"; //Bi-quadratic
   case SGTELIB::KERNEL_D5: return "D5"; //Tri-Cubique
   case SGTELIB::KERNEL_D6: return "D6"; //Exp(-sqrt)
+  case SGTELIB::KERNEL_D7: return "D7"; //Epanechnikov
   case SGTELIB::KERNEL_I0: return "I0"; //Multiquadratic
   case SGTELIB::KERNEL_I1: return "I1"; //Polyharmonic Spline, k=1
   case SGTELIB::KERNEL_I2: return "I2"; //Polyharmonic Spline, k=2
@@ -65,6 +66,7 @@ bool SGTELIB::kernel_is_decreasing ( const SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_D4:
   case SGTELIB::KERNEL_D5: 
   case SGTELIB::KERNEL_D6: 
+  case SGTELIB::KERNEL_D7: 
     return true;
   case SGTELIB::KERNEL_I0: 
   case SGTELIB::KERNEL_I1: 
@@ -89,6 +91,7 @@ bool SGTELIB::kernel_has_parameter ( const SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_D4:
   case SGTELIB::KERNEL_D5: 
   case SGTELIB::KERNEL_D6: 
+  case SGTELIB::KERNEL_D7: 
   case SGTELIB::KERNEL_I0: 
     return true;
   case SGTELIB::KERNEL_I2: 
@@ -113,6 +116,7 @@ int SGTELIB::kernel_dmin ( const SGTELIB::kernel_t kt ) {
   case SGTELIB::KERNEL_D4:
   case SGTELIB::KERNEL_D5: 
   case SGTELIB::KERNEL_D6: 
+  case SGTELIB::KERNEL_D7: 
     return -1;
   case SGTELIB::KERNEL_I0: 
   case SGTELIB::KERNEL_I1: 
@@ -133,16 +137,61 @@ int SGTELIB::kernel_dmin ( const SGTELIB::kernel_t kt ) {
 SGTELIB::kernel_t SGTELIB::str_to_kernel_type ( const std::string & s ) {
 /*----------------------------------------------------------*/
   if ( s=="D1" ){ return SGTELIB::KERNEL_D1; }
+  if ( s=="GAUSSIAN" ){ return SGTELIB::KERNEL_D1; }
+
   if ( s=="D2" ){ return SGTELIB::KERNEL_D2; }
+  if ( s=="INVERSE_QUAD" ){ return SGTELIB::KERNEL_D2; }
+  if ( s=="INVERSEQUAD" ){ return SGTELIB::KERNEL_D2; }
+
   if ( s=="D3" ){ return SGTELIB::KERNEL_D3; }
+  if ( s=="INVERSE_MULTI_QUAD" ){ return SGTELIB::KERNEL_D3; }
+  if ( s=="INVERSEMULTIQUAD" ){ return SGTELIB::KERNEL_D3; }
+
   if ( s=="D4" ){ return SGTELIB::KERNEL_D4; }
+  if ( s=="BIQUADRATIC" ){ return SGTELIB::KERNEL_D4; }
+  if ( s=="BI_QUADRATIC" ){ return SGTELIB::KERNEL_D4; }
+  if ( s=="BI-QUADRATIC" ){ return SGTELIB::KERNEL_D4; }
+  if ( s=="BIQUAD" ){ return SGTELIB::KERNEL_D4; }
+
   if ( s=="D5" ){ return SGTELIB::KERNEL_D5; }
+  if ( s=="TRICUBIC" ){ return SGTELIB::KERNEL_D5; }
+  if ( s=="TRI_CUBIC" ){ return SGTELIB::KERNEL_D5; }
+  if ( s=="TRI-CUBIC" ){ return SGTELIB::KERNEL_D5; }
+  if ( s=="TRICUB" ){ return SGTELIB::KERNEL_D5; }
+
   if ( s=="D6" ){ return SGTELIB::KERNEL_D6; }
+  if ( s=="EXPSQRT" ){ return SGTELIB::KERNEL_D6; }
+
+  if ( s=="D7" ){ return SGTELIB::KERNEL_D7; }
+  if ( s=="EPANECHNIKOV" ){ return SGTELIB::KERNEL_D7; }
+  if ( s=="EPA" ){ return SGTELIB::KERNEL_D7; }
+
   if ( s=="I0" ){ return SGTELIB::KERNEL_I0; }
+  if ( s=="MULTIQUADRATIC" ){ return SGTELIB::KERNEL_I0; }
+  if ( s=="MULTI-QUADRATIC" ){ return SGTELIB::KERNEL_I0; }
+  if ( s=="MULTI_QUADRATIC" ){ return SGTELIB::KERNEL_I0; }
+  if ( s=="MULTIQUAD" ){ return SGTELIB::KERNEL_I0; }
+
   if ( s=="I1" ){ return SGTELIB::KERNEL_I1; }
+  if ( s=="POLY1" ){ return SGTELIB::KERNEL_I1; }
+  if ( s=="SPLINE1" ){ return SGTELIB::KERNEL_I1; }
+  if ( s=="PHS1" ){ return SGTELIB::KERNEL_I1; }
+
   if ( s=="I2" ){ return SGTELIB::KERNEL_I2; }
+  if ( s=="POLY2" ){ return SGTELIB::KERNEL_I2; }
+  if ( s=="SPLINE2" ){ return SGTELIB::KERNEL_I2; }
+  if ( s=="PHS2" ){ return SGTELIB::KERNEL_I2; }
+
   if ( s=="I3" ){ return SGTELIB::KERNEL_I3; }
+  if ( s=="POLY3" ){ return SGTELIB::KERNEL_I3; }
+  if ( s=="SPLINE3" ){ return SGTELIB::KERNEL_I3; }
+  if ( s=="PHS3" ){ return SGTELIB::KERNEL_I3; }
+
   if ( s=="I4" ){ return SGTELIB::KERNEL_I4; }
+  if ( s=="POLY4" ){ return SGTELIB::KERNEL_I4; }
+  if ( s=="SPLINE4" ){ return SGTELIB::KERNEL_I4; }
+  if ( s=="PHS4" ){ return SGTELIB::KERNEL_I4; }
+
   throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
      "str_to_kernel_type: unrecognised string \""+s+"\"" );
 }//
@@ -161,11 +210,12 @@ SGTELIB::kernel_t SGTELIB::int_to_kernel_type ( const int i ) {
     case 3:  return SGTELIB::KERNEL_D4; 
     case 4:  return SGTELIB::KERNEL_D5; 
     case 5:  return SGTELIB::KERNEL_D6; 
-    case 6:  return SGTELIB::KERNEL_I0; 
-    case 7:  return SGTELIB::KERNEL_I1; 
-    case 8:  return SGTELIB::KERNEL_I2; 
-    case 9:  return SGTELIB::KERNEL_I3; 
-    case 10: return SGTELIB::KERNEL_I4; 
+    case 6:  return SGTELIB::KERNEL_D7; 
+    case 7:  return SGTELIB::KERNEL_I0; 
+    case 8:  return SGTELIB::KERNEL_I1; 
+    case 9:  return SGTELIB::KERNEL_I2; 
+    case 10:  return SGTELIB::KERNEL_I3; 
+    case 11: return SGTELIB::KERNEL_I4; 
     default:
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
         "int_to_kernel_type: invalid integer "+itos(i) );
@@ -213,8 +263,15 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       }
       return 0.0;
     case SGTELIB::KERNEL_D6:
-      // Gaussian
+      // Exp-Root
       return exp(-sqrt(ks*r));
+    case SGTELIB::KERNEL_D7:
+      // Epa
+      {
+        double ksr = fabs(ks*r);
+        if (ksr<=1.0) return 0.75*(1-ksr*ksr);
+      }
+      return 0.0;
     case SGTELIB::KERNEL_I0:
       // Multiquadratic
       return sqrt(1.0+ks*ks*r*r);

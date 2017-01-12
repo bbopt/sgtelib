@@ -52,7 +52,7 @@ namespace SGTELIB {
   std::string test_multiple_occurrences (const std::string & s );
 
   // test_scale: build 2 surrogates with a different scale on the data. 
-  void test_many_models (const std::string & model_list_file , const std::string & out_file , const SGTELIB::Matrix & X0 , const SGTELIB::Matrix & Z0 );
+  void test_many_models ( const std::string & out_file , const SGTELIB::Matrix & X0 , const SGTELIB::Matrix & Z0 );
 
 
   void test_LOWESS_times (void);

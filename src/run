@@ -1,5 +1,0 @@
-#!/bin/bash
-
-
-sgtelib.exe -help MATLAB
-sgtelib.exe -help all

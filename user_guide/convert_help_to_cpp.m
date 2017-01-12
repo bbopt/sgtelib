@@ -2,21 +2,25 @@ close all
 clear all
 clc
 
-% Read the data in help_data.tex and convert them to build
-% the file sgtelib_help.cpp
+% Read the data in help_data.tex and convert it to build the file sgtelib_help.cpp
 
 
-
-COMMANDS = {'\kwa','\kwb','\kwc'};
+% Commands to look for
+COMMANDS = {'\itemname','\itemkw','\iteminfo','\section','\subsection','\helpdivider'};
+% Total number of commands
 NC = length(COMMANDS);
-findcmd = false(NC,1);
-DATA = cell(0,NC);
+% Number of commands that shoult not be ignored (the 3 first commands)
+NC_OK = 3;
 
+% Cell containint all the help data
+DATA = cell(0,NC_OK);
+
+findcmd = false(NC,1);
 str = '';
-ci = 1;
+nc = 1;
 cj = 0;
 
-
+% Open the tex file
 file = 'help_data.tex';
 fid = fopen(file);
 while true
@@ -46,28 +50,43 @@ while true
     if sum(findcmd)==1
         % Update the index of the command.
         disp('===================');
-        ci = find(findcmd)
-        if ci==1
+        nc = find(findcmd)
+        if nc==1
             cj = cj+1;
         end
         cj
-        % Open new string in DATA
-        DATA{cj,ci} = '';
-
+        % If the command is acceptable
+        if nc<=NC_OK
+            % Open new string in DATA
+            DATA{cj,nc} = '';
+        end
+        
         % Remove the command from the line
-        line = strrep(line,COMMANDS{ci},'');
+        line = strrep(line,COMMANDS{nc},'');
     end
 
-    DATA{cj,ci} = [DATA{cj,ci} line];
+    if nc<=NC_OK
+        DATA{cj,nc} = [DATA{cj,nc} ' ' line];
+    end
 
 end
 fclose(fid);
 
+% List of strings to replace in the data
 REPLACES = { 
+    '\ref{',''
+    '\spe{',''
     '\newline','\n'
     '\linebreak','\n'
     '\\','\n'
-    '\item','\n  * '
+    '\;',' '
+    '\,',' '
+    '\example{','     '
+    '$<$','<'
+    '$>$','>'
+    '$\ge$','>='
+    '$\le$','<='
+    '\item','\n *'
     '\begin{itemize}',''
     '\end{itemize}','\n'
     '\quote{{\tt ',''
@@ -75,6 +94,7 @@ REPLACES = {
     '}',''
     '"','\"'
     '\myUnderline{',''
+    '\smalltitle{','\n'
     '\textbf{',''
     '\textbf{',''
     '\_','_'
@@ -88,10 +108,12 @@ REPLACES = {
     'SPECIALKWQUOTE','\"'
     };
 
+
+% Clean the data
 for cj=1:size(DATA,1)
-    for ci=1:NC
+    for nc=1:NC_OK
         % Clean string
-        str = cleanSpaces(DATA{cj,ci});
+        str = cleanSpaces(DATA{cj,nc});
         % Remove brackets.
         if str(1) == '{'
             str(1) = [];
@@ -120,13 +142,16 @@ for cj=1:size(DATA,1)
         end
         str = strrep(str,'\n',['\n"' char(10) '"'])
         % Other modifications
-        DATA{cj,ci} = str;
+        DATA{cj,nc} = str;
+        if nc==1
+            DATA{cj,nc} = upper(DATA{cj,nc});
+        end
     end
 end
 
 NL = size(DATA,1);
 for i=1:NL
-    for j=1:NC
+    for j=1:NC_OK
         disp([num2str(i) ',' num2str(j) '==' DATA{i,j} '==']);
     end
 end
@@ -140,7 +165,6 @@ copyfile('help_header.cpp',file);
 fid = fopen(file,'a');
 newline = char(10);
 mywrite = @(line) fwrite(fid,[line newline]);
-
 
 mywrite('//================================');
 mywrite('//  Get dimension of HELP_DATA');
@@ -156,19 +180,20 @@ mywrite('std::string ** SGTELIB::get_help_data (void){');
 mywrite = @(line) fwrite(fid,['  ' line newline]);
 mywrite('int i;');
 mywrite(['const int NL = ' num2str(NL) ';']);
-mywrite(['const int NC = ' num2str(NC) ';']);
+mywrite(['const int NC = ' num2str(NC_OK) ';']);
 mywrite('std::string ** HELP_DATA = new std::string * [NL];');
 mywrite('for (i = 0 ; i<NL ; i++) HELP_DATA[i] = new std::string [NC];');
+mywrite('i = 0;');
 
 for i=1:NL
     mywrite(['//================================']);
     mywrite(['//      ' DATA{i,1}]);
-    mywrite(['//================================']);
-    mywrite(['i = ' num2str(i-1) ';']);
-    for j=1:NC
+    mywrite(['//================================']);   
+    for j=1:NC_OK
         mywrite(['HELP_DATA[i][' num2str(j-1) '] = "' DATA{i,j} '";']);
 
     end
+    mywrite(['i++;']);
 end
 
 mywrite(['//================================']);

@@ -96,7 +96,7 @@ int main ( int argc , char ** argv ) {
       if (!strcmp( keyword.at(ikw).c_str(),argv[i] )){
         j = ikw;
         found_kw = true;
-        std::cout << "keyword: " <<keyword.at(ikw) << "\n";
+        //std::cout << "keyword: " <<keyword.at(ikw) << "\n";
         break;
       }
     }
@@ -208,8 +208,7 @@ int main ( int argc , char ** argv ) {
     SGTELIB::sgtelib_test();
   }
 
-
-  std::cout << "Quit sgtelib.\n";
+  //std::cout << "Quit sgtelib.\n";
 
   return 0;
 }
@@ -314,17 +313,7 @@ void SGTELIB::sgtelib_best( const std::string & file_list , const bool verbose){
     return;
   }
 
-  std::vector<std::string> model_list;
-  model_list.push_back("TYPE PRS DEGREE OPTIM RIDGE OPTIM");
-  model_list.push_back("TYPE KS  KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM");
-  model_list.push_back("TYPE RBF PRESET O KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM");
-  model_list.push_back("TYPE RBF PRESET R KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
-  model_list.push_back("TYPE RBF PRESET I KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
-  model_list.push_back("TYPE LOWESS DEGREE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
-  model_list.push_back("TYPE KRIGING");
-  model_list.push_back("TYPE CN");
 
-  std::vector<double> model_metric;
   std::string m;
   double v;
 
@@ -340,12 +329,23 @@ void SGTELIB::sgtelib_best( const std::string & file_list , const bool verbose){
       m = "ARMSECV";
     }
     std::cout << "=============================================================\n";
-    model_metric.clear();
+
+    std::vector<std::string> model_list;
+    model_list.push_back("TYPE PRS DEGREE OPTIM RIDGE OPTIM");
+    model_list.push_back("TYPE KS  KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM");
+    model_list.push_back("TYPE RBF PRESET O KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM");
+    model_list.push_back("TYPE RBF PRESET R KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
+    model_list.push_back("TYPE RBF PRESET I KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
+    model_list.push_back("TYPE LOWESS DEGREE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE OPTIM RIDGE OPTIM");
+    model_list.push_back("TYPE KRIGING");
+    model_list.push_back("TYPE CN");
+    std::vector<double> model_metric;
+
     double vmin = +INF;
     std::cout << "Testing ";
     if (verbose) std::cout << "...\n";
     for (std::vector<std::string>::iterator it_model = model_list.begin() ; it_model != model_list.end(); ++it_model){
-      std::string model_def = *it_model+" METRIC "+m;
+      std::string model_def = *it_model+" METRIC "+m+" BUDGET 500";
       SGTELIB::Surrogate * S = Surrogate_Factory(TS,model_def);
       if (verbose) std::cout << *it_model << "\n";
       else std::cout << model_type_to_str(S->get_type()) << " ";
@@ -366,7 +366,7 @@ void SGTELIB::sgtelib_best( const std::string & file_list , const bool verbose){
       SGTELIB::surrogate_delete(S);
     }
     std::cout << "\n";
-    std::cout << "Best metric: " << vmin << "\n";
+    std::cout << "Best metric: " << m << " = " << vmin << "\n";
     std::cout << "Best model(s):\n ";
     for (int k=0 ; k<int(model_list.size()) ; k++){
       if (model_metric.at(k)<=vmin+EPSILON){
@@ -696,49 +696,51 @@ void SGTELIB::sgtelib_help( std::string word ){
 
   int i,j;
   if (!strcmp(word.c_str(),"")) word = "GENERAL";
-  std::cout << "HELP about " << word << "\n";
+  //std::cout << "HELP about " << word << "\n";
 
   std::string ** DATA = SGTELIB::get_help_data();
   const int NL = SGTELIB::dim_help_data();
   bool failedsearch = true;
   bool found = false;
-  for (i=0 ; i<NL ; i++){
+
+  for (j=0 ; j<3 ; j++){
     // j=0 => search in title
     // j=1 => search in associated keywords
     // j=2 => search in content
-    for (j=0 ; j<3 ; j++){
+    for (i=0 ; i<NL ; i++){
       if ( (SGTELIB::string_find(DATA[i][j],word)) or (streqi(word,"ALL")) ){
-        std::cout << "=======================================" << i << "," << j << "\n";
-        std::cout << "          " << DATA[i][0] << "\n\n";
-        std::cout << DATA[i][2] << "\n";
+        //std::cout << i << " " << j << " " << (SGTELIB::string_find(DATA[i][j],word)) << " " << word << " " << DATA[i][j] << "\n";
+        std::cout << "===============================================\n\n";
+        std::cout << "  \33[4m" << DATA[i][0] << "\33[0m" << "\n\n";
+        //std::cout << "  ***  " << DATA[i][0] << "  ***  " << "\n\n";
+        std::cout << DATA[i][2] << "\n\n";
         found = true;
         failedsearch = false;
       }
-      // If some data where found for this value of j (i.e. for this depth of search)
-      // then we don't search for higher j. 
-      if (found) break;
     }
+    // If some data where found for this value of j (i.e. for this depth of search)
+    // then we don't search for higher j. 
+    if (found) break;
   }
 
   // Search if the word appears in the keywords of some datum. 
-  std::string SeeAlso = "See also:";
+  std::string SeeAlso = "\33[4mSee also\33[0m:";
   found = false;
   for (i=0 ; i<NL ; i++){
     if ( SGTELIB::string_find(DATA[i][1],word) ){
       SeeAlso+=" "+DATA[i][0];
       found = true;
-      failedsearch = false;
     }
   }
   if (found){
     std::cout << "=======================================\n";
-    std::cout << SeeAlso << "\n";
+    std::cout << "\n" << SeeAlso << "\n\n";
+    std::cout << "=======================================\n";
   }
 
   if (failedsearch){
       std::cout << "We could not find any information associated to your search.\n";
-      std::cout << "          " << DATA[0][0] << "\n\n";
-      std::cout << DATA[0][2] << "\n";
+      SGTELIB::sgtelib_help("MAIN");
   }
 
 
@@ -762,19 +764,19 @@ void SGTELIB::sgtelib_test( void ){
     std::cout << "========== TEST MANY MODELS ==========================\n";  
 
     SGTELIB::build_test_data("hartman6",X0,Z0);
-    SGTELIB::test_many_models("model_list_test.data","output_hartman6.txt",X0,Z0);
+    SGTELIB::test_many_models("output_hartman6.txt",X0,Z0);
 
     SGTELIB::build_test_data("hartman3",X0,Z0);
-    SGTELIB::test_many_models("model_list_test.data","output_hartman3.txt",X0,Z0);
+    SGTELIB::test_many_models("output_hartman3.txt",X0,Z0);
 
     SGTELIB::build_test_data("braninhoo",X0,Z0);
-    SGTELIB::test_many_models("model_list_test.data","output_braninhoo.txt",X0,Z0);
+    SGTELIB::test_many_models("output_braninhoo.txt",X0,Z0);
 
     SGTELIB::build_test_data("camelback",X0,Z0);
-    SGTELIB::test_many_models("model_list_test.data","output_camelback.txt",X0,Z0);
+    SGTELIB::test_many_models("output_camelback.txt",X0,Z0);
 
     SGTELIB::build_test_data("rosenbrock",X0,Z0);
-    SGTELIB::test_many_models("model_list_test.data","output_rosenbrock.txt",X0,Z0);
+    SGTELIB::test_many_models("output_rosenbrock.txt",X0,Z0);
 
 
     std::cout << "========== END ================================\n"; 

@@ -28,17 +28,6 @@
 
 void SGTELIB::sand_box (void){
 
-  std::string m = "X=   [[[  1 2  \t3 \n 3.43,4  5 ;\n  7 8 9 ; 10 11 12.5   ;]";
-
-  SGTELIB::Matrix M;
-  M = SGTELIB::Matrix::string_to_matrix(m);
-  M.display(std::cout);
-  //M = SGTELIB::Matrix::import_data("../example/X.txt");
-  M = SGTELIB::Matrix("../example/XX.txt");
-  M.display(std::cout);
-  M.display_size(std::cout);
-
-
   std::cout << "End of sandbox\nEXIT\n";
 }//
 
@@ -113,8 +102,7 @@ void SGTELIB::test_LOWESS_times ( void ){
 
 
 
-void SGTELIB::test_many_models ( const std::string & model_list_file , 
-                                        const std::string & output_file ,
+void SGTELIB::test_many_models (        const std::string & output_file ,
                                         const SGTELIB::Matrix & X0 ,
                                         const SGTELIB::Matrix & Z0 ){
   std::cout << "======================================================\n";
@@ -133,12 +121,13 @@ void SGTELIB::test_many_models ( const std::string & model_list_file ,
 
   // LOAD MODEL LIST in model_list_file
   std::vector<std::string> model_list;
-  std::ifstream infile(model_list_file.c_str());
-  std::string line;
-  while (std::getline(infile, line)){
-    std::istringstream iss(line);
-    if ( (line.length()) && (line.at(0)!='#') ) model_list.push_back(line);
-  }
+  model_list.push_back("TYPE PRS DEGREE 2"); 
+  model_list.push_back("TYPE PRS DEGREE OPTIM");
+  model_list.push_back("TYPE KS KERNEL_COEF OPTIM");
+  model_list.push_back("TYPE LOWESS KERNEL_COEF OPTIM DEGREE 1"); 
+  model_list.push_back("TYPE LOWESS KERNEL_COEF OPTIM DEGREE OPTIM KERNEL_TYPE OPTIM");
+  model_list.push_back("TYPE RBF PRESET I");
+
 
   // BUILD THE METRIC LIST 
   std::vector<SGTELIB::metric_t> metric_list;

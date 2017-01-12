@@ -133,20 +133,13 @@ bool SGTELIB::Surrogate_Kriging::build_private ( void ) {
 const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( const SGTELIB::Matrix & XXs ) {
 
   // Xs can be, either the training set, to build the model, or prediction points.
-
-  const int nvar = _trainingset.get_nvar();
   const int pxx = XXs.get_nb_rows();
   const SGTELIB::Matrix Xs = get_matrix_Xs();
-
   const SGTELIB::Matrix coef = _param.get_covariance_coef();
-  //const int clength = coef.get_nb_cols();
-
-
   const SGTELIB::Matrix D = _trainingset.get_distances(XXs,get_matrix_Xs(),_param.get_distance_type());
 
   SGTELIB::Matrix R ("R",pxx,_p);
 
-  int ip; // Index of the current covariance coefficient
   double d, cov;// dsum;
   for (int i1=0 ; i1<pxx ; i1++){
     for (int i2=0 ; i2<_p ; i2++){
@@ -158,33 +151,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate_Kriging::compute_covariance_matrix ( co
       R.set(i1,i2,cov);
     }
   }
-
-/*
-  int ip; // Index of the current covariance coefficient
-  double d, cov, dsum;
-  for (int i1=0 ; i1<pxx ; i1++){
-    for (int i2=0 ; i2<_p ; i2++){
-      cov = 0;
-      dsum = 0;
-      ip = 0; // index of the parameter to read
-      for (int j=0 ; j<nvar ; j++){
-        d = fabs(XXs.get(i1,j)-Xs.get(i2,j));
-        dsum += d;
-        d = pow(d,coef[ip++]);
-        d *= coef[ip++];
-        cov += d;
-        // In the case where coef has only 3 components (isotropique model)
-        // Then we go back to the 2nd component (index = 1).
-        if (ip==clength) ip=0;
-      }
-      cov = exp(-cov);
-      // Add noise if the distance is 0.
-      if (dsum==0) cov += _param.get_ridge();
-      R.set(i1,i2,cov);
-    }
-  }
-*/
-   
+  
   return R;
 }//
 

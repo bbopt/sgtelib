@@ -1,9 +1,8 @@
 close all
-clear all
+%clear all
 clc
 disp('=========== EXPLORER =============');
 
-! make -j 4
 
 model = 'TYPE ENSEMBLE WEIGHT SELECT METRIC OECV DISTANCE OPTIM'
 
@@ -16,7 +15,6 @@ model = 'TYPE ENSEMBLE WEIGHT SELECT METRIC OECV DISTANCE OPTIM'
 model = 'TYPE LOWESS DISTANCE OPTIM'
 
 
-f = @(x) cos(x(:,2).^2)  .* x(:,1) .* ( 2*mod(x(:,1),2)-1 )
 f = @(x)     x(:,2).^2   .* x(:,1) .* ( 2*mod(x(:,1),2)-1 )
 
 % f = @(x) 40*(x(:,1)==0)+...
