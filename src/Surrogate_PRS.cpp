@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -71,7 +71,7 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
 
   // If _q is too big or there is not enough points, then quit
   if (_q>200) return false;
-  if ( (_q>pvar-1) and (_param.get_ridge()==0) ) return false;
+  if ( (_q>pvar-1) && (_param.get_ridge()==0) ) return false;
 
   // Compute the exponents of the basis functions
   _M = get_PRS_monomes(nvar,_param.get_degree());
@@ -80,7 +80,7 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
   _H = compute_design_matrix ( _M , get_matrix_Xs() );
 
   // Compute alpha
-  if (not compute_alpha()) return false;
+  if ( !  compute_alpha()) return false;
 
   _ready = true; 
   return true;
@@ -176,7 +176,7 @@ void SGTELIB::Surrogate_PRS::predict_private ( const SGTELIB::Matrix & XXs,
 const SGTELIB::Matrix * SGTELIB::Surrogate_PRS::get_matrix_Zvs (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
   // Not necessary. Zv is computed in "build".
-  if (not _Zvs){
+  if ( !  _Zvs){
     _Zvs = new SGTELIB::Matrix;
     // Projection matrix
     const SGTELIB::Matrix & Zs = get_matrix_Zs();
@@ -238,7 +238,7 @@ SGTELIB::Matrix SGTELIB::Surrogate_PRS::get_PRS_monomes(const int nvar, const in
         M.add_row(z);
         // Pivot
         i = 0;
-        while ( (i<nvar-1) and (z[i]<=z[i+1]) and ( (z[i]<=1) or (z[i+1]>=d-c+1))  )
+        while ( (i<nvar-1) && (z[i]<=z[i+1]) && ( (z[i]<=1) || (z[i+1]>=d-c+1))  )
           i++;
         // Transfert
         if (i < nvar-1){
@@ -250,9 +250,9 @@ SGTELIB::Matrix SGTELIB::Surrogate_PRS::get_PRS_monomes(const int nvar, const in
           di = d;
           for (j=i+1 ; j<nvar ; j++){
             ci -= (z[j]!=0);
-            di -= z[j];
+            di -= static_cast<int>(z[j]);
           }
-          if ( (ci==0) and (di>0) ){
+          if ( (ci==0) && (di>0) ){
             z[i+1] = z[i+1]+di;
           }
           else{

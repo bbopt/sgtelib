@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -25,7 +25,7 @@
 
 #include "Kernel.hpp"
 
-
+     
 
 
 /*----------------------------------------------------------*/
@@ -199,7 +199,7 @@ SGTELIB::kernel_t SGTELIB::str_to_kernel_type ( const std::string & s ) {
 /*----------------------------------------------------------*/
 SGTELIB::kernel_t SGTELIB::int_to_kernel_type ( const int i ) {
 /*----------------------------------------------------------*/
-  if ( (i<0) or (i>=SGTELIB::NB_KERNEL_TYPES) ){
+  if ( (i<0) || (i>=SGTELIB::NB_KERNEL_TYPES) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
       "int_to_kernel_type: invalid integer "+itos(i) );
   }

@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -39,7 +39,7 @@ SGTELIB::Surrogate_RBF::Surrogate_RBF ( SGTELIB::TrainingSet & trainingset,
   _HtH               ( "HtH",0,0           ),
   _HtZ               ( "HtZ",0,0           ),
   _Ai                ( "Ai",0,0            ),
-  _ALPHA             ( "alpha",0,0         ),
+  _Alpha             ( "alpha",0,0         ),
   _selected_kernel   (1,-1                 ){
   #ifdef SGTELIB_DEBUG
     std::cout << "constructor RBF\n";
@@ -148,7 +148,7 @@ bool SGTELIB::Surrogate_RBF::build_private ( void ) {
     // Inverte matrix
     _Ai = _H.lu_inverse();
     // Product (only the p first rows of Ai)
-    _ALPHA = SGTELIB::Matrix::subset_product(_Ai,Zs,-1,_p,-1);
+    _Alpha = SGTELIB::Matrix::subset_product(_Ai,Zs,-1,_p,-1);
   }
   else{
     // =========================================
@@ -181,11 +181,11 @@ bool SGTELIB::Surrogate_RBF::build_private ( void ) {
       for (int i=0 ; i<_qrbf ; i++) A.add(i,i,r);
     }
     _Ai = A.cholesky_inverse();
-    _ALPHA = _Ai*_HtZ;
+    _Alpha = _Ai*_HtZ;
   }
 
   // Check for Nan  
-  if (_ALPHA.has_nan()){
+  if (_Alpha.has_nan()){
     return false;
   }
 
@@ -264,7 +264,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate_RBF::compute_design_matrix ( const SGTE
 void SGTELIB::Surrogate_RBF::predict_private ( const SGTELIB::Matrix & XXs,
                                                      SGTELIB::Matrix * ZZs) {
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  *ZZs = compute_design_matrix(XXs,false) * _ALPHA;
+  *ZZs = compute_design_matrix(XXs,false) * _Alpha;
 }//
 
 /*--------------------------------------*/
@@ -272,7 +272,7 @@ void SGTELIB::Surrogate_RBF::predict_private ( const SGTELIB::Matrix & XXs,
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_RBF::get_matrix_Zvs (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _Zvs){
+  if ( ! _Zvs){
 
     // Init _Zvs
     _Zvs = new SGTELIB::Matrix;
@@ -282,13 +282,13 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_RBF::get_matrix_Zvs (void){
       //============================================
       // ORTHOGONALITY CONSTRAINTS
       //============================================
-      SGTELIB::Matrix dAiAlpha = SGTELIB::Matrix::diagA_product(_Ai.diag_inverse(),_ALPHA);
+      SGTELIB::Matrix dAiAlpha = SGTELIB::Matrix::diagA_product(_Ai.diag_inverse(),_Alpha);
       dAiAlpha.remove_rows(_qprs);
       *_Zvs = Zs-dAiAlpha;
     }
     else{
       //SGTELIB::Matrix dPiPZs    = SGTELIB::Matrix::get_matrix_dPiPZs(_Ai,_H,Zs);
-      SGTELIB::Matrix dPiPZs = SGTELIB::Matrix::get_matrix_dPiPZs(_Ai,_H,Zs,_ALPHA);
+      SGTELIB::Matrix dPiPZs = SGTELIB::Matrix::get_matrix_dPiPZs(_Ai,_H,Zs,_Alpha);
     
       // dPi is the inverse of the diag of P 
       // Compute _Zv = Zs - dPi*P*Zs
@@ -301,5 +301,3 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_RBF::get_matrix_Zvs (void){
   }
   return _Zvs;
 }//
-
-

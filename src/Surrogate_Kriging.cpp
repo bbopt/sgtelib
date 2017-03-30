@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -210,7 +210,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
   }
 
   // Prediction of statistical data
-  if ( (ei) or (cdf) ){
+  if ( (ei) || (cdf) ){
     double v;
     if (ei)   ei->fill(-SGTELIB::INF);
     if (cdf) cdf->fill(-SGTELIB::INF);
@@ -256,7 +256,7 @@ void SGTELIB::Surrogate_Kriging::predict_private (const SGTELIB::Matrix & XXs,
 bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
 
-  if ((_Zvs) and (_Svs)) return true;
+  if ((_Zvs) && (_Svs)) return true;
 
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
   const SGTELIB::Matrix RiH = _Ri*_H;
@@ -264,14 +264,14 @@ bool SGTELIB::Surrogate_Kriging::compute_cv_values (void){
   const SGTELIB::Matrix dQ = Q.diag_inverse();
   
   // Init matrices
-  if (not _Zvs){
+  if ( !  _Zvs){
     _Zvs = new SGTELIB::Matrix;
     *_Zvs = Zs - SGTELIB::Matrix::diagA_product(dQ,Q)*Zs;
     _Zvs->replace_nan(+INF);
     _Zvs->set_name("Zvs");
   }
     
-  if (not _Svs){
+  if ( !  _Svs){
     _Svs = new SGTELIB::Matrix ("Svs",_p,_m);
     double q;
     for (int i=0 ; i<_p ; i++){
@@ -305,7 +305,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Kriging::get_matrix_Svs (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate_Kriging::compute_metric_linv (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _metric_linv){
+  if ( !  _metric_linv){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_linv\n";
     #endif

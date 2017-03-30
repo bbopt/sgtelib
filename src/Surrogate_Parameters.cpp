@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -154,7 +154,7 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
       std::cout << " (" << field << ")\n";
     #endif   
     // Check if this field is authorized for this type of model.
-    if (not authorized_field(field)){
+    if ( !  authorized_field(field)){
       std::cout << "model_description: " << model_description << "\n";
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unauthorized field \""+field+"\" in a model of type "+model_type_to_str(_type) );
     }
@@ -162,16 +162,16 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
       std::cout << "CONTENT: " << content << "\n";
     #endif
     // Read the content 
-    if (not (in_line >> content))
+    if ( !  (in_line >> content))
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Missing content for field \""+field+"\"" );
 
 
 
     // Detect if the content is "OPTIM".
-    content_is_optim = ( streqi(content,"OPTIM") or streqi(content,"OPTIMIZATION") or streqi(content,"OPTIMIZE") );
+    content_is_optim = ( streqi(content,"OPTIM") || streqi(content,"OPTIMIZATION") || streqi(content,"OPTIMIZE") );
 
     // Check if optimization is allowed for this field.
-    if ((content_is_optim) and (not authorized_optim(field))) {
+    if ((content_is_optim) && ( !  authorized_optim(field))) {
       std::cout << "model_description: " << model_description << "\n";
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Field \""+field+"\" cannot be optimized." );
     }
@@ -231,7 +231,7 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
       _metric_type = str_to_metric_type(content);
     }
     else if ( streqi(field,"BUDGET") ){
-      _budget = stoi(content);
+      _budget = SGTELIB::stoi(content);
     }
     else if ( streqi(field,"PRESET") ){
       _preset = content;
@@ -375,7 +375,7 @@ void SGTELIB::Surrogate_Parameters::check ( void ) {
         throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"kernel_coef must be > 0" );
       if (_ridge<0)
         throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"ridge must be >= 0" );
-      if ( (not kernel_has_parameter(_kernel_type)) and (_kernel_type_status==SGTELIB::STATUS_FIXED) ){
+      if ( ( !  kernel_has_parameter(_kernel_type)) && (_kernel_type_status==SGTELIB::STATUS_FIXED) ){
         // If the kernel coef is not used in this type of kernel, then it should be fixed. 
         _kernel_coef = 1;
         _kernel_coef_status = SGTELIB::STATUS_FIXED;
@@ -383,12 +383,10 @@ void SGTELIB::Surrogate_Parameters::check ( void ) {
       break;
 
     case SGTELIB::LOWESS: 
-      if ( (_degree < 0) or (_degree > 2) )
+      if ( (_degree < 0) || (_degree > 2) )
         throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"degree for LOWESS model must be 0, 1 or 2" );
       if (_ridge<0)
         throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"ridge must be >= 0" );
-      //if (_kernel_coef <= 0)
-      //  throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"kernel_coef must be > 0" );
       if ( (_preset!="D"  ) &&
            (_preset!="DEN") &&
            (_preset!="DGN") &&
@@ -399,9 +397,9 @@ void SGTELIB::Surrogate_Parameters::check ( void ) {
         std::cout << "LOWESS preset : " << _preset << "\n";
         std::cout << "Possible values: D, DEN, DGN, RE, RG, REN, RGN.\n";
         throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"preset not recognized" );
-      if (!SGTELIB::kernel_is_decreasing(_kernel_type))
-        throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"kernel_type must be decreasing" );
       }
+      if ( ! SGTELIB::kernel_is_decreasing( _kernel_type ) )
+        throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"kernel_type must be decreasing" );
       break;
 
     case SGTELIB::ENSEMBLE: 
@@ -828,7 +826,7 @@ void SGTELIB::Surrogate_Parameters::get_x_bounds ( SGTELIB::Matrix * LB ,
                                                    SGTELIB::param_domain_t * domain,
                                                    bool * logscale ){
 
-    if ( (not LB) or (not UB) or (not domain) or (not logscale) ){
+    if ( ( ! LB) || ( ! UB) || ( ! domain) || ( ! logscale) ){
       std::cout << LB << " " << UB << " " << domain << " " << logscale << "\n";
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Pointers are NULL." );
     }
@@ -933,7 +931,7 @@ void SGTELIB::Surrogate_Parameters::get_x_bounds ( SGTELIB::Matrix * LB ,
         std::cout << "LB (=" << LB->get(j) << ") >= UB (=" << UB->get(j) << ")\n";
       }
       // Check that only continuous variables are using a log scale
-      if ( (logscale[j]) and (domain[j]!=SGTELIB::PARAM_DOMAIN_CONTINUOUS) ){
+      if ( (logscale[j]) && (domain[j]!=SGTELIB::PARAM_DOMAIN_CONTINUOUS) ){
         error=true;
         std::cout << "Variable " << j << "\n";
         std::cout << "Uses logscale and is not continuous.\n";
@@ -1039,7 +1037,7 @@ bool SGTELIB::Surrogate_Parameters::check_x ( void ){
           }
           break;
         case SGTELIB::PARAM_DOMAIN_BOOL:
-          if ((X[j]!=0) and (X[j]!=1)){
+          if ((X[j]!=0) && (X[j]!=1)){
             error=true;
             std::cout << "Variable " << j << " (Boolean)\n";
             std::cout << "X[" << j << "]=" << X[j] << " is not a boolean\n";
@@ -1066,7 +1064,7 @@ bool SGTELIB::Surrogate_Parameters::check_x ( void ){
     delete UB;
     delete [] domain; 
 
-    return (not error);
+    return ( !  error);
 }//
 
 
@@ -1155,8 +1153,8 @@ double SGTELIB::Surrogate_Parameters::get_x_penalty ( void ){
     }
   }
 
-  if (std::isinf(pen)) pen=+INF;
-  if (std::isnan(pen)) pen=+INF;
+  if ( isinf(pen) ) pen=+INF;
+  if ( isnan(pen) ) pen=+INF;
   return pen;
 }
 

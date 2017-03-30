@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -30,8 +30,27 @@
 #include "Exception.hpp"
 #include "Matrix.hpp"
 #include <sys/stat.h>
+
+// CASE Visual Studio C++ compiler
+#ifdef _MSC_VER
+#pragma warning(disable:4996)
+#include <io.h>
+#define isnan(x) _isnan(x)
+#define isdigit(x) _isdigit(x)
+#define isinf(x) (!_finite(x))
+
+typedef struct timeval {
+     long tv_sec;
+     long tv_usec;
+} timeval;
+
+#else
 #include <unistd.h>
+#endif
+
+
 #include <cstring>
+#include <cctype>
 
 namespace SGTELIB {
 
@@ -89,7 +108,7 @@ namespace SGTELIB {
     METRIC_LINV   // Inverse of the likelihood
   };
   const int NB_METRIC_TYPES = 11;
-  
+ 
 
   // Diff in ms
   int diff_ms(timeval t1, timeval t2);
@@ -119,7 +138,6 @@ namespace SGTELIB {
 
   // isdef (not nan nor inf)
   bool isdef ( const double x );
-
 
   // rounding:
   int round ( double d );

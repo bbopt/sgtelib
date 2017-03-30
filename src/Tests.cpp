@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -39,7 +39,7 @@ void SGTELIB::test_LOWESS_times ( void ){
 
   const int m = 1;
   const int pp = 6;
-  int n;
+  int n = 0;
 
   for (int in=0 ; in<1 ; in++){
     if (in==0) n = 16;
@@ -200,7 +200,7 @@ std::string SGTELIB::test_quick (const std::string & s , const SGTELIB::Matrix &
   S0 = SGTELIB::Surrogate_Factory(C0,s);
   ready = S0->build();
 
-  if (not ready){
+  if ( !  ready){
     surrogate_delete(S0);
     std::cout << "test_quick: model ("+s+") is not ready\n";
     return       "test_quick: model ("+s+") is not ready\n";
@@ -248,15 +248,15 @@ std::string SGTELIB::test_quick (const std::string & s , const SGTELIB::Matrix &
   std::cout << oss.str();
 
   for (int j=0 ; j<m ; j++){
-    if ( (std::isnan(emax[j])) or (std::isnan(rmsecv[j])) or (std::isnan(oe[j])) or (std::isnan(oecv[j])) or (std::isnan(linv[j])) ){
+    if ( (isnan(emax[j])) || (isnan(rmsecv[j])) || (isnan(oe[j])) || (isnan(oecv[j])) || (isnan(linv[j])) ){
       std::cout << "There is some nan\n";
       std::cout << "EXIT!\n"; 
-      exit(0.0);
+      exit(0);
     }
-    if ( (std::isinf(emax[j])) or (std::isinf(rmse[j])) or (std::isinf(rmsecv[j])) or (std::isinf(oe[j])) or (std::isinf(oecv[j])) or (std::isinf(linv[j])) ){
+    if ( (isinf(emax[j])) || (isinf(rmse[j])) || ( isinf(rmsecv[j])) || (isinf(oe[j])) || (isinf(oecv[j])) || (isinf(linv[j])) ){
       std::cout << "There is some inf\n";
       std::cout << "EXIT!\n"; 
-      exit(0.0);
+      exit(0);
     }
   }
   delete [] emax;
@@ -295,7 +295,7 @@ std::string SGTELIB::test_pxx (const std::string & s , const SGTELIB::Matrix & X
   bool ready;
   ready = S0->build();
 
-  if (not ready){
+  if ( !  ready){
     surrogate_delete(S0);
     std::cout <<  "test_pxx: model ("+s+") is not ready\n";
     return        "test_pxx: model ("+s+") is not ready\n";
@@ -333,7 +333,7 @@ std::string SGTELIB::test_pxx (const std::string & s , const SGTELIB::Matrix & X
         break;
       default:
         std::cout << "ERROR i = " << i << "\n";
-        exit(0.0);
+        exit(0);
     }
 
     // TESTING POINT(S)
@@ -396,7 +396,7 @@ std::string SGTELIB::test_pxx (const std::string & s , const SGTELIB::Matrix & X
           break;
         default:
           std::cout << "ERROR k = " << k << "\n";
-          exit(0.0);
+          exit(0);
 
       }// end switch
 
@@ -443,7 +443,7 @@ std::string SGTELIB::test_update (const std::string & s , const SGTELIB::Matrix 
   bool ready;
   ready = S0->build();
 
-  if (not ready){
+  if ( !  ready){
     surrogate_delete(S0);
     std::cout << "test_update: model ("+s+") is not ready\n";
     return       "test_update: model ("+s+") is not ready\n";
@@ -529,14 +529,17 @@ std::string SGTELIB::test_singular_data (const std::string & s ) {
   // Column 0 of Z0 is constant (= 0.0);
   Z0.set_col(0.0,0);
   // Column 1 of Z0 has some nan
-  Z0.set(2,1,0.0/0.0);
-  Z0.set(5,1,0.0/0.0);
+  // Z0.set(2,1,0.0/0.0);
+  // Z0.set(5,1,0.0/0.0);
+  Z0.set(2,1,SGTELIB::NaN);
+  Z0.set(5,1,SGTELIB::NaN);
   // Column 2 of Z0 has some inf
   Z0.set(4,2,SGTELIB::INF);
   Z0.set(7,2,SGTELIB::INF);
   // Column 3 of Z0 has some nan and some inf
   Z0.set(5,3,SGTELIB::INF);
-  Z0.set(8,3,0.0/0.0);
+  Z0.set(8,3,SGTELIB::NaN);
+  // Z0.set(8,3,0.0/0.0);
   
   #ifdef SGTELIB_DEBUG
     X0.display(std::cout);  
@@ -549,7 +552,7 @@ std::string SGTELIB::test_singular_data (const std::string & s ) {
   S0 = SGTELIB::Surrogate_Factory(C0,s);
   bool ready = S0->build();
 
-  if (not ready){
+  if ( !  ready){
     surrogate_delete(S0);
     std::cout << "test_singular_data: model ("+s+") is not ready\n";
     return       "test_singular_data: model ("+s+") is not ready\n";
@@ -580,10 +583,10 @@ std::string SGTELIB::test_singular_data (const std::string & s ) {
   oss << "---|--------------|--------------|\n";
 
   for (int j=0 ; j<m ; j++){
-    if ( (not isdef(rmse[j])) or (not isdef(rmse[j])) ){
+    if ( ( !  isdef(rmse[j])) || ( !  isdef(rmse[j])) ){
       std::cout << "There are some nan !";
       C0.get_matrix_Xs().display(std::cout);
-      exit(0.0);
+      exit(0);
     }
   }
 
@@ -620,7 +623,7 @@ std::string SGTELIB::test_scale (const std::string & s , const SGTELIB::Matrix &
   S0 = SGTELIB::Surrogate_Factory(C0,s);
   ready = S0->build();
 
-  if (not ready){
+  if ( !  ready){
     surrogate_delete(S0);
     std::cout << "test_scale: model ("+s+") is not ready\n";
     return       "test_scale: model ("+s+") is not ready\n";
@@ -741,13 +744,13 @@ std::string SGTELIB::test_dimension (const std::string & s ){
   std::cout << s << "\n";
 
   // INIT DATA
-  int p,n,m,pxx=1;
+  int p =0,n=0,m=0,pxx=1;
 
   bool ready;
 
   // Training Set and Surrogate
-  SGTELIB::TrainingSet * C0;
-  SGTELIB::Surrogate * S0;
+  SGTELIB::TrainingSet * C0=NULL;
+  SGTELIB::Surrogate * S0=NULL;
 
   // Predictions
   SGTELIB::Matrix X0,Z0;
@@ -881,7 +884,7 @@ std::string SGTELIB::test_rmse (const std::string & s , const SGTELIB::Matrix & 
   S0 = SGTELIB::Surrogate_Factory(C0,s);
   ready = S0->build();
 
-  if (not ready){
+  if ( !  ready){
     surrogate_delete(S0);
     std::cout << "test_rmse: model ("+s+") is not ready\n";
     return       "test_rmse: model ("+s+") is not ready\n";
@@ -984,7 +987,7 @@ std::string SGTELIB::test_rmsecv (const std::string & s , const SGTELIB::Matrix 
   S0->get_param().get_kernel_coef();
 
   // Check ready
-  if (not ready){
+  if ( !  ready){
     surrogate_delete(S0);
     std::cout << "test_rmsecv: model ("+s+") is not ready\n";
     return       "test_rmsecv: model ("+s+") is not ready\n";
@@ -1140,7 +1143,7 @@ std::string SGTELIB::test_multiple_occurrences (const std::string & s ){
 
 
   // Check ready
-  if (not ready){
+  if ( ! ready){
     surrogate_delete(S0);
     std::cout << "test_rmsecv: model ("+s+") is not ready\n";
     return       "test_rmsecv: model ("+s+") is not ready\n";
@@ -1315,7 +1318,7 @@ double SGTELIB::test_functions_1D (const double t, const int function_index){
     case 2:
       return 0.5-exp(-10*t*t); // bump
     case 3:
-      return 0.5-((t>-0.2)and(t<0.5)); // square
+      return 0.5-((t>-0.2) && (t<0.5)); // square
     case 4:
       return 5.0*t-17.0*pow(t,3)+13*pow(t,5); // Oscillations/polynomial
     case 5:
@@ -1348,11 +1351,11 @@ SGTELIB::Matrix SGTELIB::test_functions_1D (const SGTELIB::Matrix & T, const int
 /*----------------------------------------------------*/
 void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix * B){
   // Check not NULL
-  if (not A){
+  if ( !  A){
     std::cout << "A is NULL\n";
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"check_matrix_diff : A is NULL" );
   }
-  if (not B){
+  if ( !  B){
     std::cout << "B is NULL\n";
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"check_matrix_diff : B is NULL" );
   }
@@ -1383,19 +1386,19 @@ void SGTELIB::check_matrix_diff(const SGTELIB::Matrix * A, const SGTELIB::Matrix
         eij = true;
         std::cout << "diff is too big !\n";
       }
-      if (std::isnan(va)){
+      if (isnan(va)){
         eij = true;
         std::cout << "va is nan !\n";
       }
-      if (std::isnan(vb)){
+      if (isnan(vb)){
         eij = true;
         std::cout << "vb is nan !\n";
       }
-      if (std::isinf(va)){
+      if (isinf(va)){
         eij = true;
         std::cout << "va is inf !\n";
       }
-      if (std::isinf(vb)){
+      if (isinf(vb)){
         eij = true;
         std::cout << "vb is inf !\n";
       }
@@ -1435,7 +1438,7 @@ void SGTELIB::build_test_data ( const std::string & function_name ,
   int n = 0;
   int m = 0;
 
-  if ( (function_name=="hartman3") or (function_name=="hartman6") ){
+  if ( (function_name=="hartman3") || (function_name=="hartman6") ){
     int q = 0;    
     SGTELIB::Matrix B,D;
     std::string B_str,D_str;
@@ -1495,7 +1498,7 @@ void SGTELIB::build_test_data ( const std::string & function_name ,
   }// end hartman
 
 
-  if ((function_name=="branin-hoo") or (function_name=="braninhoo")) {
+  if ((function_name=="branin-hoo") || (function_name=="braninhoo")) {
     n = 2;
     m = 1;
     p = 100*(n+1);

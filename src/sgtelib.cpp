@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -22,7 +22,6 @@
 /*                                                                                     */
 /*  You can find information on sgtelib at https://github.com/bastientalgorn/sgtelib   */
 /*-------------------------------------------------------------------------------------*/
-#include <unistd.h>
 #include "sgtelib.hpp"
 #include "Surrogate_Factory.hpp"
 #include "Surrogate_Utils.hpp"
@@ -77,7 +76,7 @@ int main ( int argc , char ** argv ) {
   //============================================
   keyword.push_back("-model");
   keyword.push_back("-verbose");
-  const int NKW = keyword.size();
+  const int NKW = static_cast<int>(keyword.size());
   // Create empty strings to store the information following each keyword.
   std::vector<std::string> info;
   for (i=0 ; i<NKW ; i++){
@@ -107,7 +106,7 @@ int main ( int argc , char ** argv ) {
     }
     // Then continue ready the words for the current keyword.
     info.at(j) += " ";
-    if (not found_kw) info.at(j) += std::string(argv[i]);
+    if ( ! found_kw) info.at(j) += std::string(argv[i]);
     i++;
   }
 
@@ -185,7 +184,7 @@ int main ( int argc , char ** argv ) {
   //============================================ 
   // help
   //============================================ 
-  if (!strcmp(action.c_str(),"-help") or error){
+  if (!strcmp(action.c_str(),"-help") || error){
     std::string model;
     for (i=0 ; i<NKW ; i++) {
       if (!strcmp(keyword.at(i).c_str(),"-help")) break;
@@ -227,7 +226,7 @@ void SGTELIB::sgtelib_predict( const std::string & file_list , const std::string
   std::string file;
   SGTELIB::Matrix X,Z,XX,ZZ;
   std::istringstream in_line (file_list);	
-  if ( (not error) and (in_line >> file) and (SGTELIB::exists(file)) ){
+  if ( ( ! error) && (in_line >> file) && (SGTELIB::exists(file)) ){
     std::cout << "Read file " << file << "\n";
     X = SGTELIB::Matrix(file);
     //X.display(std::cout);
@@ -236,7 +235,7 @@ void SGTELIB::sgtelib_predict( const std::string & file_list , const std::string
     std::cout << "Could not find " << file << "\n";
     error = true;
   }
-  if ( (not error) and (in_line >> file) and (SGTELIB::exists(file)) ){
+  if ( ( ! error) && (in_line >> file) && (SGTELIB::exists(file)) ){
     std::cout << "Read file " << file << "\n";
     Z = SGTELIB::Matrix(file);
     //Z.display(std::cout);
@@ -245,7 +244,7 @@ void SGTELIB::sgtelib_predict( const std::string & file_list , const std::string
     std::cout << "Could not find " << file << "\n";
     error = true;
   }
-  if ( (not error) and  (in_line >> file) and (SGTELIB::exists(file)) ){
+  if ( ( ! error) &&  (in_line >> file) && (SGTELIB::exists(file)) ){
     std::cout << "Read file " << file << "\n";
     XX = SGTELIB::Matrix(file);
     //XX.display(std::cout);
@@ -254,11 +253,11 @@ void SGTELIB::sgtelib_predict( const std::string & file_list , const std::string
     std::cout << "Could not find " << file << "\n";
     error = true;
   }
-  if (not (in_line >> file)){
+  if ( ! (in_line >> file)){
     std::cout << "No zz file (display output in terminal)\n";
     file = "null";
   }
-  if (not error){
+  if ( ! error){
     SGTELIB::TrainingSet TS(X,Z);
     SGTELIB::Surrogate * S = Surrogate_Factory(TS,model);
     S->build();
@@ -292,7 +291,7 @@ void SGTELIB::sgtelib_best( const std::string & file_list , const bool verbose){
   std::string file;
   SGTELIB::Matrix X,Z;
   std::istringstream in_line (file_list);	
-  if ( (not error) and (in_line >> file) and (SGTELIB::exists(file)) ){
+  if ( ( ! error) && (in_line >> file) && (SGTELIB::exists(file)) ){
     std::cout << "Read file " << file << "\n";
     X = SGTELIB::Matrix(file);
   }
@@ -300,7 +299,7 @@ void SGTELIB::sgtelib_best( const std::string & file_list , const bool verbose){
     std::cout << "Could not find " << file << "\n";
     error = true;
   }
-  if ( (not error) and (in_line >> file) and (SGTELIB::exists(file)) ){
+  if ( ( ! error) && (in_line >> file) && (SGTELIB::exists(file)) ){
     std::cout << "Read file " << file << "\n";
     Z = SGTELIB::Matrix(file);
   }
@@ -425,7 +424,7 @@ void SGTELIB::sgtelib_server( const std::string & model , const bool verbose ){
       if (display) Z.display_short(std::cout);
       std::cout << X.get_nb_rows() << " new data points...\n";
 
-      if (not S){
+      if ( ! S){
         if (display) std::cout << "First data: Build Trainig Set & Model\n";
         TS = new SGTELIB::TrainingSet(X,Z);
         S = Surrogate_Factory(*TS,model);
@@ -507,7 +506,7 @@ void SGTELIB::sgtelib_server( const std::string & model , const bool verbose ){
 
       bool ready = false;
       if (S) ready = S->build();      
-      if (not ready){
+      if ( ! ready){
         if (display) std::cout << "Surrogate not ready\n";
         dummy_str = system("touch flag_not_ready");
       }
@@ -559,7 +558,7 @@ void SGTELIB::sgtelib_server( const std::string & model , const bool verbose ){
 
       bool ready = false;
       if (S) ready = S->build();      
-      if (not ready){
+      if ( ! ready){
         if (display) std::cout << "Surrogate not ready\n";
         dummy_str = system("touch flag_not_ready");
       }
@@ -608,7 +607,7 @@ void SGTELIB::sgtelib_server( const std::string & model , const bool verbose ){
 
       bool ready = false;
       if (S) ready = S->build();      
-      if (not ready){
+      if ( ! ready){
         if (display) std::cout << "Surrogate not ready\n";
         dummy_str = system("touch flag_not_ready");
       }
@@ -708,7 +707,7 @@ void SGTELIB::sgtelib_help( std::string word ){
     // j=1 => search in associated keywords
     // j=2 => search in content
     for (i=0 ; i<NL ; i++){
-      if ( (SGTELIB::string_find(DATA[i][j],word)) or (streqi(word,"ALL")) ){
+      if ( (SGTELIB::string_find(DATA[i][j],word)) || (streqi(word,"ALL")) ){
         //std::cout << i << " " << j << " " << (SGTELIB::string_find(DATA[i][j],word)) << " " << word << " " << DATA[i][j] << "\n";
         std::cout << "===============================================\n\n";
         std::cout << "  \33[4m" << DATA[i][0] << "\33[0m" << "\n\n";

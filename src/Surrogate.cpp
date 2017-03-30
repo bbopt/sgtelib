@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -236,7 +236,7 @@ bool SGTELIB::Surrogate::build ( void ) {
   // Number of points in the training set.
   _p_ts = _trainingset.get_nb_points();
   //std::cout << _ready << " " << _p_ts << " " << _p_ts_old << "\n";
-  if ( (_ready) and (_p_ts==_p_ts_old) ){
+  if ( (_ready) && (_p_ts==_p_ts_old) ){
     #ifdef SGTELIB_DEBUG
       std::cout << "Surrogate build - SKIP Build\n";
     #endif
@@ -248,10 +248,10 @@ bool SGTELIB::Surrogate::build ( void ) {
 
 
   // Get the number of points used in the surrogate
-  if ( (_selected_points.size()==1) and (_selected_points.front()==-1) )
+  if ( (_selected_points.size()==1) && (_selected_points.front()==-1) )
     _p = _p_ts;
   else  
-    _p = _selected_points.size();
+    _p = static_cast<int>(_selected_points.size());
 
   // Need at least 2 point to build a surrogate.
   if (_p<2){
@@ -270,12 +270,12 @@ bool SGTELIB::Surrogate::build ( void ) {
 
   bool ok;
   ok = init_private();
-  if (not ok) return false;
+  if ( ! ok) return false;
 
   // Optimize parameters
   if (_param.get_nb_parameter_optimization()>0){
     ok = optimize_parameters();
-    if (not ok){
+    if ( ! ok){
       _ready = false;
       return false;
     }
@@ -283,7 +283,7 @@ bool SGTELIB::Surrogate::build ( void ) {
 
   // Build private
   ok = build_private();
-  if (not ok){
+  if ( ! ok){
     _ready = false;
     return false;
   }
@@ -340,7 +340,7 @@ void SGTELIB::Surrogate::check_ready (const std::string & file,
 void SGTELIB::Surrogate::check_ready (const std::string & s) const {
   
   // Check the tag _ready
-  if (not _ready){
+  if ( ! _ready){
     display(std::cout);
     std::cout << "Surrogate: NOT READY! (" << s << ")\n";
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
@@ -509,12 +509,12 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
   int i,j;
 
   // Prediction of ZZs
-  if ( (ZZs) or (ei) or (cdf) ){
+  if ( (ZZs) || (ei) || (cdf) ){
     predict_private(XXs,ZZs);
   }
 
   // Prediction of statistical data
-  if ( (std) or (ei) or (cdf) ){
+  if ( (std) || (ei) || (cdf) ){
 
     if (std) std->fill(-SGTELIB::INF);
     else std = new SGTELIB::Matrix("std",pxx,_m);
@@ -610,7 +610,7 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
 double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
 
   // Check dimension
-  if ( (j<0) or (j>_m) ){
+  if ( (j<0) || (j>_m) ){
     display(std::cout); 
     std::cout << "j = "<< j << "\n";
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
@@ -618,7 +618,7 @@ double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
   }
 
   // If the model is not ready, return +INF
-  if (not _ready){ 
+  if ( ! _ready){ 
     #ifdef SGTELIB_DEBUG
       std::cout << get_string() << " is not ready => _metric = +INF\n";
     #endif
@@ -697,7 +697,7 @@ double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
 /* points                                */
 /*---------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Zhs (void){
-  if (not _Zhs){
+  if ( ! _Zhs){
     check_ready(__FILE__,__FUNCTION__,__LINE__);
 
     //#ifdef SGTELIB_DEBUG
@@ -718,7 +718,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Zhs (void){
 /*  (Compute the predictive std)        */
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Shs (void){
-  if (not _Shs){
+  if ( ! _Shs){
     check_ready(__FILE__,__FUNCTION__,__LINE__);
 
     #ifdef SGTELIB_DEBUG
@@ -736,7 +736,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Shs (void){
 
 // If no specific method is defined, consider Svs = Shs.
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Svs (void){
-  if (not _Svs){
+  if ( ! _Svs){
     _Svs = new SGTELIB::Matrix("Svs",_p,_m);
     const SGTELIB::Matrix Ds = _trainingset.get_matrix_Ds();
     for (int i=0 ; i<_p ; i++){
@@ -833,7 +833,7 @@ const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Sv (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_rmsecv (void){
   check_ready();
-  if (not _metric_rmsecv){
+  if ( ! _metric_rmsecv){
     // Init
     _metric_rmsecv = new double [_m];
 
@@ -862,7 +862,7 @@ void SGTELIB::Surrogate::compute_metric_rmsecv (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_emax (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _metric_emax){
+  if ( ! _metric_emax){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_emax\n";
     #endif
@@ -899,7 +899,7 @@ void SGTELIB::Surrogate::compute_metric_emax (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_emaxcv (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _metric_emaxcv){
+  if ( ! _metric_emaxcv){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_emaxcv\n";
     #endif
@@ -936,7 +936,7 @@ void SGTELIB::Surrogate::compute_metric_emaxcv (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_rmse (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _metric_rmse){
+  if ( ! _metric_rmse){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_rmse\n";
     #endif
@@ -976,7 +976,7 @@ void SGTELIB::Surrogate::compute_metric_rmse (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_oe (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _metric_oe){
+  if ( ! _metric_oe){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_oe\n";
     #endif
@@ -996,7 +996,7 @@ void SGTELIB::Surrogate::compute_metric_oe (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_oecv (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _metric_oecv){
+  if ( ! _metric_oecv){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_oecv\n";
     #endif
@@ -1156,7 +1156,7 @@ void SGTELIB::Surrogate::compute_metric_armsecv (void){
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_linv (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _metric_linv){
+  if ( ! _metric_linv){
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _metric_linv\n";
     #endif
@@ -1209,7 +1209,7 @@ void SGTELIB::Surrogate::compute_order_error (const SGTELIB::Matrix * const Zpre
   //           - Zpred (input of this function)
   // Put the results in "m" (output of this function)
 
-  if (not m){
+  if ( ! m){
     display(std::cout); 
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
                    "compute_order_error(): m is NULL" );
@@ -1570,7 +1570,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
         }
 
         // Check for success for each objective
-        if ( (ftry<fmin) or ((ftry==fmin) and (ptry<pmin)) ){
+        if ( (ftry<fmin) || ((ftry==fmin) && (ptry<pmin)) ){
           if (display) std::cout << "(!)";
           xmin = xtry;
           fmin = ftry;
@@ -1580,7 +1580,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
         if (display) std::cout << "\n";
       } // End Evaluation (i.e. No Cache Hit)
 
-      if ( (iter) and (success) ) break;
+      if ( (iter) && (success) ) break;
 
     }// END LOOP ON POLL (for i...)
 
@@ -1614,7 +1614,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   }
 
   // Check for Nan
-  if (xmin.has_nan() or xmin.has_inf()) return false;
+  if (xmin.has_nan() || xmin.has_inf()) return false;
 
   delete [] logscale;
   delete [] domain;
@@ -1635,7 +1635,7 @@ double SGTELIB::Surrogate::eval_objective ( void ){
 
   // Build model
   bool ok = build_private();
-  if (not ok) return +INF;
+  if ( ! ok) return +INF;
 
   // Compute metric
   const SGTELIB::metric_t mt = _param.get_metric_type();
@@ -1648,8 +1648,8 @@ double SGTELIB::Surrogate::eval_objective ( void ){
     metric = get_metric(mt,0);
   }
 
-  if (isnan(metric)) return +INF;
-  if (std::isinf(metric)) return +INF;
+  if ( isnan(metric) ) return +INF;
+  if ( isinf(metric) ) return +INF;
   return metric;
 
 }//

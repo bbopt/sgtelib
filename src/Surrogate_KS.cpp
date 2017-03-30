@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -59,7 +59,7 @@ void SGTELIB::Surrogate_KS::display_private ( std::ostream & out ) const {
 bool SGTELIB::Surrogate_KS::build_private ( void ) {
 
   // Verify that the kernel is decreasing
-  if (not kernel_is_decreasing(_param.get_kernel_type())){
+  if ( !  kernel_is_decreasing(_param.get_kernel_type())){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_KS::build_private(): Kernel must be decreasing for KS model" );
   }
@@ -102,7 +102,7 @@ void SGTELIB::Surrogate_KS::predict_private ( const SGTELIB::Matrix & XXs,
   if (Div.has_inf()){
     // Loop on the points of XXs
     for (ixx=0 ; ixx<pxx ; ixx++){
-      if (std::isinf(Div.get(ixx,0))){
+      if ( isinf(Div.get(ixx,0)) ){
         // Need to use the limit behavior of kernels
         switch (_param.get_kernel_type()){
           case SGTELIB::KERNEL_D1:
@@ -140,7 +140,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_KS::get_matrix_Zvs (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
 
   // Check that it's NULL
-  if ( not _Zvs ){
+  if (  !  _Zvs ){
 
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _Zvs\n";
@@ -208,7 +208,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_KS::get_matrix_Zvs (void){
               for (i=0 ; i<_p ; i++){
 
                 d = D.get(i,iv);
-                if ( (i!=iv) and (d<dmin) ){
+                if ( (i!=iv) &&  (d<dmin) ){
                   dmin = d;
                   imin = i;
                 }
@@ -250,7 +250,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_KS::get_matrix_Zhs (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
 
   // Check that it's NULL
-  if ( not _Zhs ){
+  if (  !  _Zhs ){
 
     #ifdef SGTELIB_DEBUG
       std::cout << "Compute _Zhs\n";
