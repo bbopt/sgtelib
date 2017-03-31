@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -24,7 +24,6 @@
 /*-------------------------------------------------------------------------------------*/
 
 #include "Surrogate_Utils.hpp"
-
 
 /*-------------------------------*/
 /*     string comparison         */
@@ -57,19 +56,19 @@ bool SGTELIB::issubstring (const std::string S , const std::string s){
 std::string SGTELIB::deblank ( const std::string & s_input ){
   std::string s = s_input;
   // Remove leading spaces
-  while ( (s.length()) and (s.at(0)==' ') ){
+  while ( (s.length()) && (s.at(0)==' ') ){
     s.erase(0,1);
   }
   // Remove trailing spaces
   size_t i = s.length();
-  while ( (i>0) and (s.at(i-1)==' ') ) {
+  while ( (i>0) && (s.at(i-1)==' ') ) {
     s.erase(i-1,1);
     i--;
   }  
   // Remove double spaces
   i=1;
   while (i+2<s.length()){
-    if ( (s.at(i)==' ') and (s.at(i+1)==' ') ){
+    if ( (s.at(i)==' ') && (s.at(i+1)==' ') ){
       s.erase(i,1);
     }
     else{
@@ -110,7 +109,7 @@ int SGTELIB::count_words( const std::string & s ) {
 void SGTELIB::append_file (const std::string & s , const std::string & file){
   std::string dummy_str;
   std::string cmd;
-  if (not SGTELIB::exists(file)){
+  if ( ! SGTELIB::exists(file)){
     cmd = "touch "+ file;
     dummy_str = system( cmd.c_str() );
   }
@@ -125,7 +124,11 @@ void SGTELIB::append_file (const std::string & s , const std::string & file){
 /*-------------------------------*/
 void SGTELIB::wait (double t) {
   // t is a number of seconds
-  usleep(t*1000000.0);
+#ifdef _MSC_VER
+//    Sleep(t*1000000.0);
+#else
+   usleep(t*1000000.0);
+#endif
 }//
 
 
@@ -134,10 +137,10 @@ void SGTELIB::wait (double t) {
 /*  isdef (not nan nor inf)     */
 /*-------------------------------*/
 bool SGTELIB::isdef ( const double x ) {
-  if (std::isnan(x)) return false;
-  if (std::isinf(x)) return false;
-  if (fabs(x)>=SGTELIB::INF) return false;
-  if (fabs(x)>=1e+16){
+  if ( isnan(x) ) return false;
+  if ( isinf(x) ) return false;
+  if ( fabs(x)>=SGTELIB::INF) return false;
+  if ( fabs(x)>=1e+16){
     return false;
   }
   return true;
@@ -234,7 +237,7 @@ bool SGTELIB::isdigit ( const std::string & s ){
   char c;
   while (it != s.end()){
     c = *it;
-    if ( not ( (std::isdigit(c)) or (c=='+') or (c=='-') or (c=='.') ) ){
+    if ( ! ( ( isdigit(std::string(1,c))) || (c=='+') || (c=='-') || (c=='.') ) ){
       return false;
     }
     it++;
@@ -469,7 +472,7 @@ SGTELIB::distance_t SGTELIB::str_to_distance_type ( const std::string & s ) {
 /*----------------------------------------------------------*/
 SGTELIB::distance_t SGTELIB::int_to_distance_type ( const int i ) {
 /*----------------------------------------------------------*/
-  if ( (i<0) or (i>=SGTELIB::NB_DISTANCE_TYPES) ){
+  if ( (i<0) || (i>=SGTELIB::NB_DISTANCE_TYPES) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
       "int_to_distance_type: invalid integer "+itos(i) );
   }
@@ -512,7 +515,7 @@ SGTELIB::metric_t SGTELIB::str_to_metric_type ( const std::string & s ) {
 /*       Same sign                              */
 /*----------------------------------------------*/
 bool SGTELIB::same_sign (const double a, const double b) {
-  return ( (a*b>0) or ( (fabs(a)<EPSILON) and (fabs(b)<EPSILON) ) );
+  return ( (a*b>0) || ( (fabs(a)<EPSILON) && (fabs(b)<EPSILON) ) );
 }//
 
 
@@ -611,11 +614,12 @@ double SGTELIB::normei ( double fh , double sh , double f_min ) {
 double SGTELIB::gammacdf(double x, double a, double b){
   // a : shape coef
   // b : scale coef
-  if ( (a<=0) or (b<=0) ){
+  if ( (a<=0) || (b<=0) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::gammacdf: a or b is <0" );
   }  
   if (x<EPSILON) return 0.0;
+
   return lower_incomplete_gamma(x/b,a);
 }//
 
@@ -625,11 +629,11 @@ double SGTELIB::gammacdf(double x, double a, double b){
 double SGTELIB::gammacdfinv(double f, double a, double b){
   // a : shape coef
   // b : scale coef
-  if ( (a<=0) or (b<=0) ){
+  if ( (a<=0) || (b<=0) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::gammacdfinv: a or b is <0" );
   }  
-  if ( (f<0) or (f>1) ){
+  if ( (f<0) || (f>1) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
              "Surrogate_Utils::gammacdfinv: f<0 or f>1" );
   }  
@@ -668,24 +672,31 @@ int k = 0;
 //  Stephen Wolfram, The Mathematica Book,Fourth Edition,Cambridge University Press, 1999.
 double SGTELIB::lower_incomplete_gamma ( const double x, double p ){
   // Special cases
-  if ( ( x < EPSILON ) or ( p < EPSILON ) ) return 0;
-  //std::cout << lgamma ( p + 1.0 ) << "\n";
+  if ( ( x < EPSILON ) || ( p < EPSILON ) ) return 0;
+
+#ifdef _MSC_VER
+#if ( _MSC_VER <= 1600 )
+      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
+                                "Surrogate_Utils:: lgamma function not supported with VisualStudio 2010 or lower " );
+
+#endif
+#endif
   double f = exp( p * log ( x ) - lgamma ( p + 1.0 ) - x );
-  //if ( f < EPSILON ) return 0;
-  // Loop
+
   double dv = 1.0, v = 1.0;
   while (dv > v/1e+9) {
     dv *= x / (++p);
     v += dv;
   }
   return v*f;
+    
 }//
 
 /*----------------------------------------*/
 /*  difference between two timeval, in ms */
 /*----------------------------------------*/
 int SGTELIB::diff_ms(timeval t1, timeval t2){
-  return (((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec +500))/1000;
+  return static_cast<int>((((t1.tv_sec - t2.tv_sec) * 1000000) + (t1.tv_usec - t2.tv_usec +500))/1000);
 }//
 
 /*----------------------------------------*/

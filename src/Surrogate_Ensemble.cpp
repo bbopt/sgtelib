@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -250,7 +250,7 @@ bool SGTELIB::Surrogate_Ensemble::build_private ( void ) {
       {
       SGTELIB::Matrix W = _param.get_weight();
       for (k=0 ; k<_kmax ; k++){
-        if (not is_ready(k)){
+        if (! is_ready(k)){
           W.set_row(0.0,k);
         }
       }
@@ -301,7 +301,7 @@ void SGTELIB::Surrogate_Ensemble::compute_active_models ( void ) {
   // (_active[k] is true if the model k is ready AND the weight in k is not null for 
   // at least one output)
   SGTELIB::Matrix W = _param.get_weight();
-  if (not _active){
+  if (! _active){
     _active = new bool [_kmax];
   }
   int k;
@@ -309,7 +309,7 @@ void SGTELIB::Surrogate_Ensemble::compute_active_models ( void ) {
     _active[k] = false;
     if ( is_ready(k) ){
       for (int j=0 ; j<_m ; j++){
-        if ( (_trainingset.get_bbo(j)!=SGTELIB::BBO_DUM) and (W.get(k,j)>EPSILON) ){
+        if ( (_trainingset.get_bbo(j)!=SGTELIB::BBO_DUM) && (W.get(k,j)>EPSILON) ){
           _active[k] = true;
           break;
         }
@@ -342,7 +342,7 @@ void SGTELIB::Surrogate_Ensemble::compute_W_by_select ( void ) {
       for (k=0 ; k<_kmax ; k++){
         if (is_ready(k)){
           metric = _surrogates.at(k)->get_metric(_param.get_metric_type(),j);
-          if (not isnan(metric)) {
+          if (! isnan(metric)) {
             metric_best = std::min(metric,metric_best);
           }
         }
@@ -564,7 +564,7 @@ void SGTELIB::Surrogate_Ensemble::predict_private ( const SGTELIB::Matrix & XXs,
   const SGTELIB::Matrix W = _param.get_weight();
 
   // If no statistical information is required, use the simpler prediction method
-  if (not (std or ei or cdf)){
+  if (! (std || ei || cdf)){
     predict_private ( XXs, ZZ );
     return;
   }
@@ -574,7 +574,7 @@ void SGTELIB::Surrogate_Ensemble::predict_private ( const SGTELIB::Matrix & XXs,
 
   // Init ZZ
   bool delete_ZZ = false;
-  if (not ZZ){
+  if ( ! ZZ){
     // if ZZ is not required, we build it anyway, but delete it in the end
     ZZ = new SGTELIB::Matrix ("ZZ",pxx,_m);
     delete_ZZ = true;
@@ -632,7 +632,7 @@ void SGTELIB::Surrogate_Ensemble::predict_private ( const SGTELIB::Matrix & XXs,
           }
     
           // EI is linear on w
-          if ( (ei) and (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ) ){
+          if ( (ei) && (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ) ){
             for (int i=0 ; i<pxx ; i++){
               ei->set(i,j, ei->get(i,j) + w*eik->get(i,j) );
             }// end loop i
@@ -675,7 +675,7 @@ void SGTELIB::Surrogate_Ensemble::predict_private ( const SGTELIB::Matrix & XXs,
 /*       get_matrix_Zvs                 */
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Zvs (void){
-  if (not _Zvs){
+  if ( ! _Zvs){
     #ifdef ENSEMBLE_DEBUG
       check_ready(__FILE__,__FUNCTION__,__LINE__);
     #endif
@@ -711,7 +711,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Zvs (void){
 /*       get_matrix_Zhs                 */
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Zhs (void){
-  if (not _Zhs){
+  if ( ! _Zhs){
     #ifdef ENSEMBLE_DEBUG
       check_ready(__FILE__,__FUNCTION__,__LINE__);
     #endif
@@ -747,7 +747,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Zhs (void){
 /*       get_matrix_Shs                 */
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Shs (void){
-  if (not _Shs){
+  if ( ! _Shs){
     const SGTELIB::Matrix W = _param.get_weight();
     _Shs = new SGTELIB::Matrix("Zv",_p,_m);
     _Shs->fill(0.0);
@@ -791,7 +791,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_Ensemble::get_matrix_Shs (void){
 /*  to know if basic model k is ready   */
 /*--------------------------------------*/
 bool SGTELIB::Surrogate_Ensemble::is_ready (const int k) const{
-  if ((k<0) or (k>=_kmax)){
+  if ((k<0) || (k>=_kmax)){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
                "Surrogate_Ensemble::set_weight_vector (const int k): k out of range" );
   }
@@ -891,7 +891,7 @@ bool SGTELIB::Surrogate_Ensemble::check_weight_vector ( void ) const {
         w = W.get(k,j);
         if (w<-EPSILON)    return true;   
         if (w>1+EPSILON)   return true;
-        if (std::isnan(w)) return true;
+        if ( isnan(w) ) return true;
       }
       s = W.get_col(j).sum();
       if (fabs(s-1.0)>_kready*EPSILON) return true;

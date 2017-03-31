@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -54,7 +54,7 @@ namespace SGTELIB {
     SGTELIB::Matrix _HtH; // H'*H
     SGTELIB::Matrix _HtZ; // H'*Z
     SGTELIB::Matrix _Ai; // inverse of H or Ht*H+r*J
-    SGTELIB::Matrix _ALPHA; // Coefficients
+    SGTELIB::Matrix _Alpha; // Coefficients
 
     std::list<int> _selected_kernel;
 

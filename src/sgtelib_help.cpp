@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -146,8 +146,6 @@ std::string ** SGTELIB::get_help_data (void){
 "Authorized fields for this type of model  \n"
 " * DEGREE (Can be optimized) \n"
 " * RIDGE (Can be optimized) \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
 "      TYPE PRS DEGREE 2\n"
@@ -163,8 +161,6 @@ std::string ** SGTELIB::get_help_data (void){
 "Authorized fields for this type of model  \n"
 " * DEGREE (Can be optimized) \n"
 " * RIDGE (Can be optimized) \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
 "      TYPE PRS_EDGE DEGREE 2\n"
@@ -180,8 +176,6 @@ std::string ** SGTELIB::get_help_data (void){
 "Authorized fields for this type of model  \n"
 " * DEGREE (Can be optimized) \n"
 " * RIDGE (Can be optimized) \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
 "      TYPE PRS_CAT DEGREE 2\n"
@@ -200,8 +194,6 @@ std::string ** SGTELIB::get_help_data (void){
 " * DISTANCE_TYPE (Can be optimized) \n"
 " * RIDGE (Can be optimized) \n"
 " * PRESET: \"O\" for RBF with linear terms and orthogonal constraints, \"R\" for RBF with linear terms and regularization term, \"I\" for RBF with incomplete set of basis functions. This parameter cannot be optimized. \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
 "      TYPE RBF KERNEL_TYPE D1 KERNEL_SHAPE OPTIM DISTANCE_TYPE NORM2";
@@ -217,8 +209,6 @@ std::string ** SGTELIB::get_help_data (void){
 " * KERNEL_TYPE (Can be optimized) \n"
 " * KERNEL_COEF (Can be optimized) \n"
 " * DISTANCE_TYPE (Can be optimized) \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
 "      TYPE KS KERNEL_TYPE OPTIM KERNEL_SHAPE OPTIM";
@@ -233,8 +223,6 @@ std::string ** SGTELIB::get_help_data (void){
 "Authorized fields for this type of model  \n"
 " * RIDGE (Can be optimized) \n"
 " * DISTANCE_TYPE (Can be optimized) \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
 "      TYPE KRIGING";
@@ -252,13 +240,9 @@ std::string ** SGTELIB::get_help_data (void){
 " * KERNEL_TYPE (Can be optimized) \n"
 " * KERNEL_COEF (Can be optimized) \n"
 " * DISTANCE_TYPE (Can be optimized) \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
-"      TYPE LOWESS DEGREE 1\n"
-"      TYPE LOWESS DEGREE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE D1\n"
-"      TYPE LOWESS DEGREE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE_TYPE OPTIM";
+"      TYPE LOWESS DEGREE 1      TYPE LOWESS DEGREE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE D1      TYPE LOWESS DEGREE OPTIM KERNEL_SHAPE OPTIM KERNEL_TYPE OPTIM DISTANCE_TYPE OPTIM";
   i++;
   //================================
   //      ENSEMBLE
@@ -270,13 +254,9 @@ std::string ** SGTELIB::get_help_data (void){
 "Authorized fields for this type of model  \n"
 " * WEIGHT: Defines how the ensemble weights are computed. \n"
 " * METRIC: Defines which metric is used to compute the weights. \n"
-" * BUDGET: Defines the budget allocated for parameter optimization. \n"
-" * DISTANCE_TYPE: This parameter is transfered to the models contained in the Ensemble. \n"
-" * OUTPUT: Defines the output text file. \n"
 " \n"
 "Example\n"
-"      TYPE ENSEMBLE WEIGHT SELECT METRIC OECV\n"
-"      TYPE ENSEMBLE WEIGHT OPTIM METRIC RMSECV DISTANCE_TYPE NORM2 BUDGET 100";
+"      TYPE ENSEMBLE WEIGHT SELECT METRIC OECV      TYPE ENSEMBLE WEIGHT OPTIM METRIC RMSECV DISTANCE_TYPE NORM2 BUDGET 100";
   i++;
   //================================
   //      TYPE
@@ -391,7 +371,8 @@ std::string ** SGTELIB::get_help_data (void){
   //================================
   HELP_DATA[i][0] = "WEIGHT";
   HELP_DATA[i][1] = "ENSEMBLE SELECTION WTA1 WTA2 WTA3 WTA4 WTA";
-  HELP_DATA[i][2] = "The field name WEIGHT defines the method used to compute the weights w of the ensemble of models. The keyword WEIGHT_TYPE is equivalent. \n"
+  HELP_DATA[i][2] = "The field name WEIGHT defines the method used to compute the weights w of the ensemble of models. The keyword WEIGHT_TYPE is equivalent. Allowed for models of type ENSEMBLE.\n"
+" \n"
 "Allowed for models of type ENSEMBLE. \n"
 " \n"
 "Possible values  \n"
@@ -409,8 +390,7 @@ std::string ** SGTELIB::get_help_data (void){
   //================================
   HELP_DATA[i][0] = "OUTPUT";
   HELP_DATA[i][1] = "OUT DISPLAY";
-  HELP_DATA[i][2] = "Defines a text file in which model information are recorded. \n"
-"Allowed for ALL types of model";
+  HELP_DATA[i][2] = "Defines a text file in which informations will be recorded.";
   i++;
   //================================
   //      OPTIM
@@ -437,7 +417,7 @@ std::string ** SGTELIB::get_help_data (void){
   HELP_DATA[i][1] = "PARAMETER OPTIMIZATION CHOICE SELECTION OPTIM BUDGET ENSEMBLE";
   HELP_DATA[i][2] = "The field name METRIC defines the metric used to select the parameters of the model (including the weights of Ensemble models).\n"
 " \n"
-"Allowed for ALL types of model\n"
+"Allowed for models of type All types of model.\n"
 " \n"
 "Possible values  \n"
 " * EMAX: Error Max \n"
@@ -461,8 +441,6 @@ std::string ** SGTELIB::get_help_data (void){
   HELP_DATA[i][0] = "BUDGET";
   HELP_DATA[i][1] = "PARAMETER PARAMETERS OPTIM OPTIMIZATION";
   HELP_DATA[i][2] = "Budget for model parameter optimization. The number of sets of model parameters that are tested is equal to the optimization budget multiplied by the the number of parameters to optimize. \n"
-"Allowed for ALL types of model\n"
-" \n"
 "Default values 20\n"
 " \n"
 "Example\n"
@@ -474,8 +452,7 @@ std::string ** SGTELIB::get_help_data (void){
   //================================
   HELP_DATA[i][0] = "SGTELIB_SERVER_START";
   HELP_DATA[i][1] = "Matlab server interface";
-  HELP_DATA[i][2] = "Command from Matlab. See example directory for more details.\n"
-" Start a sgtelib model in a server from Matlab. \n"
+  HELP_DATA[i][2] = "Start a sgtelib model in a server from Matlab. \n"
 " \n"
 "Example\n"
 "       sgtelib_server_start('TYPE PRS'); Start a sgtelib server with a PRS model\n"
@@ -487,8 +464,7 @@ std::string ** SGTELIB::get_help_data (void){
   //================================
   HELP_DATA[i][0] = "SGTELIB_SERVER_NEWDATA";
   HELP_DATA[i][1] = "Matlab server interface data newdata";
-  HELP_DATA[i][2] = "Command from Matlab. See example directory for more details.\n"
-" Add data points to the sgtelib model from Matlab. \n"
+  HELP_DATA[i][2] = "Add data points to the sgtelib model from Matlab. \n"
 " \n"
 "Example\n"
 "       sgtelib_server_newdata(X,Z); Add data points [X,Z]";
@@ -498,8 +474,7 @@ std::string ** SGTELIB::get_help_data (void){
   //================================
   HELP_DATA[i][0] = "SGTELIB_SERVER_PREDICT";
   HELP_DATA[i][1] = "Matlab server interface prediction predict";
-  HELP_DATA[i][2] = "Command from Matlab. See example directory for more details.\n"
-" Perform a prediction from Matlab.\n"
+  HELP_DATA[i][2] = "Perform a prediction from Matlab.\n"
 " \n"
 "Example\n"
 "       [ZZ,std,ei,cdf] = sgtelib_server_predict(XX); Prediction at points XX.";
@@ -509,16 +484,14 @@ std::string ** SGTELIB::get_help_data (void){
   //================================
   HELP_DATA[i][0] = "SGTELIB_SERVER_INFO";
   HELP_DATA[i][1] = "Matlab server interface";
-  HELP_DATA[i][2] = "Command from Matlab. See example directory for more details.\n"
-" Use sgtelib_server_info to display information about the model.";
+  HELP_DATA[i][2] = "Command from Matlab. Use sgtelib_server_info to display information about the model.";
   i++;
   //================================
   //      SGTELIB_SERVER_METRIC
   //================================
   HELP_DATA[i][0] = "SGTELIB_SERVER_METRIC";
   HELP_DATA[i][1] = "Matlab server interface RMSE OECV RMSECV OE METRIC";
-  HELP_DATA[i][2] = "Command from Matlab. See example directory for more details.\n"
-" Use sgtelib_server_stop(metric_name) to access the error metric of the model.\n"
+  HELP_DATA[i][2] = "Command from Matlab. Use sgtelib_server_stop(metric_name) to access the error metric of the model.\n"
 " \n"
 "Example\n"
 "       m = sgtelib_server_metric('OECV'); Return the OECV error metric\n"
@@ -529,16 +502,14 @@ std::string ** SGTELIB::get_help_data (void){
   //================================
   HELP_DATA[i][0] = "SGTELIB_SERVER_RESET";
   HELP_DATA[i][1] = "Matlab server interface reset";
-  HELP_DATA[i][2] = "Command from Matlab. See example directory for more details.\n"
-" Reset the model of the sgtelib server from Matlab.";
+  HELP_DATA[i][2] = "Reset the model of the sgtelib server from Matlab.";
   i++;
   //================================
   //      SGTELIB_SERVER_STOP
   //================================
   HELP_DATA[i][0] = "SGTELIB_SERVER_STOP";
   HELP_DATA[i][1] = "Matlab server interface stop";
-  HELP_DATA[i][2] = "Command from Matlab. See example directory for more details.\n"
-" Stop the sgtelib server from Matlab.";
+  HELP_DATA[i][2] = "Stop the sgtelib server from Matlab.";
   i++;
   //================================
   return HELP_DATA;

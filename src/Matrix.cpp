@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -706,7 +706,7 @@ SGTELIB::Matrix SGTELIB::Matrix::get_col (const int j) const {
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::get_rows  (const int i1, const int i2) const {
 
-  if ( (i1<0) or (i1>_nbRows) or (i2<0) or (i2>_nbRows) or (i1>=i2) ){
+  if ( (i1<0) || (i1>_nbRows) || (i2<0) || (i2>_nbRows) || (i1>=i2) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::get_rows: bad index" );
   }
 
@@ -727,7 +727,7 @@ SGTELIB::Matrix SGTELIB::Matrix::get_rows  (const int i1, const int i2) const {
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::get_cols  (const int i1, const int i2) const {
 
-  if ( (i1<0) or (i1>_nbCols) or (i2<0) or (i2>_nbCols) or (i1>=i2) ){
+  if ( (i1<0) || (i1>_nbCols) || (i2<0) || (i2>_nbCols) || (i1>=i2) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::get_cols: bad index" );
   }
 
@@ -748,12 +748,12 @@ SGTELIB::Matrix SGTELIB::Matrix::get_cols  (const int i1, const int i2) const {
 SGTELIB::Matrix SGTELIB::Matrix::get_rows (const std::list<int> & list_rows) const {
 
   // If the list has only one element and this element is -1, then all rows are returned.
-  if ( (list_rows.size()==1) and (list_rows.front()==-1) ){
+  if ( (list_rows.size()==1) && (list_rows.front()==-1) ){
     return *this;
   }
 
   // Otherwise, select the rows
-  const int nbRows = list_rows.size();
+  const int nbRows = static_cast<int>(list_rows.size());
   const int nbCols = _nbCols;
   SGTELIB::Matrix A (_name+"_get_rows",nbRows,nbCols);
   
@@ -775,13 +775,13 @@ SGTELIB::Matrix SGTELIB::Matrix::get_rows (const std::list<int> & list_rows) con
 SGTELIB::Matrix SGTELIB::Matrix::get_cols (const std::list<int> & list_cols) const {
 
   // If the list has only one element and this element is -1, then all rows are returned.
-  if ( (list_cols.size()==1) and (list_cols.front()==-1) ){
+  if ( (list_cols.size()==1) && (list_cols.front()==-1) ){
     return *this;
   }
 
   // Otherwise, select the rows
   const int nbRows = _nbRows;
-  const int nbCols = list_cols.size();
+  const int nbCols = static_cast<int>(list_cols.size());
   SGTELIB::Matrix A (_name+"_get_cols",nbRows,nbCols);
   
   std::list<int>::const_iterator it;
@@ -863,7 +863,7 @@ void SGTELIB::Matrix::display_size ( std::ostream & out ) const {
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::col_vector ( const double * v,
                                               const int n     )  {
-  if (not v){
+  if ( ! v){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::column_vector: v is null" );
   }  
   SGTELIB::Matrix V("V",n,1);
@@ -878,7 +878,7 @@ SGTELIB::Matrix SGTELIB::Matrix::col_vector ( const double * v,
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::row_vector ( const double * v,
                                               const int n     )  {
-  if (not v){
+  if ( ! v){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::column_vector: v is null" );
   }  
   SGTELIB::Matrix V("V",1,n);
@@ -1164,7 +1164,7 @@ SGTELIB::Matrix SGTELIB::Matrix::diagA_product ( const SGTELIB::Matrix & A,
     }
     return C;
   }
-  else if ( (na==1) and (ma==n) ){
+  else if ( (na==1) && (ma==n) ){
     // A is a line vector
     for ( i = 0 ; i < n ; i++ ) {
       Aii = A._X[0][i];
@@ -1174,7 +1174,7 @@ SGTELIB::Matrix SGTELIB::Matrix::diagA_product ( const SGTELIB::Matrix & A,
     }
     return C;
   }
-  else if ( (na==n) and (ma==1) ){
+  else if ( (na==n) && (ma==1) ){
     // A is a col vector
     for ( i = 0 ; i < n ; i++ ) {
       Aii = A._X[i][0];
@@ -1210,7 +1210,7 @@ SGTELIB::Matrix SGTELIB::Matrix::diagB_product ( const SGTELIB::Matrix & A,
   int i,j;
   double Bjj;
 
-  if ( (nb==mb) and (mb==n) ){
+  if ( (nb==mb) && (mb==n) ){
     // B is square, use the diag terms
     for ( j = 0 ; j < m ; j++ ) {
       Bjj = B._X[j][j];
@@ -1220,7 +1220,7 @@ SGTELIB::Matrix SGTELIB::Matrix::diagB_product ( const SGTELIB::Matrix & A,
     }
     return C;
   }
-  else if ( (nb==1) and (mb==m) ){
+  else if ( (nb==1) && (mb==m) ){
     // B is a line vector
     for ( j = 0 ; j < m ; j++ ) {
       Bjj = B._X[0][j];
@@ -1230,7 +1230,7 @@ SGTELIB::Matrix SGTELIB::Matrix::diagB_product ( const SGTELIB::Matrix & A,
     }
     return C;
   }
-  else if ( (nb==m) and (mb==1) ){
+  else if ( (nb==m) && (mb==1) ){
     // B is a col vector
     for ( j = 0 ; j < m ; j++ ) {
       Bjj = B._X[j][0];
@@ -1776,7 +1776,7 @@ int SGTELIB::Matrix::count ( void ) const{
   const int nb_cols = get_nb_cols();
   for ( i = 0 ; i < nb_rows ; ++i ) {
     for ( j = 0 ; j < nb_cols ; ++j ){
-      v += (double) (fabs(_X[i][j])>EPSILON);
+      v += (fabs(_X[i][j])>EPSILON)? 1:0 ;
     }
   }
   return v;
@@ -1907,7 +1907,7 @@ SGTELIB::Matrix SGTELIB::Matrix::cholesky_inverse ( double * det ) const {
     double v = 1;
     for (i=0 ; i<n ; i++) v *= L._X[i][i];
     v *= v;
-    if (isnan(v)) v=+INF;
+    if ( isnan(v)) v=+INF;
     *det = v;
   }
 
@@ -2021,7 +2021,7 @@ SGTELIB::Matrix SGTELIB::Matrix::SVD_inverse ( void ) const {
 
   // Perform SVD
   std::string error_msg;
-  SVD_decomposition ( error_msg , U, W, V, 1e+9 );
+  SVD_decomposition ( error_msg , U, W, V, 1000000000 );
 
   // Inverse diag terms of W.
   for (int i=0 ; i<W->get_nb_rows() ; i++){
@@ -2060,7 +2060,7 @@ SGTELIB::Matrix SGTELIB::Matrix::diag ( void ) const{
     A = SGTELIB::Matrix("A",_nbRows,1);   
     for (int i=0 ; i<_nbCols ; i++) A.set(i,0,_X[i][i]);
   }
-  else if ( (_nbCols==1) or (_nbRows==1) ){
+  else if ( (_nbCols==1) || (_nbRows==1) ){
     const int n=std::max(_nbCols,_nbRows);
     A = SGTELIB::Matrix("A",_nbRows,1);   
     for (int i=0 ; i<n ; i++) A.set(i,i,get(i));
@@ -2175,7 +2175,7 @@ bool SGTELIB::Matrix::SVD_decomposition ( std::string & error_msg ,
   int      nm1   = nbCols - 1;
 
   bool   flag;
-  int    i , j , k , l , its , jj , nm = 0;
+  int    i , j , k , l = 0 , its , jj , nm = 0;
   double s , f , h , tmp , c , x , y , z , absf , absg , absh;
 
   const int NITER = 30;
@@ -2426,7 +2426,7 @@ bool SGTELIB::Matrix::has_nan ( void ) const {
   int i , j;
   for ( i = 0 ; i < _nbRows ; ++i ){
     for ( j = 0 ; j < _nbCols ; ++j ){
-      if (std::isnan(_X[i][j])){
+      if ( isnan(_X[i][j])){
         return true;
       }
     }
@@ -2441,7 +2441,7 @@ bool SGTELIB::Matrix::has_inf ( void ) const {
   int i , j;
   for ( i = 0 ; i < _nbRows ; ++i ){
     for ( j = 0 ; j < _nbCols ; ++j ){
-      if (std::isinf(_X[i][j])){
+      if ( isinf(_X[i][j])){
         return true;
       }
     }
@@ -2456,7 +2456,7 @@ void SGTELIB::Matrix::replace_nan ( double d ) {
   int i , j;
   for ( i = 0 ; i < _nbRows ; ++i ){
     for ( j = 0 ; j < _nbCols ; ++j ){
-      if (std::isnan(_X[i][j])){
+      if ( isnan(_X[i][j])){
         _X[i][j] = d;
       }
     }
@@ -2730,7 +2730,7 @@ int SGTELIB::Matrix::find_row (SGTELIB::Matrix & R){
         break;
       }
     }
-    if (not diff) return i;
+    if ( ! diff) return i;
   }
   return -1;
 
@@ -2815,7 +2815,7 @@ SGTELIB::Matrix SGTELIB::Matrix::get_poll_directions ( const SGTELIB::Matrix sca
     }
 
     // Add extended POLL for discrete values
-    if ( (domain[i]==SGTELIB::PARAM_DOMAIN_INTEGER) or
+    if ( (domain[i]==SGTELIB::PARAM_DOMAIN_INTEGER) ||
          (domain[i]==SGTELIB::PARAM_DOMAIN_BOOL) ){
       D._X[i][i] = (i%2==0)?-1:+1;
     }

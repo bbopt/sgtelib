@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -93,16 +93,16 @@ void SGTELIB::Surrogate_CN::predict_private ( const SGTELIB::Matrix & XXs,
 bool SGTELIB::Surrogate_CN::compute_cv_values (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
 
-  if ((_Zvs) and (_Svs)) return true;
+  if ((_Zvs) && (_Svs)) return true;
 
 
   // Init matrices
-  if (not _Zvs){
+  if ( ! _Zvs){
     _Zvs = new SGTELIB::Matrix ("Zvs",_p,_m);
     _Zvs->set_name("Zvs");
   }
     
-  if (not _Svs){
+  if ( ! _Svs){
     _Svs = new SGTELIB::Matrix ("Svs",_p,_m);
     _Svs->set_name("Svs");
   }
@@ -120,7 +120,7 @@ bool SGTELIB::Surrogate_CN::compute_cv_values (void){
     // Loop on the points of the trainingset
     for (i2=0 ; i2<_p ; i2++){
       d = D.get(i,i2);
-      if ( (i!=i2) and (d<dmin) ){
+      if ( (i!=i2) && (d<dmin) ){
         dmin = d;
         imin = i2;
       }
@@ -139,7 +139,7 @@ bool SGTELIB::Surrogate_CN::compute_cv_values (void){
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_CN::get_matrix_Zhs (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _Zhs){
+  if ( ! _Zhs){
     _Zhs = new SGTELIB::Matrix(get_matrix_Zs());
   }
   return _Zhs;
@@ -150,7 +150,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_CN::get_matrix_Zhs (void){
 /*--------------------------------------*/
 const SGTELIB::Matrix * SGTELIB::Surrogate_CN::get_matrix_Shs (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (not _Shs){
+  if ( ! _Shs){
     _Shs = new SGTELIB::Matrix("Shs",_p,_m);
   }
   return _Shs;

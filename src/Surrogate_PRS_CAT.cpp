@@ -2,7 +2,7 @@
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
 /*  Version 2.0.1                                                                      */
 /*                                                                                     */
-/*  Copyright (C) 2012-2016  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
+/*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
 /*                                                                                     */
 /*  Author: Bastien Talgorn                                                            */
@@ -82,7 +82,7 @@ bool SGTELIB::Surrogate_PRS_CAT::build_private ( void ) {
 
   // If _q is too big or there is not enough points, then quit
   if (nb_monomes>100) return false;
-  if ( (_q>pvar-1) and (_param.get_ridge()==0) ) return false;
+  if ( (_q>pvar-1) && (_param.get_ridge()==0) ) return false;
 
   // Compute the exponents of the basis functions (nb there is one less variable
   // as the first one is the cat)
