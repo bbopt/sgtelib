@@ -23,46 +23,50 @@
 /*  You can find information on sgtelib at https://github.com/bastientalgorn/sgtelib   */
 /*-------------------------------------------------------------------------------------*/
 
-#ifndef __SGTELIB_SURROGATE_CN__
-#define __SGTELIB_SURROGATE_CN__
+#ifndef __SGTELIB_METRICS_UTILS__
+#define __SGTELIB_METRICS_UTILS__
 
-#include "Surrogate.hpp"
+#include "Defines.hpp"
+#include "Exception.hpp"
+#include "Surrogate_Utils.hpp"
+
+#include <cstring>
+#include <cctype>
 
 namespace SGTELIB {
 
-  /*--------------------------------------*/
-  /*         Surrogate_CN class        */
-  /*--------------------------------------*/
-  class Surrogate_CN : public SGTELIB::Surrogate {
-
-  private:
-  
-    virtual bool build_private (void);
- 
-    virtual void predict_private ( const SGTELIB::Matrix & XXs,
-                                         SGTELIB::Matrix * ZZs); 
-
-    // Compute metrics
-    virtual const SGTELIB::Matrix * get_matrix_Zvs (void);
-    virtual const SGTELIB::Matrix * get_matrix_Zhs (void);
-    virtual const SGTELIB::Matrix * get_matrix_Svs (void);
-    virtual const SGTELIB::Matrix * get_matrix_Shs (void);
-
-    bool compute_cv_values (void);
-
-  public:
-
-    // Constructor
-    Surrogate_CN ( SGTELIB::TrainingSet & trainingset ,   
-                   SGTELIB::Surrogate_Parameters param) ;
-
-    // destructor:
-    virtual ~Surrogate_CN ( void );
-
-    virtual void display_private ( std::ostream & out ) const;
-
+  // Metrics
+  enum metric_t {
+    METRIC_EMAX,  // Max absolute error
+    METRIC_EMAXCV,// Max absolute error on cross-validation value
+    METRIC_RMSE,  // Root mean square error
+    METRIC_ARMSE,  // Agregate Root mean square error
+    METRIC_RMSECV, // Leave-one-out cross-validation
+    METRIC_ARMSECV, // Agregate Leave-one-out cross-validation
+    METRIC_OE,  // Order error on the training points
+    METRIC_OECV,  // Order error on the cross-validation output
+    METRIC_AOE,  // Agregate Order error 
+    METRIC_AOECV,  // Agregate Order error on the cross-validation output
+    METRIC_EFIOE,  // Order error on the cross-validation output
+    METRIC_EFIOECV,  // Agregate Order error on the cross-validation output
+    METRIC_LINV   // Inverse of the likelihood
   };
+  const int NB_METRIC_TYPES = 11;
+
+  std::string       metric_type_to_str        ( const SGTELIB::metric_t );
+  SGTELIB::norm_t   metric_type_to_norm_type  ( const SGTELIB::metric_t );
+  SGTELIB::metric_t str_to_metric_type        ( const std::string & s   );
+
+  // Info on  metric
+  // Tells if a metric returns one or multiple objectives
+  // (i.e. One for all the BBO OR One per BBO)
+  bool one_metric_value_per_bbo ( const SGTELIB::metric_t mt );
+  bool metric_uses_cv           ( const SGTELIB::metric_t mt );
+
+  // Convert a metric to another metric that returns only 1 obj.
+  SGTELIB::metric_t metric_convert_single_obj ( const SGTELIB::metric_t mt );
+
+
+
 }
-
 #endif
-

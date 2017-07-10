@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -49,6 +49,16 @@ namespace SGTELIB {
   const bool APPROX_CDF = true;
   // If true, then the lower bound of standard deviation is EPSILON. 
   // This allows to avoid flat EI and P functions. 
+
+
+  enum norm_t {
+    NORM_0 ,
+    NORM_1 ,
+    NORM_2 ,
+    NORM_INF
+  };
+
+
 
   enum scaling_t {
     SCALING_NONE ,

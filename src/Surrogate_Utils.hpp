@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -91,25 +91,7 @@ namespace SGTELIB {
   };
   const int NB_WEIGHT_TYPES = 5;
   
-  // Metrics
-  enum metric_t {
-    METRIC_EMAX,  // Max absolute error
-    METRIC_EMAXCV,// Max absolute error on cross-validation value
-    METRIC_RMSE,  // Root mean square error
-    METRIC_ARMSE,  // Agregate Root mean square error
-    METRIC_RMSECV, // Leave-one-out cross-validation
-    METRIC_ARMSECV, // Agregate Leave-one-out cross-validation
-    METRIC_OE,  // Order error on the training points
-    METRIC_OECV,  // Order error on the cross-validation output
-    METRIC_AOE,  // Agregate Order error 
-    METRIC_AOECV,  // Agregate Order error on the cross-validation output
-    METRIC_EFIOE,  // Order error on the cross-validation output
-    METRIC_EFIOECV,  // Agregate Order error on the cross-validation output
-    METRIC_LINV   // Inverse of the likelihood
-  };
-  const int NB_METRIC_TYPES = 11;
  
-
   // Diff in ms
   int diff_ms(timeval t1, timeval t2);
 
@@ -166,24 +148,15 @@ namespace SGTELIB {
   std::string model_type_to_str         ( const SGTELIB::model_t        );
   std::string bbo_type_to_str           ( const SGTELIB::bbo_t          );
   std::string weight_type_to_str        ( const SGTELIB::weight_t       );
-  std::string metric_type_to_str        ( const SGTELIB::metric_t       );
   std::string distance_type_to_str      ( const SGTELIB::distance_t     );
+
 
   // conversion functions (from string) :
   bool isdigit                                       ( const std::string & s );
   SGTELIB::model_t         str_to_model_type         ( const std::string & s );
   SGTELIB::weight_t        str_to_weight_type        ( const std::string & s );
-  SGTELIB::metric_t        str_to_metric_type        ( const std::string & s );
   SGTELIB::distance_t      str_to_distance_type      ( const std::string & s );
   SGTELIB::distance_t      int_to_distance_type      ( const int i );
-
-  // Info on  metric
-  // Tells if a metric returns one or multiple objectives
-  // (i.e. One for all the BBO OR One per BBO)
-  bool metric_multiple_obj ( const SGTELIB::metric_t mt );
-
-  // Convert a metric to another metric that returns only 1 obj.
-  SGTELIB::metric_t metric_convert_single_obj ( const SGTELIB::metric_t mt );
 
 
   /*

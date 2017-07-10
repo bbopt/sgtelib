@@ -31,7 +31,7 @@ OBJS_LIB           = TrainingSet.o Surrogate_Parameters.o Surrogate_KS.o Surroga
                      Surrogate_PRS.o Surrogate_PRS_EDGE.o Surrogate_LOWESS.o Surrogate_Kriging.o\
                      Surrogate_PRS_CAT.o Surrogate_Ensemble.o Surrogate_CN.o \
                      Surrogate.o Matrix.o Kernel.o Surrogate_Utils.o Surrogate_Factory.o \
-                     Tests.o sgtelib_help.o
+                     Tests.o sgtelib_help.o Metrics.o
 OBJS_MAIN          = sgtelib.o 
 
 OBJS_MAIN         := $(addprefix $(BUILD_DIR)/,$(OBJS_MAIN))

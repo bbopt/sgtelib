@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -67,6 +67,9 @@ namespace SGTELIB {
 
     // constructor 4:
     Matrix ( void );
+
+    // constructor 5:
+    Matrix ( double );
 
     // copy constructor:
     Matrix ( const Matrix & );
@@ -140,8 +143,8 @@ namespace SGTELIB {
     void set_row (const double v , const int i); // T is row vector
     void set_col (const double v , const int j); // T is col vector
   
-    // Permute terms (i1,j1) and (i2,j2)
-    void permute (const int i1 , const int j1 , const int i2 , const int j2 );
+    // swap terms (i1,j1) and (i2,j2)
+    void swap (const int i1 , const int j1 , const int i2 , const int j2 );
 
     // Multiply row
     void multiply_row (const double v , const int i); // T is row vector
@@ -166,7 +169,6 @@ namespace SGTELIB {
     // Diag
     SGTELIB::Matrix diag (void ) const;
 
-
     // Trace
     double trace ( void ) const;
 
@@ -177,6 +179,7 @@ namespace SGTELIB {
     double norm ( void ) const;
     double normsquare ( void ) const;
     void normalize_cols ( void );
+    SGTELIB::Matrix col_norm ( const norm_t nt ) const;
 
     // Sum
     double sum ( void ) const;
