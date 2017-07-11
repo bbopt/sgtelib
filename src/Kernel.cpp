@@ -238,7 +238,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       return exp(-PI*ks*ks*r*r);
     case SGTELIB::KERNEL_D2:
       // Inverse Quadratic
-      return 1.0/(1.0+ks*ks*r*r);
+      return 1.0/(PI*(1.0+ks*ks*r*r));
     case SGTELIB::KERNEL_D3:
       // Inverse Multiquadratic
       return 1.0/sqrt(1.0+ks*ks*r*r);
@@ -264,7 +264,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       return 0.0;
     case SGTELIB::KERNEL_D6:
       // Exp-Root
-      return exp(-sqrt(ks*r));
+      return 0.25*exp(-sqrt(ks*r));
     case SGTELIB::KERNEL_D7:
       // Epanechnikov
       {
