@@ -241,7 +241,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       return 1.0/(1.0+PI*PI*ks*ks*r*r);
     case SGTELIB::KERNEL_D3:
       // Inverse Multiquadratic
-      return 1.0/sqrt(1.0+50*ks*ks*r*r);
+      return 1.0/sqrt(1.0+52.015*ks*ks*r*r);
     case SGTELIB::KERNEL_D4:
       // Bi-quadratic 
       {
