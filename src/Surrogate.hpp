@@ -160,8 +160,8 @@ namespace SGTELIB {
     void check_ready (void) const;
 
     // Get metrics
-    double get_metric (SGTELIB::metric_t mt , int j);
-    double get_metric_old (SGTELIB::metric_t mt , int j);
+    SGTELIB::Matrix get_metric (SGTELIB::metric_t mt);
+    double          get_metric (SGTELIB::metric_t mt , int j);
     bool is_defined(const SGTELIB::metric_t mt);
     bool is_defined(const SGTELIB::metric_t mt, const int j);
 

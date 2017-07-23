@@ -244,6 +244,12 @@ bool SGTELIB::Surrogate::build ( void ) {
   ok = init_private();
   if ( ! ok ) return false;
 
+  #ifdef SGTELIB_DEBUG
+    std::cout << "Number of parameters to optimize : " << _param.get_nb_parameter_optimization() << "\n";
+    _param.display(std::cout);
+  #endif
+
+
   // Optimize parameters
   if (_param.get_nb_parameter_optimization()>0){
     ok = optimize_parameters();
@@ -531,7 +537,6 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
     // Use normalized distance to closest and rmse as std
     SGTELIB::Matrix dtc = _trainingset.get_distance_to_closest(XXs);
     dtc.set_name("dtc");
-    compute_metric(SGTELIB::METRIC_RMSE);
 
     for (j=0 ; j<_m ; j++){
       // Set std (use a proxy)
@@ -667,6 +672,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Shs (void){
 // If no specific method is defined, consider Svs = Shs.
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Svs (void){
   if ( ! _Svs){
+
     _Svs = new SGTELIB::Matrix("Svs",_p,_m);
     const SGTELIB::Matrix Ds = _trainingset.get_matrix_Ds();
     for (int i=0 ; i<_p ; i++){
@@ -810,6 +816,8 @@ bool SGTELIB::Surrogate::is_defined(const SGTELIB::metric_t mt, const int j){
 /*--------------------------------------*/
 bool SGTELIB::Surrogate::compute_metric ( const metric_t mt ){
 
+  if (is_defined(mt)) return true;
+
   double m;
   int j;
 
@@ -845,8 +853,15 @@ bool SGTELIB::Surrogate::compute_metric ( const metric_t mt ){
       associated_norm = SGTELIB::metric_type_to_norm_type(mt);
       // Compute the norm of the difference
       v = (Zs-(*Zs_compare)).col_norm( associated_norm );
-      // For "Aggregate" metrics, compute the sum for all BBO
-      if (  (mt==SGTELIB::METRIC_ARMSE) || (mt==SGTELIB::METRIC_ARMSECV)  ) v = v.sum(1);
+      if (  (mt==SGTELIB::METRIC_ARMSE) || (mt==SGTELIB::METRIC_ARMSECV)  ){
+        // For "Aggregate" metrics, compute the sum for all BBO
+        v = v.sum(1);
+      }
+      else{
+        // Otherwise, unscale
+        _trainingset.ZE_unscale(v);
+      }
+
       break;
 
     case SGTELIB::METRIC_OE:
@@ -900,8 +915,7 @@ bool SGTELIB::Surrogate::compute_metric ( const metric_t mt ){
 double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
   // If the model is not ready, return +INF
   if (!_ready) return SGTELIB::INF; 
-  // If the metric is defined, or if the computation of the metric is 
-  // succesfull, return it
+  // If the metric is defined, return it
   if ( is_defined(mt,j) ) return _metrics[mt][j];
   // Compute the metric, 
   if ( !compute_metric(mt) ) return SGTELIB::INF;
@@ -916,6 +930,22 @@ double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
   return SGTELIB::INF;
 }//
 
+SGTELIB::Matrix SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt){
+  // If the model is not ready, return +INF
+  if (!_ready) return SGTELIB::Matrix(SGTELIB::INF);
+  // If the metric is defined, return it
+  if ( is_defined(mt) ) return _metrics[mt];
+  // Compute the metric, 
+  if ( !compute_metric(mt) ) return SGTELIB::Matrix(SGTELIB::INF);
+  // Return value
+  if ( is_defined(mt) ) return _metrics[mt];
+  // Is still not defined, return INF.
+  return SGTELIB::Matrix(SGTELIB::INF);
+}//
+
+
+
+
 
 /*----------------------------------------------------------*/
 /*     compute EFI from the predictive mean and std         */
@@ -923,7 +953,10 @@ double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
 SGTELIB::Matrix SGTELIB::Surrogate::compute_efi( const SGTELIB::Matrix & Zs,
                                                  const SGTELIB::Matrix & Ss  ){
 
-  if (  (Zs.get_nb_cols()!=_m) || (Ss.get_nb_cols()!=_m) || (Zs.get_nb_rows()!=_p) || (Ss.get_nb_rows()!=_p)  ){
+  if (  (Zs.get_nb_cols()!=_m) || 
+        (Ss.get_nb_cols()!=_m) || 
+        (Zs.get_nb_rows()!=_p) || 
+        (Ss.get_nb_rows()!=_p)    ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Dimension error" );
   }
 
@@ -1212,7 +1245,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
 
   int i,j,k;
   double d;
-  const bool display = true;
+  const bool display = false;
   if (display){
     std::cout << "Begin parameter optimization\n";
     std::cout << "Metric: " << SGTELIB::metric_type_to_str(_param.get_metric_type()) << "\n";
