@@ -17,6 +17,10 @@ P = 50;
 X = rand(P,2);
 Z = f(X);
 
+Z(Z>prctile(Z,70)) = 1e20;
+
+
+
 
 % Create model
 PP = 50;
