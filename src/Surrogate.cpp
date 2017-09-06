@@ -1238,7 +1238,6 @@ SGTELIB::Matrix SGTELIB::Surrogate::get_distance_to_closest ( const SGTELIB::Mat
 /*--------------------------------------*/
 bool SGTELIB::Surrogate::optimize_parameters ( void ) {
 
-
   // Number of parameters to optimize
   const int N = _param.get_nb_parameter_optimization();
   // Budget

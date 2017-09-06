@@ -47,6 +47,7 @@ SGTELIB::Surrogate_LOWESS::Surrogate_LOWESS ( SGTELIB::TrainingSet & trainingset
   _u                 ( NULL     ),
   _old_u             ( NULL     ),
   _old_x             ( NULL     ),
+  _x_multiple        ( NULL     ),
   _ZZsi              ("ZZsi",0,0){
   #ifdef SGTELIB_DEBUG
     std::cout << "constructor LOWESS\n";
@@ -62,15 +63,19 @@ void SGTELIB::Surrogate_LOWESS::delete_matrices ( void ) {
   if (_W) delete [] _W; 
   _W = NULL;
 
-  if (_u) delete []_u; 
+  if (_u) delete [] _u; 
   _u = NULL;
 
-  if (_old_u) delete [] _old_u; 
-  _old_u = NULL;
+  if (_x_multiple) delete [] _x_multiple;
+  _x_multiple = NULL;
 
-  if (_old_x) delete [] _old_x; 
-  _old_x = NULL;
+  #ifdef SGTELIB_LOWESS_DEV
+    if (_old_u) delete [] _old_u; 
+    _old_u = NULL;
 
+    if (_old_x) delete [] _old_x; 
+    _old_x = NULL;
+  #endif
 
   const int p = std::min(_p_old,_p);
   if (_H){
@@ -78,7 +83,6 @@ void SGTELIB::Surrogate_LOWESS::delete_matrices ( void ) {
     delete [] _H;
   }
   _H = NULL;
-
 
   const int q = std::min(_q_old,_q);
   if (_A){
@@ -113,9 +117,9 @@ void SGTELIB::Surrogate_LOWESS::display_private ( std::ostream & out ) const {
 }//
 
 /*--------------------------------------*/
-/*               build                  */
+/*               init                   */
 /*--------------------------------------*/
-bool SGTELIB::Surrogate_LOWESS::build_private ( void ) {
+bool SGTELIB::Surrogate_LOWESS::init_private ( void ) {
   
   const int pvar = _trainingset.get_pvar(); 
 
@@ -172,6 +176,10 @@ bool SGTELIB::Surrogate_LOWESS::build_private ( void ) {
     _u = new double [_q];
     for (int i=0 ; i<_q ; i++) _u[i] = 0.0;
   }
+  if ( ! _x_multiple){
+    _x_multiple = new bool [_m];
+    for (int j=0 ; j<_m ; j++) _x_multiple[j] = (_trainingset.get_X_nbdiff(j)>1);
+  }
 
   #ifdef SGTELIB_LOWESS_DEV
     if ( ! _old_u){
@@ -191,15 +199,20 @@ bool SGTELIB::Surrogate_LOWESS::build_private ( void ) {
   #endif
 
   _q_old = _q;
-    
   // C.Tribes jan 17th, 2017 --- update _p_old to prevent memory leak
-    _p_old = _p;
+  _p_old = _p;
 
-  _ready = true;
   return true;   
 }//
 
 
+/*--------------------------------------*/
+/*               build                  */
+/*--------------------------------------*/
+bool SGTELIB::Surrogate_LOWESS::build_private ( void ) {
+  _ready = true;
+  return true;  
+}
 
 
 /*--------------------------------------*/
@@ -404,14 +417,10 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
   double ridge = _param.get_ridge();
 
   // Build matrices
-  const int nvar = _trainingset.get_nvar(); 
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
   const SGTELIB::Matrix & Xs = get_matrix_Xs();
 
-  bool * has_more_than_one_value = new bool [nvar];
-  for (j=0 ; j<nvar ; j++){
-    has_more_than_one_value[j] = (_trainingset.get_X_nbdiff(j)>1);
-  }
+  double dx1 = 0;
 
   // Build H
   for (i=0 ; i<_p ; i++){
@@ -420,22 +429,20 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
     if (_W[i]>EPSILON){
       if (_degree>=10){
         // Linear terms
-        for (j=0 ; j<nvar ; j++){
+        for (j=0 ; j<_n ; j++){
           _H[i][k++] = Xs.get(i,j)-XXs.get(0,j);
         }
       }
       if (_degree>=15){
          // Quad and crossed terms
-        for (j1=0 ; j1<nvar ; j1++){
-          if (has_more_than_one_value[j1]){
-            j2=j1;
-            if (has_more_than_one_value[j2]){
-              _H[i][k++] = (Xs.get(i,j1)-XXs.get(0,j1))*(Xs.get(i,j2)-XXs.get(0,j2));
-            }
+        for (j1=0 ; j1<_n ; j1++){
+          if (_x_multiple[j1]){
+            dx1 = (Xs.get(i,j1)-XXs.get(0,j1));
+            _H[i][k++] = dx1*dx1;
             if (_degree>=20){
-              for (j2=j1+1 ; j2<nvar ; j2++){
-                if (has_more_than_one_value[j2]){
-                  _H[i][k++] = (Xs.get(i,j1)-XXs.get(0,j1))*(Xs.get(i,j2)-XXs.get(0,j2));
+              for (j2=j1+1 ; j2<_n ; j2++){
+                if (_x_multiple[j2]){
+                  _H[i][k++] = dx1*(Xs.get(i,j2)-XXs.get(0,j2));
                 }
               }
             }
@@ -450,9 +457,6 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
       }
     }
   }
-
-  //delete [] has_more_than_one_value;
-
 
   // Reset A and HWZ
   for (i=0 ; i<_q ; i++){
