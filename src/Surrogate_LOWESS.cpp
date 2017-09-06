@@ -153,33 +153,33 @@ bool SGTELIB::Surrogate_LOWESS::build_private ( void ) {
 
   delete_matrices();
 
-  if ( !  _W){
+  if ( ! _W){
     _W = new double [_p];
   } 
-  if ( !  _A){
+  if ( ! _A){
     _A = new double * [_q];
     for (int j=0 ; j<_q ; j++) _A[j] = new double [_q];
   }
-  if ( !  _H){
+  if ( ! _H){
     _H = new double * [_p];
     for (int j=0 ; j<_p ; j++) _H[j] = new double [_q];
   }
-  if ( !  _HWZ){
+  if ( ! _HWZ){
     _HWZ = new double * [_q];
     for (int j=0 ; j<_q ; j++) _HWZ[j] = new double [_m];
   }
-  if ( !  _u){
+  if ( ! _u){
     _u = new double [_q];
     for (int i=0 ; i<_q ; i++) _u[i] = 0.0;
   }
 
   #ifdef SGTELIB_LOWESS_DEV
-    if ( !  _old_u){
+    if ( ! _old_u){
       _old_u = new double [_q];
       for (int i=0 ; i<_q ; i++) _old_u[i] = 0.0;
     }
 
-    if ( !  _old_x){
+    if ( ! _old_x){
       _old_x = new double [_n];
       for (int i=0 ; i<_n ; i++) _old_x[i] = 0.0;
     }
@@ -408,6 +408,11 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
   const SGTELIB::Matrix & Zs = get_matrix_Zs();
   const SGTELIB::Matrix & Xs = get_matrix_Xs();
 
+  bool * has_more_than_one_value = new bool [nvar];
+  for (j=0 ; j<nvar ; j++){
+    has_more_than_one_value[j] = (_trainingset.get_X_nbdiff(j)>1);
+  }
+
   // Build H
   for (i=0 ; i<_p ; i++){
     k = 0;
@@ -422,14 +427,14 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
       if (_degree>=15){
          // Quad and crossed terms
         for (j1=0 ; j1<nvar ; j1++){
-          if (_trainingset.get_X_nbdiff(j1)>1){
+          if (has_more_than_one_value[j1]){
             j2=j1;
-            if (_trainingset.get_X_nbdiff(j2)>1){
+            if (has_more_than_one_value[j2]){
               _H[i][k++] = (Xs.get(i,j1)-XXs.get(0,j1))*(Xs.get(i,j2)-XXs.get(0,j2));
             }
             if (_degree>=20){
               for (j2=j1+1 ; j2<nvar ; j2++){
-                if (_trainingset.get_X_nbdiff(j2)>1){
+                if (has_more_than_one_value[j2]){
                   _H[i][k++] = (Xs.get(i,j1)-XXs.get(0,j1))*(Xs.get(i,j2)-XXs.get(0,j2));
                 }
               }
@@ -446,6 +451,7 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
     }
   }
 
+  //delete [] has_more_than_one_value;
 
 
   // Reset A and HWZ
@@ -747,7 +753,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate_LOWESS::get_matrix_Zvs (void){
     std::cout << "Compute Zvs\n";
     std::cout << "==========================\n";
   #endif
-  if ( !  _Zvs){
+  if ( ! _Zvs){
     _Zvs = new SGTELIB::Matrix("Zvs",_p,_m);
     for (int i=0 ; i<_p ; i++){
       predict_private_single( get_matrix_Xs().get_row(i) , i);

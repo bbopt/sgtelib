@@ -675,20 +675,6 @@ double & SGTELIB::Matrix::operator [] ( int k ){
   return _X[i][j];
 }//
 
-/*---------------------------*/
-/*  access to element (i,j)  */
-/*---------------------------*/
-double SGTELIB::Matrix::get ( const int i , const int j ) const {
-  #ifdef SGTELIB_DEBUG
-    if ( i < 0 || i >= _nbRows || j < 0 || j >= _nbCols ){
-      display(std::cout);
-      std::cout << "Error: try to access (" << i << "," << j << ") while dim is [" << _nbRows << "," << _nbCols << "]\n";
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::get(i,j): bad index" );
-    }
-  #endif
-  return _X[i][j];
-}//
-
 /*------------------------------------------*/
 /*  get (access to a subpart of the matrix  */
 /*------------------------------------------*/
@@ -920,14 +906,17 @@ SGTELIB::Matrix SGTELIB::Matrix::row_vector ( const double * v,
 SGTELIB::Matrix SGTELIB::Matrix::product ( const SGTELIB::Matrix & A,
                                            const SGTELIB::Matrix & B )  {
 
-  if (A.get_nb_cols()!=B.get_nb_rows()){
-    std::cout << "A (" << A.get_name() << ") : " << A.get_nb_rows() << " , " << A.get_nb_cols() << "\n";
-    std::cout << "B (" << B.get_name() << ") : " << B.get_nb_rows() << " , " << B.get_nb_cols() << "\n";
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::product(A,B): dimension error" );
-  }  
-
-  // Init matrix
-  SGTELIB::Matrix C(A.get_name()+"*"+B.get_name(),A.get_nb_rows(),B.get_nb_cols());
+  #ifdef SGTELIB_DEBUG
+    if (A.get_nb_cols()!=B.get_nb_rows()){
+      std::cout << "A (" << A.get_name() << ") : " << A.get_nb_rows() << " , " << A.get_nb_cols() << "\n";
+      std::cout << "B (" << B.get_name() << ") : " << B.get_nb_rows() << " , " << B.get_nb_cols() << "\n";
+      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::product(A,B): dimension error" );
+    }  
+    // Init matrix
+    SGTELIB::Matrix C(A.get_name()+"*"+B.get_name(),A.get_nb_rows(),B.get_nb_cols());
+  #else
+    SGTELIB::Matrix C("C",A.get_nb_rows(),B.get_nb_cols());
+  #endif
 
   // Compute
   int i,j,k;
@@ -938,7 +927,9 @@ SGTELIB::Matrix SGTELIB::Matrix::product ( const SGTELIB::Matrix & A,
   for ( i = 0 ; i < nb_rows ; ++i ) {
     for ( j = 0 ; j < nb_cols ; ++j ){
       C._X[i][j] = 0;
-      for ( k = 0 ; k < nb_inter; ++k ){
+    }
+    for ( k = 0 ; k < nb_inter; ++k ){
+      for ( j = 0 ; j < nb_cols ; ++j ){
         C._X[i][j] += A._X[i][k]*B._X[k][j];
       }
     }

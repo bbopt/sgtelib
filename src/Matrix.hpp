@@ -97,12 +97,23 @@ namespace SGTELIB {
     void remove_rows ( const int p); // remove last rows
 
     // GET methods:
-    int get_nb_rows ( void ) const { return _nbRows; }
-    int get_nb_cols ( void ) const { return _nbCols; }
-    int get_numel   ( void ) const { return _nbRows*_nbCols; }
+    inline int get_nb_rows ( void ) const { return _nbRows; }
+    inline int get_nb_cols ( void ) const { return _nbCols; }
+    inline int get_numel   ( void ) const { return _nbRows*_nbCols; }
 
-    double get ( const int k               ) const; // access to element (k)
-    double get ( const int i , const int j ) const; // access to element (i,j)
+    // access to element (k)
+    double get ( const int k ) const; 
+    // access to element (i,j)
+    inline double get ( const int i , const int j ) const {
+      #ifdef SGTELIB_DEBUG
+        if ( i < 0 || i >= _nbRows || j < 0 || j >= _nbCols ){
+          display(std::cout);
+          std::cout << "Error: try to access (" << i << "," << j << ") while dim is [" << _nbRows << "," << _nbCols << "]\n";
+          throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::get(i,j): bad index" );
+        }
+      #endif
+      return _X[i][j];
+    }//
 
     const double & operator [] ( int k ) const;
     double & operator [] ( int k );
@@ -134,8 +145,8 @@ namespace SGTELIB {
     bool is_sym ( void ) const;
 
     // SET methods:
-    void set_name ( const std::string & name ) { _name = name; }
-    std::string get_name ( void ) const { return _name; }
+    inline void set_name ( const std::string & name ) { _name = name; }
+    inline std::string get_name ( void ) const { return _name; }
 
     void set     (const int i , const int j , const double d );
     void set_row (const SGTELIB::Matrix & T , const int i); // T is row vector
@@ -205,7 +216,7 @@ namespace SGTELIB {
                                      const SGTELIB::Matrix & C,
                                      const SGTELIB::Matrix & D);
 
-    void product ( const int i , const int j , const double v){ _X[i][j]*=v; };
+    inline void product ( const int i , const int j , const double v){ _X[i][j]*=v; };
 
     // Subset product, multiply
     // the p first rows and q first columns of A

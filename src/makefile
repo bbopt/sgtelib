@@ -3,7 +3,7 @@ LIB_NAME           = libsgtelib.so
 LIB_DIR            = ../lib
 LIB                = $(LIB_DIR)/$(LIB_NAME)
 COMPILATOR         = g++
-COMPILATOR_OPTIONS = -O3 -pedantic -Wall -Wextra -g3 -fpic
+COMPILATOR_OPTIONS = -O3 -pedantic -Wall -Wextra -fpic
 
 LIB_CURRENT_VERSION= 1.0.0
 

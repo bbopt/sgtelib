@@ -67,6 +67,10 @@ namespace SGTELIB {
   };
 
   const scaling_t scaling_method = SCALING_MEANSTD;
+  const int boolean_rounding = 2;
+  // 0: no boolean scaling
+  // 1: threshold = (Z_UB+Z_LB)/2;
+  // 2: threshold = mean(Z)
   //const scaling_t scaling_method = SCALING_NONE;
 
 

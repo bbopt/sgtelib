@@ -275,6 +275,9 @@ void SGTELIB::TrainingSet::build ( void ){
     // Check singular data (inf and void) 
     check_singular_data();
 
+    // Compute bounds over columns of X and Z
+    compute_bounds();
+
     // Compute scaling values
     compute_scaling();
 
@@ -293,6 +296,7 @@ void SGTELIB::TrainingSet::build ( void ){
     #ifdef SGTELIB_DEBUG
       std::cout << "TrainingSet::build END\n";
     #endif
+
   }
 
   // _bbo is considered as defined. It can not be modified anymore.
@@ -474,7 +478,7 @@ void SGTELIB::TrainingSet::compute_mean_std ( void ){
 void SGTELIB::TrainingSet::compute_bounds ( void ){
 
   int i,j;
-  double v;
+  double v = 0;
 
   // Bound of X
   for ( j=0 ; j<_n ; j++ ) {
@@ -507,7 +511,7 @@ void SGTELIB::TrainingSet::compute_bounds ( void ){
       _Z_replace[j] = 1.0;
     }
     else{
-      _Z_replace[j] = std::max(_Z_ub[j],0.0) + std::max(_Z_ub[j]-_Z_lb[j],1.0);
+      _Z_replace[j] = std::max(_Z_ub[j],0.0) + 0.1*std::max(_Z_ub[j]-_Z_lb[j],1.0);
     }
 
   }
@@ -594,8 +598,6 @@ void SGTELIB::TrainingSet::compute_scaling ( void ){
     }
     break;
   case SCALING_BOUNDS:
-    // Compute bounds over columns of X and Z
-    compute_bounds();
     // Compute scaling constants
     for ( j = 0 ; j < _n ; j++ ) {
       if (_X_nbdiff[j]>1) _X_scaling_a[j] = 1/(_X_ub[j]-_X_lb[j]);
@@ -966,8 +968,8 @@ void SGTELIB::TrainingSet::Z_scale ( double * z ) const {
     z[j] = _Z_scaling_a[j] * z[j] + _Z_scaling_b[j];
 }//
 
-double SGTELIB::TrainingSet::Z_scale ( double z , int output_index ) const {
-  return _Z_scaling_a[output_index] * z + _Z_scaling_b[output_index];
+double SGTELIB::TrainingSet::Z_scale ( double z , int j ) const {
+  return _Z_scaling_a[j] * z + _Z_scaling_b[j];
 }//
 
 /*--------------------------------------*/
@@ -975,19 +977,33 @@ double SGTELIB::TrainingSet::Z_scale ( double z , int output_index ) const {
 /*--------------------------------------*/
 void SGTELIB::TrainingSet::Z_unscale ( double * w ) const {
   for ( int j = 0 ; j < _m ; j++ )
-    w[j] = ( w[j] - _Z_scaling_b[j] ) / _Z_scaling_a[j];
+    w[j] = Z_unscale(w[j],j);
 }//
 
-double SGTELIB::TrainingSet::Z_unscale ( double w , int output_index ) const {
-  return ( w - _Z_scaling_b[output_index] ) / _Z_scaling_a[output_index];
+double SGTELIB::TrainingSet::Z_unscale ( double w , int j ) const {
+  if ( (boolean_rounding) && (_Z_nbdiff[j]==2) ){
+    double Zs_middle;
+    if (boolean_rounding==1){
+      // Threshold is midway between the biggest and smallest value of Z;
+      Zs_middle = Z_scale ( (_Z_ub[j]+_Z_lb[j])/2.0 , j );
+    }
+    else if (boolean_rounding==2){
+      // Threshold is the mean of Z;  
+      Zs_middle = _Zs_mean[j];
+    }
+    return (w>Zs_middle)?_Z_ub[j]:_Z_lb[j];
+  }
+  else{
+    return ( w - _Z_scaling_b[j] ) / _Z_scaling_a[j];
+  }
 }//
 
 /*------------------------------------------*/
 /*    ZE unscale: w->z: z = (w)/a           */
 /* Used to unscale errors, std and EI */
 /*------------------------------------------*/
-double SGTELIB::TrainingSet::ZE_unscale ( double w , int output_index ) const {
-  return w / _Z_scaling_a[output_index];
+double SGTELIB::TrainingSet::ZE_unscale ( double w , int j ) const {
+  return w / _Z_scaling_a[j];
 }//
 
 

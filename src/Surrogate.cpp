@@ -388,6 +388,7 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
 
   // Check the number of columns in XX
   if (XX.get_nb_cols() != _n){
+    
     display(std::cout);
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
                  "predict(): dimension error" );
