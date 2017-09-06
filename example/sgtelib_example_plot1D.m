@@ -3,6 +3,7 @@ clear all
 clc
 
 model = 'TYPE ENSEMBLE   WEIGHT OPTIM   METRIC OECV';
+model = 'TYPE LOWESS';
 sgtelib_server_start(model,true)
 sgtelib_server_ping;
 
