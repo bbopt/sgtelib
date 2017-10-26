@@ -3,6 +3,7 @@ close all
 clc
 disp('=========== EXPLORER =============');
 
+addpath('../Matlab_Server');
 
 ! make -j 4
 
@@ -85,7 +86,7 @@ ylabel('y',texOptions{:});
 
 set(gca,texOptions{:});
 
- output_dir = '/home/bastien/BIBLIO/NOMAD_2016_04_07_StPetersburg_OECV/figs/';
+ output_dir = './';
  output_file = [output_dir 'plot_function_2.pdf'];
 export_fig([output_file],'-pdf');
 

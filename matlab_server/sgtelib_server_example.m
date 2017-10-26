@@ -4,7 +4,8 @@ clear all
 % Start server
 model = 'TYPE PRS DEGREE 2';
 model = 'TYPE ENSEMBLE METRIC LINV WEIGHTS OPTIM'
-%sgtelib_server_start('TYPE PRS DEGREE 2',true)
+sgtelib_server_start('TYPE PRS DEGREE 2',true)
+
 % Test if server is ok and ready
 sgtelib_server_ping;
 
