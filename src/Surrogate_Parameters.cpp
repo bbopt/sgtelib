@@ -296,7 +296,7 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
     case SGTELIB::LINEAR:
     case SGTELIB::TGP: 
     case SGTELIB::SVN: 
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Not implemented yetnot " );
+      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Not implemented yet! " );
 
     case SGTELIB::CN:
       if (streqi(field,"DISTANCE_TYPE")) return true;
@@ -305,6 +305,7 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
     case SGTELIB::KRIGING: 
       if (streqi(field,"RIDGE"))         return true;
       if (streqi(field,"DISTANCE_TYPE")) return true;
+      break;
 
     case SGTELIB::PRS: 
     case SGTELIB::PRS_EDGE: 
