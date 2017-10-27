@@ -3,6 +3,7 @@ clear all
 clc
 disp('=========== EXPLORER =============');
 
+addpath('../Matlab_Server');
 
 WRITE = false;
 

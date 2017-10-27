@@ -3,7 +3,7 @@ clear all
 clc
 
 
-output_dir = '/home/bastien/LOWESS/MODEL_COMPARISON_V017G/';
+output_dir = '.';
 
 
 
