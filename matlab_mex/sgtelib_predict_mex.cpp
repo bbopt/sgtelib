@@ -152,7 +152,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     if(printLevel)
     {
         mexPrintf("\n------------------------------------------------------------------\n");
-        mexPrintf(" This is SGTELIB v2.0.1 \n");
+        mexPrintf(" This is SGTELIB v2.0.2 \n");
         mexPrintf(" Authors: B. Talgorn and S. Le Digabel\n");
         mexPrintf(" MEX Interface C. Tribes 2017 \n\n");
         mexPrintf("Variable properties:\n");
@@ -220,7 +220,7 @@ void mexFunction (int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 void printSolverInfo()
 {
     mexPrintf("\n-----------------------------------------------------------\n");
-    mexPrintf(" SGTELIB: 2.0.1 \n");
+    mexPrintf(" SGTELIB: 2.0.2 \n");
     mexPrintf("  - Released under the GNU Lesser General Public License: http://www.gnu.org/copyleft/lesser.html\n");
     mexPrintf("  - Source available from: https://github.com/bastientalgorn/sgtelib\n");
     mexPrintf("\n MEX Interface C. Tribes 2017  \n");
