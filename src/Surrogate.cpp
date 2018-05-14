@@ -1339,7 +1339,7 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
       int i2;
       for (j=1; j<N; j++){
         for (i=0; i<nx0; i++){
-          i2 = i+std::floor(uniform_rand()*(nx0-i));
+          i2 = i + (int)std::floor(uniform_rand()*(nx0-i));
           if ( (i2<i) || (i2>=nx0) ){
             std::cout << "Error in permutation indexes\n";
             exit(0);
