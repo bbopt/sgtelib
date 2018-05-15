@@ -36,7 +36,7 @@ namespace SGTELIB {
   /*--------------------------------------*/
   /*         Surrogate_Parameters class        */
   /*--------------------------------------*/
-  class Surrogate_Parameters  {
+  class DLL_API Surrogate_Parameters  {
 
   protected:
 

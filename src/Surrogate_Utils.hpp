@@ -144,19 +144,19 @@ namespace SGTELIB {
 
   std::string toupper ( const std::string & s   );
 
-  std::string model_output_to_str       ( const SGTELIB::model_output_t );
-  std::string model_type_to_str         ( const SGTELIB::model_t        );
-  std::string bbo_type_to_str           ( const SGTELIB::bbo_t          );
-  std::string weight_type_to_str        ( const SGTELIB::weight_t       );
-  std::string distance_type_to_str      ( const SGTELIB::distance_t     );
+  DLL_API std::string model_output_to_str       ( const SGTELIB::model_output_t );
+  DLL_API std::string model_type_to_str         ( const SGTELIB::model_t        );
+  DLL_API std::string bbo_type_to_str           ( const SGTELIB::bbo_t          );
+  DLL_API std::string weight_type_to_str        ( const SGTELIB::weight_t       );
+  DLL_API std::string distance_type_to_str      ( const SGTELIB::distance_t     );
 
 
   // conversion functions (from string) :
   bool isdigit                                       ( const std::string & s );
-  SGTELIB::model_t         str_to_model_type         ( const std::string & s );
-  SGTELIB::weight_t        str_to_weight_type        ( const std::string & s );
-  SGTELIB::distance_t      str_to_distance_type      ( const std::string & s );
-  SGTELIB::distance_t      int_to_distance_type      ( const int i );
+  DLL_API SGTELIB::model_t         str_to_model_type         ( const std::string & s );
+  DLL_API SGTELIB::weight_t        str_to_weight_type        ( const std::string & s );
+  DLL_API SGTELIB::distance_t      str_to_distance_type      ( const std::string & s );
+  DLL_API SGTELIB::distance_t      int_to_distance_type      ( const int i );
 
 
   /*

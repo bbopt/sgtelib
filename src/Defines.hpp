@@ -35,6 +35,16 @@
 #include <limits>
 #include <limits.h>
 
+// CASE Visual Studio C++ compiler
+#ifdef _MSC_VER
+#pragma warning(disable:4251)
+#ifdef DLL_EXPORTS
+#define DLL_API __declspec(dllexport) 
+#else
+#define DLL_API __declspec(dllimport) 
+#endif
+#endif /
+
 // debug flag:
 //#define SGTELIB_DEBUG
 //#define ENSEMBLE_DEBUG

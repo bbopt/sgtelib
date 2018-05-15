@@ -53,9 +53,9 @@ namespace SGTELIB {
   };
   const int NB_METRIC_TYPES = 11;
 
-  std::string       metric_type_to_str        ( const SGTELIB::metric_t );
-  SGTELIB::norm_t   metric_type_to_norm_type  ( const SGTELIB::metric_t );
-  SGTELIB::metric_t str_to_metric_type        ( const std::string & s   );
+  DLL_API std::string       metric_type_to_str        ( const SGTELIB::metric_t );
+  DLL_API SGTELIB::norm_t   metric_type_to_norm_type  ( const SGTELIB::metric_t );
+  DLL_API SGTELIB::metric_t str_to_metric_type        ( const std::string & s   );
 
   // Info on  metric
   // Tells if a metric returns one or multiple objectives
