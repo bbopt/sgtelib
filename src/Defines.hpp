@@ -43,7 +43,7 @@
 #else
 #define DLL_API __declspec(dllimport) 
 #endif
-#endif /
+#endif
 
 // debug flag:
 //#define SGTELIB_DEBUG
