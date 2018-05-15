@@ -34,11 +34,12 @@
 #include <algorithm>
 #include "Surrogate_Utils.hpp"
 #include "Exception.hpp"
+#include "Defines.hpp"
 
 namespace SGTELIB {
 
 
-  class Matrix {
+  class DLL_API Matrix {
 
   private:
 

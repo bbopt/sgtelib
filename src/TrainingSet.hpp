@@ -33,7 +33,7 @@ namespace SGTELIB {
   /*--------------------------------------*/
   /*             TrainingSet class          */
   /*--------------------------------------*/
-  class TrainingSet {
+  class DLL_API TrainingSet {
 
   private:
 

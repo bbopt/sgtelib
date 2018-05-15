@@ -36,7 +36,7 @@ namespace SGTELIB {
   /*--------------------------------------*/
   /*             Surrogate class          */
   /*--------------------------------------*/
-  class Surrogate {
+  class DLL_API Surrogate {
 
   // Surrogate Ensemble is a friend, so that it can access to private and protected 
   // prediction methods of other derived classed of Surrogate_Ensemble
@@ -91,7 +91,7 @@ namespace SGTELIB {
     bool _display;
 
     // private affectation operator:
-    Surrogate & operator = ( const Surrogate & );
+    // Surrogate & operator = ( const Surrogate & );
 
     // build model (private):
     virtual bool build_private (void) = 0;

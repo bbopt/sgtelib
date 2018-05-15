@@ -41,7 +41,7 @@ namespace SGTELIB {
   /*--------------------------------------*/
   /*         Surrogate_Ensemble class        */
   /*--------------------------------------*/
-  class Surrogate_Ensemble : public SGTELIB::Surrogate {
+  class DLL_API Surrogate_Ensemble : public SGTELIB::Surrogate {
 
     /*--------------------------------------------------------*/
     /*  these members are defined in the Surrogate superclass */
