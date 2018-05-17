@@ -43,6 +43,8 @@
 #else
 #define DLL_API __declspec(dllimport) 
 #endif
+#else
+#define DLL_API
 #endif
 
 // debug flag:
