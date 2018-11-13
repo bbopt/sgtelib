@@ -1,21 +1,12 @@
 %% Sgtelib_predict Build for Matlab
 
-% To recompile you will need to get / do the following:
-
-% 1) Get SGTELIB
-% SGTELIB is available from https://github.com/bastientalgorn/sgtelib
-% Define the $SGTELIB_HOME environment variable to the path where SGTELIB
-% was downloaded and extracted.
-%
-% 2) Start Matlab and go into $SGTELIB_HOME/matlab_mex
-%
-% 3) Compile the MEX File by executing this file in Matlab
-%
 % The code below will build the sgtelib_predict MEX file and set the Matlab path.
-
 
 % Check and set sgtelib_home and create variables for path
 clear sgtelib_home sgtelib_src sgtelib_bin ;
+
+sgtelib_predict = 'sgtelib_predict';
+sgtelib_predict_source = [ sgtelib_predict '.cpp' ];
 
 sgtelib_home = getenv('SGTELIB_HOME');
 
@@ -40,14 +31,33 @@ end
 sgtelib_src=[sgtelib_home filesep 'src' filesep];
 sgtelib_bin=[sgtelib_home filesep 'bin' filesep];
 
-post = [' -I.  -I' sgtelib_src ' -lut -output ' sgtelib_bin filesep 'sgtelib_predict.' mexext];
-pre = ['mex -v -largeArrayDims sgtelib_predict_mex.cpp ' sgtelib_src 'Kernel.cpp ' sgtelib_src 'Surrogate_Ensemble.cpp ' sgtelib_src 'Surrogate_LOWESS.cpp	'...
-sgtelib_src 'Surrogate_Parameters.cpp	' sgtelib_src 'TrainingSet.cpp ' sgtelib_src 'Matrix.cpp '...
-sgtelib_src 'Surrogate_Factory.cpp ' sgtelib_src 'Surrogate_PRS.cpp ' sgtelib_src 'Surrogate_RBF.cpp '...
-sgtelib_src 'sgtelib.cpp ' sgtelib_src 'Surrogate.cpp ' sgtelib_src 'Surrogate_KS.cpp ' sgtelib_src 'Surrogate_PRS_CAT.cpp '...
-sgtelib_src 'Surrogate_Utils.cpp ' sgtelib_src 'sgtelib_help.cpp '  sgtelib_src 'Surrogate_CN.cpp ' ...
-sgtelib_src 'Surrogate_Kriging.cpp '  sgtelib_src 'Surrogate_PRS_EDGE.cpp ' sgtelib_src 'Tests.cpp ' ];
+% Default values
+nameLibSgtelib = '';
+updateLDFLAGS= '';
+install_name_tool='';
 
+if ( strcmp(computer,'PCWIN64') == 1 || strcmp(computer,'PCWIN32') == 1 )
+    nameLibSgtelib = 'sgtelib.lib';
+    post = [' -I.  -I' sgtelib_src ' -L' sgtelib_bin ' -lut -output ' sgtelib_bin sgtelib_predict '.' mexext];
+    pre = ['mex -v -largeArrayDims ' sgtelib_predict_source ' ' nameLibSgtelib ];
+else
+    nameLibSgtelib = 'libsgtelib.so';
+
+    switch(computer)
+        case 'GLNX86'
+            updateLDFLAGS = 'LDFLAGS=''$LDFLAGS -Wl,-rpath,''''$ORIGIN/../lib/'''' -Wl,-rpath-link,''''../lib/'''' '' ';
+        case 'GLNXA64'
+            updateLDFLAGS = 'LDFLAGS=''$LDFLAGS -Wl,-rpath,''''$ORIGIN/../lib/'''' -Wl,-rpath-link,''''../lib/'''' '' ';
+        case 'MACI64'
+            install_name_tool=['install_name_tool -change ' nameLibNomad ' @loader_path/../lib/' nameLibNomad ' ' nomad_bin filesep 'nomad.' mexext];
+    end
+    post = [' -I. -I' sgtelib_src ' -lut -lsgtelib -L' sgtelib_bin ' -output ' sgtelib_bin sgtelib_predict '.' mexext ];
+    pre =[ 'mex -v -largeArrayDims ' sgtelib_predict_source updateLDFLAGS ];
+end
+
+if ( ~ exist([sgtelib_bin filesep nameLibSgtelib],'file') )
+        error('The SGTELIB library file %s is not available. Please perform sgtelib project compilation before proceeding.',nameLibSgtelib);      
+end
 
 fprintf('\n-------------------------------\n');
 fprintf('SGTELIB_PREDIC MEX FILE BUILD \n\n');
@@ -56,6 +66,10 @@ fprintf('SGTELIB_PREDIC MEX FILE BUILD \n\n');
 try
 
     eval([pre post])
+    
+    if ( strcmp(computer,'MACI64') == 1 )
+        system(install_name_tool);
+    end
 
     fprintf('Compilation done!\n');
     fprintf('\n----------------------------------------------------------------------------------------------\n');
