@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -238,10 +238,10 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       return exp(-PI*ks*ks*r*r);
     case SGTELIB::KERNEL_D2:
       // Inverse Quadratic
-      return 1.0/(1.0+ks*ks*r*r);
+      return 1.0/(1.0+PI*PI*ks*ks*r*r);
     case SGTELIB::KERNEL_D3:
       // Inverse Multiquadratic
-      return 1.0/sqrt(1.0+ks*ks*r*r);
+      return 1.0/sqrt(1.0+52.015*ks*ks*r*r);
     case SGTELIB::KERNEL_D4:
       // Bi-quadratic 
       {
@@ -264,7 +264,7 @@ double SGTELIB::kernel (  const SGTELIB::kernel_t kt ,
       return 0.0;
     case SGTELIB::KERNEL_D6:
       // Exp-Root
-      return exp(-sqrt(ks*r));
+      return exp(-sqrt(4*ks*r));
     case SGTELIB::KERNEL_D7:
       // Epanechnikov
       {

@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -152,33 +152,37 @@ void SGTELIB::Surrogate_Parameters::read_string (const std::string & model_descr
   std::string content;
   bool content_is_optim;
   std::istringstream in_line (model_description);	
-  #ifdef SGTELIB_DEBUG
+  const bool display = false;
+  if (display){
     std::cout << "Model description: " << model_description << "\n";
-  #endif
+  }
   while ( in_line >> field ){
 
-    #ifdef SGTELIB_DEBUG
+    if (display){
       std::cout << "FIELD: " << field ;
-    #endif
+    }
     // Convert the field name into a std field name
     field = to_standard_field_name(field);
-    #ifdef SGTELIB_DEBUG
+    if (display){
       std::cout << " (" << field << ")\n";
-    #endif   
+    }   
     // Check if this field is authorized for this type of model.
     if ( ! authorized_field(field) ){
       std::cout << "model_description: " << model_description << "\n";
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unauthorized field \""+field+"\" in a model of type "+model_type_to_str(_type) );
     }
-    #ifdef SGTELIB_DEBUG
+    if (display){
       std::cout << "CONTENT: " << content << "\n";
-    #endif
+    }
     // Read the content 
     if ( !(in_line >> content) )
       throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Missing content for field \""+field+"\"" );
 
     // Detect if the content is "OPTIM".
     content_is_optim = ( streqi(content,"OPTIM") || streqi(content,"OPTIMIZATION") || streqi(content,"OPTIMIZE") );
+    if (display){
+      std::cout << "CONTENT IS OPTIM: " << content_is_optim << "\n";
+    }
 
     // Check if optimization is allowed for this field.
     if ((content_is_optim) && (!authorized_optim(field))) {
@@ -292,7 +296,7 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
     case SGTELIB::LINEAR:
     case SGTELIB::TGP: 
     case SGTELIB::SVN: 
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Not implemented yetnot " );
+      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Not implemented yet! " );
 
     case SGTELIB::CN:
       if (streqi(field,"DISTANCE_TYPE")) return true;
@@ -301,6 +305,7 @@ bool SGTELIB::Surrogate_Parameters::authorized_field ( const std::string & field
     case SGTELIB::KRIGING: 
       if (streqi(field,"RIDGE"))         return true;
       if (streqi(field,"DISTANCE_TYPE")) return true;
+      break;
 
     case SGTELIB::PRS: 
     case SGTELIB::PRS_EDGE: 

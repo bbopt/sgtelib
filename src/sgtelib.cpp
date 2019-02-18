@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -566,7 +566,7 @@ void SGTELIB::sgtelib_server( const std::string & model , const bool verbose ){
 
       std::string metric_string;
       SGTELIB::metric_t mt;
-      double metric_value;
+      SGTELIB::Matrix metric_value;
 
       // Read metric_string
       in.open("flag_metric_received");
@@ -579,11 +579,11 @@ void SGTELIB::sgtelib_server( const std::string & model , const bool verbose ){
       if (display) std::cout << "Write output.\n";    
       out.open ("flag_metric_received");
       if (ready){
-        for (int j=0 ; j<TS->get_output_dim() ; j++){
-          metric_value = S->get_metric(mt,j);
-          out << metric_value << " ";
+        metric_value = S->get_metric(mt);
+        for (int j=0 ; j<metric_value.get_nb_cols() ; j++){
+          out << metric_value[j] << " ";
           if (display){
-            std::cout << "output[" << j << "]: " << metric_value << "\n";
+            std::cout << "output[" << j << "]: " << metric_value[j] << "\n";
           }
         }
       }

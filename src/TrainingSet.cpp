@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -275,6 +275,9 @@ void SGTELIB::TrainingSet::build ( void ){
     // Check singular data (inf and void) 
     check_singular_data();
 
+    // Compute bounds over columns of X and Z
+    compute_bounds();
+
     // Compute scaling values
     compute_scaling();
 
@@ -293,6 +296,7 @@ void SGTELIB::TrainingSet::build ( void ){
     #ifdef SGTELIB_DEBUG
       std::cout << "TrainingSet::build END\n";
     #endif
+
   }
 
   // _bbo is considered as defined. It can not be modified anymore.
@@ -474,7 +478,7 @@ void SGTELIB::TrainingSet::compute_mean_std ( void ){
 void SGTELIB::TrainingSet::compute_bounds ( void ){
 
   int i,j;
-  double v;
+  double v = 0;
 
   // Bound of X
   for ( j=0 ; j<_n ; j++ ) {
@@ -507,7 +511,7 @@ void SGTELIB::TrainingSet::compute_bounds ( void ){
       _Z_replace[j] = 1.0;
     }
     else{
-      _Z_replace[j] = std::max(_Z_ub[j],0.0) + std::max(_Z_ub[j]-_Z_lb[j],1.0);
+      _Z_replace[j] = std::max(_Z_ub[j],0.0) + 0.1*std::max(_Z_ub[j]-_Z_lb[j],1.0);
     }
 
   }
@@ -594,8 +598,6 @@ void SGTELIB::TrainingSet::compute_scaling ( void ){
     }
     break;
   case SCALING_BOUNDS:
-    // Compute bounds over columns of X and Z
-    compute_bounds();
     // Compute scaling constants
     for ( j = 0 ; j < _n ; j++ ) {
       if (_X_nbdiff[j]>1) _X_scaling_a[j] = 1/(_X_ub[j]-_X_lb[j]);
@@ -723,7 +725,7 @@ double SGTELIB::TrainingSet::get_Xs ( const int i , const int j ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(); 
     // Check index
-    if ( (i<0) || (i>=_p) || (j<0) || (j>=_n) ){
+    if ( (i<0) || (i>=_p) || (j<0) || (j>=_n) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::TrainingSet(): dimension error" );
     }
@@ -736,7 +738,7 @@ double SGTELIB::TrainingSet::get_Zs ( const int i , const int j ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(); 
     // Check index
-    if ( (i<0) || (i>=_p) || (j<0) || (j>=_m) ){
+    if ( (i<0) || (i>=_p) || (j<0) || (j>=_m) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::TrainingSet(): dimension error" );
     }
@@ -749,7 +751,7 @@ void SGTELIB::TrainingSet::get_Xs ( const int i , double * x ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
-    if ( (i<0) || (i>=_p) ){
+    if ( (i<0) || (i>=_p) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::TrainingSet(): dimension error" );
     }
@@ -768,7 +770,7 @@ void SGTELIB::TrainingSet::get_Zs ( const int i , double * z ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
-    if ( (i<0) || (i>=_p) ){
+    if ( (i<0) || (i>=_p) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Zs(): dimension error" );
     }
@@ -787,7 +789,7 @@ double SGTELIB::TrainingSet::get_Zs_mean ( const int j ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
-    if ( (j<0) || (j>=_m) ){
+    if ( (j<0) || (j>=_m) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Zs_mean(): dimension error" );
     }
@@ -801,7 +803,7 @@ int SGTELIB::TrainingSet::get_X_nbdiff ( const int i ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
-    if ( (i<0) || (i>=_n) ){
+    if ( (i<0) || (i>=_n) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_X_nbdiff(): dimension error" );
     }
@@ -824,7 +826,7 @@ int SGTELIB::TrainingSet::get_Z_nbdiff ( const int j ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(__FILE__,__FUNCTION__,__LINE__);
     // Check index
-    if ( (j<0) || (j>=_m) ){
+    if ( (j<0) || (j>=_m) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Z_nbdiff(): dimension error" );
     }
@@ -837,7 +839,7 @@ double SGTELIB::TrainingSet::get_Ds ( const int i1 , const int i2 ) const {
   #ifdef SGTELIB_DEBUG
     check_ready(); 
     // Check index
-    if ( (i1<0) || (i1>=_p) || (i2<0) || (i2>=_p) ){
+    if ( (i1<0) || (i1>=_p) || (i2<0) || (i2>=_p) ){
       throw Exception ( __FILE__ , __LINE__ ,
                "TrainingSet::get_Ds(): dimension error" );
     }
@@ -966,8 +968,8 @@ void SGTELIB::TrainingSet::Z_scale ( double * z ) const {
     z[j] = _Z_scaling_a[j] * z[j] + _Z_scaling_b[j];
 }//
 
-double SGTELIB::TrainingSet::Z_scale ( double z , int output_index ) const {
-  return _Z_scaling_a[output_index] * z + _Z_scaling_b[output_index];
+double SGTELIB::TrainingSet::Z_scale ( double z , int j ) const {
+  return _Z_scaling_a[j] * z + _Z_scaling_b[j];
 }//
 
 /*--------------------------------------*/
@@ -975,19 +977,33 @@ double SGTELIB::TrainingSet::Z_scale ( double z , int output_index ) const {
 /*--------------------------------------*/
 void SGTELIB::TrainingSet::Z_unscale ( double * w ) const {
   for ( int j = 0 ; j < _m ; j++ )
-    w[j] = ( w[j] - _Z_scaling_b[j] ) / _Z_scaling_a[j];
+    w[j] = Z_unscale(w[j],j);
 }//
 
-double SGTELIB::TrainingSet::Z_unscale ( double w , int output_index ) const {
-  return ( w - _Z_scaling_b[output_index] ) / _Z_scaling_a[output_index];
+double SGTELIB::TrainingSet::Z_unscale ( double w , int j ) const {
+  if ( (boolean_rounding) && (_Z_nbdiff[j]==2) ){
+    double Zs_middle;
+    if (boolean_rounding==1){
+      // Threshold is midway between the biggest and smallest value of Z;
+      Zs_middle = Z_scale ( (_Z_ub[j]+_Z_lb[j])/2.0 , j );
+    }
+    else if (boolean_rounding==2){
+      // Threshold is the mean of Z;  
+      Zs_middle = _Zs_mean[j];
+    }
+    return (w>Zs_middle)?_Z_ub[j]:_Z_lb[j];
+  }
+  else{
+    return ( w - _Z_scaling_b[j] ) / _Z_scaling_a[j];
+  }
 }//
 
 /*------------------------------------------*/
 /*    ZE unscale: w->z: z = (w)/a           */
 /* Used to unscale errors, std and EI */
 /*------------------------------------------*/
-double SGTELIB::TrainingSet::ZE_unscale ( double w , int output_index ) const {
-  return w / _Z_scaling_a[output_index];
+double SGTELIB::TrainingSet::ZE_unscale ( double w , int j ) const {
+  return w / _Z_scaling_a[j];
 }//
 
 
@@ -1195,60 +1211,6 @@ Matrix SGTELIB::TrainingSet::get_distance_to_closest ( const Matrix & XXs ) cons
 }//
 
 
-
-/*--------------------------------------*/
-/*       get_closest                    */
-/*--------------------------------------*/
-// Return the index of the closest point to point i    
-int SGTELIB::TrainingSet::get_closest ( const int i ) const {
-  std::cout << i;
-  throw Exception ( __FILE__ , __LINE__ ,
-       "TrainingSet::TrainingSet::get_closest ( const int i ): To be implemented." );
-  return 0;
-}
-
-/*--------------------------------------*/
-/*       get_closest                    */
-/*--------------------------------------*/
- // Return the indexes of the nb_pts closest points to point i
-/*
-std::list<int> SGTELIB::TrainingSet::get_closest ( const int i_min , const int nb_pts ) const {
-
-  #ifdef SGTELIB_DEBUG
-    check_ready(); 
-    // Check index
-    if ( (i_min<0) or (i_min>=_p) or (nb_pts<0) or (nb_pts>=_p) ){
-      throw Exception ( __FILE__ , __LINE__ ,"TrainingSet::TrainingSet(): dimension error" );
-    }
-  #endif
-
-
-  //const Matrix & Ds = get_matrix_Ds();
-  Matrix d = get_matrix_Ds().get_row(i_min);
-  Matrix ind("indexes",1,_p);
-
-  int i;
-  for (i=0 ; i<_p ; i++) ind.set(0,i,i);
-
-  bool change = true;
-  while (change) {
-    change = false;
-    for (i=0 ; i<_p-1 ; i++){
-      if (d.get(0,i)>d.get(0,i+1)){
-        d.permute(0,i,0,i+1);
-        ind.permute(0,i,0,i+1);
-        change = true;
-      }
-    }
-  }
-
-  std::list<int> list;
-  list.clear();
-  for (i=0 ; i<nb_pts ; i++) list.push_back(int(ind.get(0,i)));
-  return list;
-
-}
-*/
 
 /*--------------------------------------*/
 /*       select points                  */

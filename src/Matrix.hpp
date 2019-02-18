@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -34,11 +34,12 @@
 #include <algorithm>
 #include "Surrogate_Utils.hpp"
 #include "Exception.hpp"
+#include "Defines.hpp"
 
 namespace SGTELIB {
 
 
-  class Matrix {
+  class DLL_API Matrix {
 
   private:
 
@@ -68,6 +69,9 @@ namespace SGTELIB {
     // constructor 4:
     Matrix ( void );
 
+    // constructor 5:
+    Matrix ( double );
+
     // copy constructor:
     Matrix ( const Matrix & );
 
@@ -94,12 +98,23 @@ namespace SGTELIB {
     void remove_rows ( const int p); // remove last rows
 
     // GET methods:
-    int get_nb_rows ( void ) const { return _nbRows; }
-    int get_nb_cols ( void ) const { return _nbCols; }
-    int get_numel   ( void ) const { return _nbRows*_nbCols; }
+    inline int get_nb_rows ( void ) const { return _nbRows; }
+    inline int get_nb_cols ( void ) const { return _nbCols; }
+    inline int get_numel   ( void ) const { return _nbRows*_nbCols; }
 
-    double get ( const int k               ) const; // access to element (k)
-    double get ( const int i , const int j ) const; // access to element (i,j)
+    // access to element (k)
+    double get ( const int k ) const; 
+    // access to element (i,j)
+    inline double get ( const int i , const int j ) const {
+      #ifdef SGTELIB_DEBUG
+        if ( i < 0 || i >= _nbRows || j < 0 || j >= _nbCols ){
+          display(std::cout);
+          std::cout << "Error: try to access (" << i << "," << j << ") while dim is [" << _nbRows << "," << _nbCols << "]\n";
+          throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::get(i,j): bad index" );
+        }
+      #endif
+      return _X[i][j];
+    }//
 
     const double & operator [] ( int k ) const;
     double & operator [] ( int k );
@@ -131,8 +146,8 @@ namespace SGTELIB {
     bool is_sym ( void ) const;
 
     // SET methods:
-    void set_name ( const std::string & name ) { _name = name; }
-    std::string get_name ( void ) const { return _name; }
+    inline void set_name ( const std::string & name ) { _name = name; }
+    inline std::string get_name ( void ) const { return _name; }
 
     void set     (const int i , const int j , const double d );
     void set_row (const SGTELIB::Matrix & T , const int i); // T is row vector
@@ -140,8 +155,8 @@ namespace SGTELIB {
     void set_row (const double v , const int i); // T is row vector
     void set_col (const double v , const int j); // T is col vector
   
-    // Permute terms (i1,j1) and (i2,j2)
-    void permute (const int i1 , const int j1 , const int i2 , const int j2 );
+    // swap terms (i1,j1) and (i2,j2)
+    void swap (const int i1 , const int j1 , const int i2 , const int j2 );
 
     // Multiply row
     void multiply_row (const double v , const int i); // T is row vector
@@ -166,7 +181,6 @@ namespace SGTELIB {
     // Diag
     SGTELIB::Matrix diag (void ) const;
 
-
     // Trace
     double trace ( void ) const;
 
@@ -177,6 +191,7 @@ namespace SGTELIB {
     double norm ( void ) const;
     double normsquare ( void ) const;
     void normalize_cols ( void );
+    SGTELIB::Matrix col_norm ( const norm_t nt ) const;
 
     // Sum
     double sum ( void ) const;
@@ -202,7 +217,7 @@ namespace SGTELIB {
                                      const SGTELIB::Matrix & C,
                                      const SGTELIB::Matrix & D);
 
-    void product ( const int i , const int j , const double v){ _X[i][j]*=v; };
+    inline void product ( const int i , const int j , const double v){ _X[i][j]*=v; };
 
     // Subset product, multiply
     // the p first rows and q first columns of A

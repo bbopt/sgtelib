@@ -1,7 +1,7 @@
 function plot_metrics_comparison(input_file,output_file)
-% output_dir = '/home/bastien/Bureau/MUSU/MUSU_2015_01_01_WorkingPaper/figs/';
+% output_dir = '.';
 % input_file = 'output_hartman6.txt';
-% output_dir = '/home/bastien/Bureau/MUSU/PAPER_OrderErrorForEnsembles/figs/';
+% output_dir = '.';
 % output_file = [output_dir 'metric_comparison_hartman6.pdf'];
 %close all
 

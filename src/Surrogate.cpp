@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -63,36 +63,8 @@ SGTELIB::Surrogate::Surrogate ( SGTELIB::TrainingSet & trainingset,
   // Note that in sgtelib 2.0.1, there is not method implemented to filter the data points.
   // So all the data points are used.
   _selected_points (1,-1          ) ,
-  // The following metrics are arrays (the value of the metric 
-  // is different for each blackbox output)
-  // Value of the emax metric (error max in absolute value)
-  _metric_emax     (NULL          ) ,
-  // same but using LOO cross-validation
-  _metric_emaxcv   (NULL          ) ,
-  // Root mean square error
-  _metric_rmse     (NULL          ) ,
-  // same but using LOO cross-validation
-  _metric_rmsecv   (NULL          ) ,
-  // Order error metric
-  _metric_oe       (NULL          ) ,
-  // same but using LOO cross-validation
-  _metric_oecv     (NULL          ) ,
-  // inverse log-likelihood error 
-  _metric_linv     (NULL          ) ,
-  // The following metrics are scalar (one metric value to quantify the quality of the
-  // model over all the blackbox outputs)
-  // Aggregate Order Error
-  _metric_aoe      (-1.0          ) ,
-  // same but using LOO cross-validation
-  _metric_aoecv    (-1.0          ) ,
-  // Expected Feasible Improvement Order Error (experimental metric)
-  _metric_efioe    (-1.0          ) ,
-  // same but using LOO cross-validation
-  _metric_efioecv  (-1.0          ) ,
-  // Aggregate Root Mean Square Error
-  _metric_armse    (-1.0          ) ,
-  // same but using LOO cross-validation
-  _metric_armsecv  (-1.0          ) ,
+  // Map containing all the metrics
+  _metrics         (              ) ,
   // Poll size max (used during the parameter optimization with the MADS algorithm)
   // This value is returned by the parameter optimization and is used for the initialization
   // of the next parameter optimization.
@@ -120,19 +92,7 @@ SGTELIB::Surrogate::Surrogate ( SGTELIB::TrainingSet & trainingset,
   _Zvs   (NULL                    ) ,
   _Svs   (NULL                    ) ,
   _selected_points (1,-1          ) ,
-  _metric_emax     (NULL          ) ,
-  _metric_emaxcv   (NULL          ) ,
-  _metric_rmse     (NULL          ) ,
-  _metric_rmsecv   (NULL          ) ,
-  _metric_oe       (NULL          ) ,
-  _metric_oecv     (NULL          ) ,
-  _metric_linv     (NULL          ) ,
-  _metric_aoe      (-1.0          ) ,
-  _metric_aoecv    (-1.0          ) ,
-  _metric_efioe    (-1.0          ) ,
-  _metric_efioecv  (-1.0          ) ,
-  _metric_armse    (-1.0          ) ,
-  _metric_armsecv  (-1.0          ) ,
+  _metrics         (              ) ,
   _psize_max       ( 0.5          ) ,
   _out             (              ) ,
   _display         ( false        ) {
@@ -154,19 +114,7 @@ SGTELIB::Surrogate::Surrogate ( SGTELIB::TrainingSet & trainingset,
   _Zvs   (NULL                    ) ,
   _Svs   (NULL                    ) ,
   _selected_points (1,-1          ) ,
-  _metric_emax     (NULL          ) ,
-  _metric_emaxcv   (NULL          ) ,
-  _metric_rmse     (NULL          ) ,
-  _metric_rmsecv   (NULL          ) ,
-  _metric_oe       (NULL          ) ,
-  _metric_oecv     (NULL          ) ,
-  _metric_linv     (NULL          ) ,
-  _metric_aoe      (-1.0          ) ,
-  _metric_aoecv    (-1.0          ) ,
-  _metric_efioe    (-1.0          ) ,
-  _metric_efioecv  (-1.0          ) ,
-  _metric_armse    (-1.0          ) ,
-  _metric_armsecv  (-1.0          ) ,
+  _metrics         (              ) ,
   _psize_max       ( 0.5          ) ,
   _out             (              ) ,
   _display         ( false        ) {
@@ -179,7 +127,6 @@ SGTELIB::Surrogate::Surrogate ( SGTELIB::TrainingSet & trainingset,
 SGTELIB::Surrogate::~Surrogate ( void ) {
   reset_metrics();
 }//
-
 
 void SGTELIB::Surrogate::info ( void ) const {
   _trainingset.info();
@@ -195,6 +142,14 @@ void SGTELIB::Surrogate::display ( std::ostream & out ) const {
   out << "n: " << _n << " (input dim)\n";
   out << "m: " << _m << " (output dim)\n";
   out << "p: " << _p << " (nb points)\n";
+  out << "Metrics:\n";
+  std::map< metric_t , SGTELIB::Matrix >::const_iterator it;
+  for (it=_metrics.begin();it!=_metrics.end();it++){
+    SGTELIB::Matrix V = it->second;
+    out << "  " << SGTELIB::metric_type_to_str(it->first) << " = [ ";
+    for (int j=0;j<V.get_nb_cols();j++) out << V[j] << " ";
+    out << "]\n";
+  }
   display_private ( out );
 }//
 
@@ -218,39 +173,7 @@ void SGTELIB::Surrogate::reset_metrics ( void ) {
   if (_Svs) delete _Svs;
   _Svs = NULL;  
 
-  // The following metrics are arrays (the value of the metric 
-  // is different for each blackbox output)
-
-  if (_metric_emax)   delete [] _metric_emax;
-  _metric_emax = NULL;
-
-  if (_metric_emaxcv) delete [] _metric_emaxcv;
-  _metric_emaxcv = NULL;
-
-  if (_metric_rmse)   delete [] _metric_rmse;
-  _metric_rmse = NULL;
-
-  if (_metric_rmsecv) delete [] _metric_rmsecv;
-  _metric_rmsecv = NULL;
-
-  if (_metric_oe)     delete [] _metric_oe;
-  _metric_oe = NULL;
-
-  if (_metric_oecv)   delete [] _metric_oecv;
-  _metric_oecv = NULL;
-
-  if (_metric_linv)   delete [] _metric_linv;
-  _metric_linv = NULL;
-
-  // The following metrics are scalar (one metric value to quantify the quality of the
-  // model over all the blackbox outputs)
-
-  _metric_aoe     = -1.0;
-  _metric_aoecv   = -1.0;
-  _metric_efioe   = -1.0;
-  _metric_efioecv = -1.0;
-  _metric_armse   = -1.0;
-  _metric_armsecv = -1.0;
+  _metrics.clear();
 
   #ifdef SGTELIB_DEBUG
     std::cout << "OK\n";
@@ -292,19 +215,14 @@ bool SGTELIB::Surrogate::build ( void ) {
   // Otherwise, the model is not ready and we need to call build_private
   _ready = false;
 
-
   // Get the number of points used in the surrogate
   if ( (_selected_points.size()==1) && (_selected_points.front()==-1) )
     _p = _p_ts;
   else  
     _p = static_cast<int>(_selected_points.size());
 
-
-
   // Need at least 2 point to build a surrogate.
-  if (_p<2){
-    return false;
-  }
+  if (_p<2) return false;
 
   // Delete the intermediate data and metrics 
   // (they will have to be recomputed...)
@@ -325,6 +243,12 @@ bool SGTELIB::Surrogate::build ( void ) {
   // optimization.
   ok = init_private();
   if ( ! ok ) return false;
+
+  #ifdef SGTELIB_DEBUG
+    std::cout << "Number of parameters to optimize : " << _param.get_nb_parameter_optimization() << "\n";
+    _param.display(std::cout);
+  #endif
+
 
   // Optimize parameters
   if (_param.get_nb_parameter_optimization()>0){
@@ -357,11 +281,8 @@ bool SGTELIB::Surrogate::build ( void ) {
     if (_out.fail()) std::cout << "Out.fail2!!!\n";
     display(_out);
     if (_out.fail()) std::cout << "Out.fail3!!!\n";
-    //_out << "AOECV: " << get_metric(SGTELIB::METRIC_AOECV,0) << "\n";
-    //_out << "ARMSECV: " << get_metric(SGTELIB::METRIC_ARMSECV,0) << "\n";
     _out.close();
   }
-
 
   _ready = true;
   return true;
@@ -433,6 +354,18 @@ bool SGTELIB::Surrogate::add_point  ( const double * xnew ,
 }//
 
 
+
+
+/*=========================================================*/
+/*=========================================================*/
+/*||                                                     ||*/
+/*||             PREDICTION METHODS                      ||*/
+/*||                                                     ||*/
+/*=========================================================*/
+/*=========================================================*/
+
+
+
 /*---------------------------------------------------------------------*/
 /*               predict                                               */
 /* XX : set of points where a prediction must be performed             */
@@ -455,6 +388,7 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
 
   // Check the number of columns in XX
   if (XX.get_nb_cols() != _n){
+    
     display(std::cout);
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
                  "predict(): dimension error" );
@@ -604,11 +538,10 @@ void SGTELIB::Surrogate::predict_private (const SGTELIB::Matrix & XXs,
     // Use normalized distance to closest and rmse as std
     SGTELIB::Matrix dtc = _trainingset.get_distance_to_closest(XXs);
     dtc.set_name("dtc");
-    compute_metric_rmse();
 
     for (j=0 ; j<_m ; j++){
       // Set std (use a proxy)
-      double s = _metric_rmse[j]; 
+      double s = get_metric(SGTELIB::METRIC_RMSE,j); 
       std->set_col( dtc+s , j );
 
       if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
@@ -683,91 +616,17 @@ void SGTELIB::Surrogate::predict ( const SGTELIB::Matrix & XX ,
 
 }//
 
-/*--------------------------------------*/
-/*       get metric (general)           */
-/*--------------------------------------*/
-double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
 
-  // Check dimension
-  if ( (j<0) || (j>_m) ){
-    display(std::cout); 
-    std::cout << "j = "<< j << "\n";
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-                 "get_metric(): dimension error" );
-  }
 
-  // If the model is not ready, return +INF
-  if ( ! _ready){ 
-    #ifdef SGTELIB_DEBUG
-      std::cout << get_string() << " is not ready => _metric = +INF\n";
-    #endif
-    return SGTELIB::INF; 
-  }
 
-  double m;
-  switch(mt){
-    case SGTELIB::METRIC_EMAX :
-      compute_metric_emax();
-      m = _trainingset.ZE_unscale( _metric_emax[j] , j ); 
-      break;
-    case SGTELIB::METRIC_EMAXCV : 
-      compute_metric_emaxcv();
-      m = _trainingset.ZE_unscale( _metric_emaxcv[j] , j ); 
-      break;
-    case SGTELIB::METRIC_RMSE : 
-      compute_metric_rmse();
-      m = _trainingset.ZE_unscale( _metric_rmse[j] , j ); 
-      break;
-    case SGTELIB::METRIC_RMSECV: 
-      compute_metric_rmsecv();
-      m = _trainingset.ZE_unscale( _metric_rmsecv[j] , j ); 
-      break;
-    case SGTELIB::METRIC_ARMSE : 
-      compute_metric_armse();
-      m = _metric_armse; 
-      break;
-    case SGTELIB::METRIC_ARMSECV : 
-      compute_metric_armsecv();
-      m = _metric_armsecv; 
-      break;
-    case SGTELIB::METRIC_OE :
-      compute_metric_oe();
-      m = _metric_oe[j];  
-      break;
-    case SGTELIB::METRIC_OECV : 
-      compute_metric_oecv();
-      m = _metric_oecv[j];  
-      break;
-    case SGTELIB::METRIC_LINV : 
-      compute_metric_linv();
-      m = _metric_linv[j];  
-      break;
-    case SGTELIB::METRIC_AOE : 
-      compute_metric_aoe();
-      m = _metric_aoe; 
-      break;
-    case SGTELIB::METRIC_AOECV : 
-      compute_metric_aoecv();
-      m = _metric_aoecv; 
-      break;
-    case SGTELIB::METRIC_EFIOE : 
-      compute_metric_efioe();
-      m = _metric_efioe; 
-      break;
-    case SGTELIB::METRIC_EFIOECV : 
-      compute_metric_efioecv();
-      m = _metric_efioecv; 
-      break;
-    default:
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-         "get_metric(): unknown metric" );
-  }
 
-  if (isnan(m)    ){ m = SGTELIB::INF; }
-  if (m < -EPSILON){ m = SGTELIB::INF; }
-  if (m <= 0.0    ){ m = 0.0; }
-  return m;
-}//
+/*=========================================================*/
+/*=========================================================*/
+/*||                                                     ||*/
+/*||                  GET MATRICES                       ||*/
+/*||                                                     ||*/
+/*=========================================================*/
+/*=========================================================*/
 
 
 /*---------------------------------------*/
@@ -814,6 +673,7 @@ const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Shs (void){
 // If no specific method is defined, consider Svs = Shs.
 const SGTELIB::Matrix * SGTELIB::Surrogate::get_matrix_Svs (void){
   if ( ! _Svs){
+
     _Svs = new SGTELIB::Matrix("Svs",_p,_m);
     const SGTELIB::Matrix Ds = _trainingset.get_matrix_Ds();
     for (int i=0 ; i<_p ; i++){
@@ -920,347 +780,224 @@ const SGTELIB::Matrix SGTELIB::Surrogate::get_matrix_Sv (void){
 }//
 
 
-/*--------------------------------------*/
-/*       compute rmsecv                  */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_rmsecv (void){
-  check_ready();
-  if ( ! _metric_rmsecv){
-    // Init
-    _metric_rmsecv = new double [_m];
 
-    // Call to the method of the derivated class to 
-    // compute Zv
 
-    int i,j;
-    double e;
-    const SGTELIB::Matrix Zs = get_matrix_Zs();
-    const SGTELIB::Matrix * Zvs = get_matrix_Zvs();
 
-    // Loop on the outputs
-    for (j=0 ; j<_m ; j++){
-      // Compute the error for output j
-      e = 0;
-      for (i=0 ; i<_p ; i++){
-        e += pow(Zs.get(i,j)-Zvs->get(i,j),2);
-      }
-      _metric_rmsecv[j] = sqrt(e/_p);
-    }
-  }
+/*=========================================================*/
+/*=========================================================*/
+/*||                                                     ||*/
+/*||                   METRICS                           ||*/
+/*||                                                     ||*/
+/*=========================================================*/
+/*=========================================================*/
+
+
+
+/*---------------------------------------*/
+/*  check if the metric is defined       */
+/*---------------------------------------*/
+bool SGTELIB::Surrogate::is_defined(const SGTELIB::metric_t mt){
+  // Check if the key exists in the map
+  if (_metrics.find(mt)==_metrics.end()) return false;
+  // Check the size of the vector
+  const int metric_vector_size = _metrics[mt].get_nb_cols();
+  if (metric_vector_size<=0) return false;
+  return true;
+}//
+/*---------------------------------------*/
+bool SGTELIB::Surrogate::is_defined(const SGTELIB::metric_t mt, const int j){
+  if (!is_defined(mt)) return false;
+  if (   (j>=_metrics[mt].get_nb_cols()) || (j>=_m) || (j<0)    ) return false;
+  return true;
 }//
 
-/*--------------------------------------*/
-/*       compute emax                   */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_emax (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if ( ! _metric_emax){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_emax\n";
-    #endif
-    // Init
-    _metric_emax = new double [_m];
 
-    int i,j;
-    double e;
-    const SGTELIB::Matrix Zs = get_matrix_Zs();
-    const SGTELIB::Matrix * Zhs = get_matrix_Zhs();
-    // Loop on the outputs
-    for (j=0 ; j<_m ; j++){
-      // Compute the error for output j
-      e = 0;
-      for (i=0 ; i<_p ; i++){
-        e = std::max( e , fabs( Zs.get(i,j)-Zhs->get(i,j) ) );
-      }
-      _metric_emax[j] = e;
-    }
+/*--------------------------------------*/
+/*       compute metric                 */
+/*--------------------------------------*/
+bool SGTELIB::Surrogate::compute_metric ( const metric_t mt ){
+
+  if (is_defined(mt)) return true;
+
+  double m;
+  int j;
+
+  // Choose if we use the Zhs or the Zvs matrix
+  // Zvs is used if we want to use cross-validation.
+  const SGTELIB::Matrix Zs = get_matrix_Zs();
+  const SGTELIB::Matrix * Zs_compare;
+  const SGTELIB::Matrix * Ss_compare;
+  if (SGTELIB::metric_uses_cv(mt)){
+    Zs_compare = get_matrix_Zvs(); 
+    Ss_compare = get_matrix_Svs(); 
+  }
+  else{
+    Zs_compare = get_matrix_Zhs(); 
+    Ss_compare = get_matrix_Shs(); 
   }
 
+  // Size of the metric vector
+  const int vector_size = (SGTELIB::one_metric_value_per_bbo(mt))?_m:1;
+  // Init the metric vector 
+  SGTELIB::Matrix v ("v",1,vector_size);
+  // Norm associated to a given metric.
+  norm_t associated_norm;
+
+  switch (mt){
+    case SGTELIB::METRIC_EMAX:
+    case SGTELIB::METRIC_EMAXCV:
+    case SGTELIB::METRIC_RMSE:
+    case SGTELIB::METRIC_RMSECV:
+    case SGTELIB::METRIC_ARMSE:
+    case SGTELIB::METRIC_ARMSECV:
+      // Get the norm associated with this metric
+      associated_norm = SGTELIB::metric_type_to_norm_type(mt);
+      // Compute the norm of the difference
+      v = (Zs-(*Zs_compare)).col_norm( associated_norm );
+      if (  (mt==SGTELIB::METRIC_ARMSE) || (mt==SGTELIB::METRIC_ARMSECV)  ){
+        // For "Aggregate" metrics, compute the sum for all BBO
+        v = v.sum(1);
+      }
+      else{
+        // Otherwise, unscale
+        _trainingset.ZE_unscale(v);
+      }
+
+      break;
+
+    case SGTELIB::METRIC_OE:
+    case SGTELIB::METRIC_OECV:
+      // Order error. See paper: 
+      // Order-based error for managing ensembles of surrogates in mesh adaptive direct search
+      v = compute_order_error(*Zs_compare);
+      break;
+
+    case SGTELIB::METRIC_AOE:
+    case SGTELIB::METRIC_AOECV:
+      // Agregate order error. See paper: 
+      //Locally weighted regression models for surrogate-assisted design optimization 
+      v = SGTELIB::Matrix( compute_aggregate_order_error(*Zs_compare) );
+      break;
+
+    case SGTELIB::METRIC_EFIOE:
+    case SGTELIB::METRIC_EFIOECV:
+      // Agregate Order error on Expected Feasible Improvement
+      v = SGTELIB::Matrix( compute_aggregate_order_error( -compute_efi(*Zs_compare,*Ss_compare) ) );
+      break;
+
+    case SGTELIB::METRIC_LINV:
+       // Inverse of the likelihood (this method can be overloaded)
+      compute_metric_linv();
+      break;
+
+    default:
+      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Metric not recognized." );
+  }
+
+  // Check bounds.
+  for (j=0; j<vector_size ; j++){
+    m = v[j];
+    if (isnan(m)    ){ m = SGTELIB::INF; }
+    if (m < -EPSILON){ m = SGTELIB::INF; }
+    if (m <= 0.0    ){ m = 0.0; }
+    v.set(0,j,m);
+  }
+
+  _metrics[mt] = v;
+
+  return true;
+}//
+
+
+
+/*--------------------------------------*/
+/*       get metric (general)           */
+/*--------------------------------------*/
+double SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt , int j){
+  // If the model is not ready, return +INF
+  if (!_ready) return SGTELIB::INF; 
+  // If the metric is defined, return it
+  if ( is_defined(mt,j) ) return _metrics[mt][j];
+  // Compute the metric, 
+  if ( !compute_metric(mt) ) return SGTELIB::INF;
+  // Return value
   #ifdef SGTELIB_DEBUG
-    std::cout << "metric_emax: " ;
-    for (int j=0 ; j<_m ; j++){
-      std::cout << _metric_emax[j] << " ";
-    }
-    std::cout << "\n";
+    std::cout << "metric " << SGTELIB::metric_type_to_str(mt) << "[" << j << "]";
+    if ( is_defined(mt,j) ) std::cout << " is def: " << _metrics[mt][j] << std::endl;
+    else std::cout << " NOT defined." << std::endl;
   #endif
+  if ( is_defined(mt,j) ) return _metrics[mt][j];
+  // Is still not defined, return INF.
+  return SGTELIB::INF;
 }//
 
-
-/*--------------------------------------*/
-/*       compute emaxcv                 */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_emaxcv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if ( ! _metric_emaxcv){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_emaxcv\n";
-    #endif
-    // Init
-    _metric_emaxcv = new double [_m];
-
-    int i,j;
-    double e;
-    const SGTELIB::Matrix Zs = get_matrix_Zs();
-    const SGTELIB::Matrix * Zvs = get_matrix_Zvs();
-    // Loop on the outputs
-    for (j=0 ; j<_m ; j++){
-      // Compute the error for output j
-      e = 0;
-      for (i=0 ; i<_p ; i++){
-        e = std::max( e , fabs( Zs.get(i,j)-Zvs->get(i,j) ) );
-      }
-      _metric_emaxcv[j] = e;
-    }
-  }
-
-  #ifdef SGTELIB_DEBUG
-    std::cout << "metric_emaxcv: " ;
-    for (int j=0 ; j<_m ; j++){
-      std::cout << _metric_emaxcv[j] << " ";
-    }
-    std::cout << "\n";
-  #endif
-
-}//
-
-/*--------------------------------------*/
-/*       compute rmse                  */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_rmse (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if ( ! _metric_rmse){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_rmse\n";
-    #endif
-    // Init
-    _metric_rmse = new double [_m];
-
-    int i,j;
-    double e;
-    const SGTELIB::Matrix Zs = get_matrix_Zs();
-    const SGTELIB::Matrix * Zhs = get_matrix_Zhs();
-    // Loop on the outputs
-    for (j=0 ; j<_m ; j++){
-      // Compute the error for output j
-      e = 0;
-      for (i=0 ; i<_p ; i++){
-        e += pow(Zs.get(i,j)-Zhs->get(i,j),2);
-      }
-      _metric_rmse[j] = sqrt(e/_p);
-    }
-  }
-
-  #ifdef SGTELIB_DEBUG
-    std::cout << "metric_rmse: " ;
-    for (int j=0 ; j<_m ; j++){
-      std::cout << _metric_rmse[j] << " ";
-    }
-    std::cout << "\n";
-  #endif
-
+SGTELIB::Matrix SGTELIB::Surrogate::get_metric (SGTELIB::metric_t mt){
+  // If the model is not ready, return +INF
+  if (!_ready) return SGTELIB::Matrix(SGTELIB::INF);
+  // If the metric is defined, return it
+  if ( is_defined(mt) ) return _metrics[mt];
+  // Compute the metric, 
+  if ( !compute_metric(mt) ) return SGTELIB::Matrix(SGTELIB::INF);
+  // Return value
+  if ( is_defined(mt) ) return _metrics[mt];
+  // Is still not defined, return INF.
+  return SGTELIB::Matrix(SGTELIB::INF);
 }//
 
 
 
-
-/*--------------------------------------*/
-/*       compute oe                   */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_oe (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if ( ! _metric_oe){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_oe\n";
-    #endif
-    // Init
-    _metric_oe = new double [_m];
-    // Compute the prediction on the training points
-    const SGTELIB::Matrix * Zhs = get_matrix_Zhs();
-    // Compute the order-efficiency metric using the matrix Zh
-    // nb: oe   => use matrix _Z
-    //     oecv => use matrix _Zv 
-    compute_order_error(Zhs,_metric_oe);
-  }
-}//
-
-/*--------------------------------------*/
-/*       compute oecv                   */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_oecv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if ( ! _metric_oecv){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_oecv\n";
-    #endif
-    // Init
-    _metric_oecv = new double [_m];
-    // Compute the prediction on the training points
-    const SGTELIB::Matrix * Zvs = get_matrix_Zvs();
-    // Compute the order-efficiency metric using the matrix Zh
-    // nb: oe   => use matrix _Z
-    //     oecv => use matrix _Zv 
-    compute_order_error(Zvs,_metric_oecv);
-  }
-}//
-
-
-
-/*----------------------------------------*/
-/*       compute aoe                      */
-/* See paper:                             */
-/* Locally weighted regression models for */
-/* surrogate-assisted design optimization */
-/*----------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_aoe (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (_metric_aoe<0){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_aoe\n";
-    #endif
-    // Compute the prediction on the training points
-    const SGTELIB::Matrix * Zhs = get_matrix_Zhs();
-    _metric_aoe = compute_aggregate_order_error(Zhs);
-  }
-}//
-
-
-/*----------------------------------------*/
-/*       compute aoecv                    */
-/* See paper:                             */
-/* Locally weighted regression models for */
-/* surrogate-assisted design optimization */
-/*----------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_aoecv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (_metric_aoecv<0){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_aoecv\n";
-    #endif
-    // Compute the prediction on the training points
-    const SGTELIB::Matrix * Zvs = get_matrix_Zvs();
-    _metric_aoecv = compute_aggregate_order_error(Zvs);
-  }
-}//
-
-
-/*--------------------------------------*/
-/*       compute efioe                  */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_efioe (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (_metric_efioe<0){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_efioe\n";
-    #endif
-    SGTELIB::Matrix * EFI = new SGTELIB::Matrix("EFI",_p,_m);
-    EFI->fill(-1);
-    EFI->set_col(compute_efi(*get_matrix_Zhs(),*get_matrix_Shs()),_trainingset.get_j_obj());
-    _metric_efioecv = compute_aggregate_order_error(EFI);
-    delete EFI;
-  }
-}//
-
-/*--------------------------------------*/
-/*       compute efioecv                */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_efioecv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (_metric_efioecv<0){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_efioe\n";
-    #endif
-    SGTELIB::Matrix * EFI = new SGTELIB::Matrix("EFI",_p,_m);
-    EFI->fill(-1);
-    EFI->set_col(compute_efi(*get_matrix_Zvs(),*get_matrix_Svs()),_trainingset.get_j_obj());
-    _metric_efioecv = compute_aggregate_order_error(EFI);
-    delete EFI;
-  }
-}//
 
 
 /*----------------------------------------------------------*/
 /*     compute EFI from the predictive mean and std         */
 /*----------------------------------------------------------*/
-SGTELIB::Matrix SGTELIB::Surrogate::compute_efi( const SGTELIB::Matrix Zs,
-                                                 const SGTELIB::Matrix Ss  ){
+SGTELIB::Matrix SGTELIB::Surrogate::compute_efi( const SGTELIB::Matrix & Zs,
+                                                 const SGTELIB::Matrix & Ss  ){
 
-  const int p = Zs.get_nb_rows();
-  if (Zs.get_nb_cols()!=_m) throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Unconsistent nb of cols" );
+  if (  (Zs.get_nb_cols()!=_m) || 
+        (Ss.get_nb_cols()!=_m) || 
+        (Zs.get_nb_rows()!=_p) || 
+        (Ss.get_nb_rows()!=_p)    ){
+    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Dimension error" );
+  }
 
-  const SGTELIB::Matrix Z = _trainingset.Z_unscale(Zs);
-  const SGTELIB::Matrix S = _trainingset.ZE_unscale(Ss);
   const double fmin = _trainingset.get_f_min();
+  double c0, ei;
 
-  SGTELIB::Matrix EFI ("EFI",p,1);
+  SGTELIB::Matrix EFI ("EFI",_p,1);
   EFI.fill(1.0);
-  double v;
 
   for (int j=0 ; j<_m ; j++){
     if (_trainingset.get_bbo(j)==SGTELIB::BBO_OBJ){
-      for (int i=0 ; i<p ; i++){
-        v = SGTELIB::normei( Z.get(i,j) , S.get(i,j) , fmin );
-        EFI.product(i,0,v);
+      for (int i=0 ; i<_p ; i++){
+        // Compute Expected Improvement for point i
+        ei = SGTELIB::normei(Zs.get(i,j),Ss.get(i,j),fmin);
+        // Unscale Expected Improvement
+        ei = _trainingset.ZE_unscale(ei,j);
+        // Multiply EFI by ei
+        EFI.product(i,0,ei);
       }
     }
-    if (_trainingset.get_bbo(j)==SGTELIB::BBO_CON){
-      for (int i=0 ; i<p ; i++){
-        v = SGTELIB::normcdf( 0.0 , Z.get(i,j) , S.get(i,j) );
-        EFI.product(i,0,v);
-      }
+    else if (_trainingset.get_bbo(j)==SGTELIB::BBO_CON){
+      c0 = _trainingset.Z_scale(0.0,j);
+      for (int i=0 ; i<_p ; i++) EFI.product(i,0, SGTELIB::normcdf(c0,Zs.get(i,j),Ss.get(i,j)) );
     }
-  }// end loop on j
-
+  }
   return EFI;
-
 }//
 
-
-
-
-
-/*--------------------------------------*/
-/*       compute armse                  */
-/* Aggregate Root Mean Square Error     */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_armse (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (_metric_armse<0){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_armse\n";
-    #endif
-    compute_metric_rmse();
-    _metric_armse = 0;
-    for (int j=0 ; j<_m ; j++) _metric_armse += _metric_rmse[j]; 
-  }
-}//
-
-
-/*--------------------------------------*/
-/*       compute armsecv                  */
-/*--------------------------------------*/
-void SGTELIB::Surrogate::compute_metric_armsecv (void){
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if (_metric_armsecv<0){
-    #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_armsecv\n";
-    #endif
-    compute_metric_rmsecv();
-    _metric_armsecv = 0;
-    for (int j=0 ; j<_m ; j++) _metric_armsecv += _metric_rmsecv[j]; 
-  }
-}//
 
 /*--------------------------------------*/
 /*       compute linv                   */
 /*--------------------------------------*/
 void SGTELIB::Surrogate::compute_metric_linv (void){
   check_ready(__FILE__,__FUNCTION__,__LINE__);
-  if ( ! _metric_linv){
+  if ( !is_defined(SGTELIB::METRIC_LINV) ){
     #ifdef SGTELIB_DEBUG
-      std::cout << "Compute _metric_linv\n";
+      std::cout << "Compute metric linv\n";
     #endif
     // Init
-    _metric_linv = new double [_m];
+    SGTELIB::Matrix v = SGTELIB::Matrix("v",1,_m);
 
     // Compute the prediction on the training points
     const SGTELIB::Matrix * Zhs = get_matrix_Zhs();
@@ -1284,71 +1021,67 @@ void SGTELIB::Surrogate::compute_metric_linv (void){
         linv -= 0.5*log(2*3.141592654); // add the normal pdf constant
         // Add this point, we have log(prod g)/p
         linv = exp(-linv);
-        _metric_linv[j] = linv;
       }
       else{
-        _metric_linv[j] = -SGTELIB::INF;
+        linv = -1;
       }
+      v.set(0,j,linv);
     }
+    _metrics[SGTELIB::METRIC_LINV] = v;
   }
 
 }//
 
 
-
 /*--------------------------------------*/
 /*       compute order efficiency       */
 /*--------------------------------------*/
-void SGTELIB::Surrogate::compute_order_error (const SGTELIB::Matrix * const Zpred , 
-                                              double * m                          ){
+SGTELIB::Matrix SGTELIB::Surrogate::compute_order_error ( const SGTELIB::Matrix & Zpred ){
 
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
   // Compute the order-efficiency metric by comparing the 
   // values of - _Zs (in the trainingset)
   //           - Zpred (input of this function)
-  // Put the results in "m" (output of this function)
+  // Put the results in "OE" (output of this function)
 
-  if ( ! m){
-    display(std::cout); 
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-                   "compute_order_error(): m is NULL" );
-  }
+  SGTELIB::Matrix OE = SGTELIB::Matrix("OE",1,Zpred.get_nb_cols());
+
 
   int nb_fail;
+  double z1,z1h,z2,z2h;
+  double c0;
   const SGTELIB::Matrix Zs = get_matrix_Zs();
   
   for (int j=0 ; j<_m ; j++){
     switch (_trainingset.get_bbo(j)){
     //===============================================//
     case SGTELIB::BBO_OBJ:
-      double z1,z1h,z2,z2h;
       nb_fail = 0;
       for (int i1=0 ; i1<_p ; i1++){
         z1 = Zs.get(i1,j);
-        z1h = Zpred->get(i1,j);
+        z1h = Zpred.get(i1,j);
         for (int i2=0 ; i2<_p ; i2++){
-          z2 = Zs.get(i2,j);
-          z2h = Zpred->get(i2,j);
+          z2  = Zs.get(i2,j);
+          z2h = Zpred.get(i2,j);
           if ( (z1-z2<0)^(z1h-z2h<0) ) nb_fail++;
         }
       }
-      m[j] = double(nb_fail)/double(_p*_p);
+      OE.set(0,j, double(nb_fail)/double(_p*_p) );
       break;
     //===============================================//
     case SGTELIB::BBO_CON:
       nb_fail = 0;
-      double z,zh;
+      // Compute the feasibility threshold for scaled values
+      c0 = _trainingset.Z_scale(0.0,j);
       for (int i=0 ; i<_p ; i++){
-        z = Zs.get(i,j);
-        zh = Zpred->get(i,j);
-        if ( (z<0)^(zh<0) ) nb_fail++;
+        z1  = Zs.get(i,j)    - c0;
+        z1h = Zpred.get(i,j)- c0;
+        if ( (z1<0)^(z1h<0) ) nb_fail++;
       }
-
-      m[j] = double(nb_fail)/double(_p);
+      OE.set(0,j, double(nb_fail)/double(_p) );
       break;
     //===============================================//
     case SGTELIB::BBO_DUM:
-      m[j] = -1.0;
+      OE.set(0,j, -1 );
       break;
     //===============================================//
     default:
@@ -1357,54 +1090,76 @@ void SGTELIB::Surrogate::compute_order_error (const SGTELIB::Matrix * const Zpre
     //===============================================//
     }// end switch
   }// end loop on j
+
+  return OE;
 }//
 
 
 /*--------------------------------------*/
+/*    compute f and h for a matrix Zs   */
+/*--------------------------------------*/
+SGTELIB::Matrix SGTELIB::Surrogate::compute_fh (const SGTELIB::Matrix & Zs){
+
+  const int m = Zs.get_nb_cols();
+  const int p = Zs.get_nb_rows();
+  // First column: f
+  // Second column: h
+  SGTELIB::Matrix fh ("fh",p,2);
+  fh.fill(0);
+
+  if (m==1){
+    fh.set_col(Zs,0);
+    return fh;
+  }
+  else if (m==_m){
+    int i,j;
+    double d,c0;
+    for (j=0 ; j<_m ; j++){
+      switch (_trainingset.get_bbo(j)){
+      //===============================================//
+      case SGTELIB::BBO_OBJ:
+        // Copy the objective in the first column of 
+        fh.set_col( Zs.get_col(j) , 0 );
+        break;
+      //===============================================//
+      case SGTELIB::BBO_CON:
+        c0 = _trainingset.Z_scale(0.0,j);
+        for (i=0 ; i<p ; i++){
+          d = Zs.get(i,j) - c0;
+          if (d>0) fh.add(i,1,d*d);
+        }
+        break;
+      //===============================================//
+      case SGTELIB::BBO_DUM:
+        break;
+      //===============================================//
+      default:
+        display(std::cout); 
+        throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
+      //===============================================//
+      }// end switch
+    }// end loop on j
+  }
+  else{
+    Zs.display_short(std::cout);
+    Zs.display_size(std::cout);
+    std::cout << _m << " " << m << " " << _p << std::endl;
+    throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Dimension error" );
+  }
+  return fh;
+}//
+
+/*--------------------------------------*/
 /*       compute order efficiency       */
 /*--------------------------------------*/
-double SGTELIB::Surrogate::compute_aggregate_order_error (const SGTELIB::Matrix * const Zpred){
+double SGTELIB::Surrogate::compute_aggregate_order_error (const SGTELIB::Matrix & Zpred){
 
-  check_ready(__FILE__,__FUNCTION__,__LINE__);
+  // Zpred must be a matrix with _p rows, and _m or 1 columns.
+  // If there is only 1 column, then this column is considered as an aggregate of the
+  // objective and constraints. For example, it can be the EFI.
 
-  const SGTELIB::Matrix Zs = get_matrix_Zs();
-
-  // Build f1,h1,f2 and h2.
-  // f1 and h1 are the real data
-  // f2 and h2 are the surrogate.
-
-  SGTELIB::Matrix fhr ("fhr",_p,2);
-  SGTELIB::Matrix fhs ("fhs",_p,2);
-  fhr.fill(0.0);
-  fhs.fill(0.0);
-  int i,j;
-  for (j=0 ; j<_m ; j++){
-    switch (_trainingset.get_bbo(j)){
-    //===============================================//
-    case SGTELIB::BBO_OBJ:
-      fhr.set_col( Zs.get_col(j) , 0 );
-      fhs.set_col( Zpred->get_col(j) , 0 );
-      break;
-    //===============================================//
-    case SGTELIB::BBO_CON:
-      for (i=0 ; i<_p ; i++){
-        double d;
-        d = Zs.get(i,j);
-        if (d>0) fhr.add(i,1,d*d);
-        d = Zpred->get(i,j);
-        if (d>0) fhs.add(i,1,d*d);
-      }
-      break;
-    //===============================================//
-    case SGTELIB::BBO_DUM:
-      break;
-    //===============================================//
-    default:
-      display(std::cout); 
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ ,"Undefined type" );
-    //===============================================//
-    }// end switch
-  }// end loop on j
+  const SGTELIB::Matrix fhr = compute_fh( get_matrix_Zs() );
+  const SGTELIB::Matrix fhs = compute_fh( Zpred           );
 
   int e = 0;
   int i1,i2;
@@ -1434,6 +1189,16 @@ double SGTELIB::Surrogate::compute_aggregate_order_error (const SGTELIB::Matrix 
 
 }//
 
+
+
+/*=======================================*/
+/*=======================================*/
+/*||                                   ||*/
+/*||          EXCLUSION AREA           ||*/
+/*||                                   ||*/
+/*=======================================*/
+/*=======================================*/
+
 /*--------------------------------------*/
 /*       get_exclusion_area_penalty     */
 /*--------------------------------------*/
@@ -1459,12 +1224,19 @@ SGTELIB::Matrix SGTELIB::Surrogate::get_distance_to_closest ( const SGTELIB::Mat
 
 
 
+/*=======================================*/
+/*=======================================*/
+/*||                                   ||*/
+/*||      PARAMETER OPTIMIZATION       ||*/
+/*||                                   ||*/
+/*=======================================*/
+/*=======================================*/
+
 
 /*--------------------------------------*/
 /*  optimize model parameters           */
 /*--------------------------------------*/
 bool SGTELIB::Surrogate::optimize_parameters ( void ) {
-
 
   // Number of parameters to optimize
   const int N = _param.get_nb_parameter_optimization();
@@ -1478,8 +1250,6 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
     std::cout << "Begin parameter optimization\n";
     std::cout << "Metric: " << SGTELIB::metric_type_to_str(_param.get_metric_type()) << "\n";
   }
-
-  
 
   //-----------------------------------------
   // Bounds, log-scale and domain
@@ -1545,23 +1315,48 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
   //----------------------------------------
   // Build set of starting points
   //----------------------------------------
-  const int nx0 = 1+budget/10;
+  const int nx0 = budget/10;
   SGTELIB::Matrix X0 ("X0",nx0,N);
-  X0.set_row(_param.get_x(),0);
+
+  const int use_lh = true;
+  // RANDOM STARTING POINTS
   for (j=0 ; j<N ; j++){
     double lbj = lb[j];
     double ubj = ub[j];
-    // nb: the first row of X0 contains the default (or previous)
-    // values of the parameters
-    // Thus, the following loop start at 1.
-    for (i=1 ; i<nx0 ; i++){ 
-      d = uniform_rand();
+    for (i=0 ; i<nx0 ; i++){ 
+      if (use_lh) d = double(i-1)/double(nx0-2);
+      else d = uniform_rand();
+
       if (logscale[j]) d = lb[j] * pow(ubj/lbj,d);
       else d = lbj + (ubj-lbj)*d;
+
       X0.set(i,j,d);
     } 
   }
-  
+  if (use_lh){
+    // Shuffle columns (except first column)
+    if (N>1){
+      int i2;
+      for (j=1; j<N; j++){
+        for (i=0; i<nx0; i++){
+          i2 = i + (int)std::floor(uniform_rand()*(nx0-i));
+          if ( (i2<i) || (i2>=nx0) ){
+            std::cout << "Error in permutation indexes\n";
+            exit(0);
+          }
+          X0.swap(i,j,i2,j);
+        }
+      }
+    }
+  }
+
+  // Add the default values.
+  X0.add_rows(_param.get_x());
+
+
+
+
+
   //---------------------------------------------
   // Budget, poll size, success and objectives
   //---------------------------------------------
@@ -1610,7 +1405,6 @@ bool SGTELIB::Surrogate::optimize_parameters ( void ) {
       for (j=0 ; j<N ; j++) std::cout << xmin[j] << " ";
       std::cout << "] => " << fmin << " / " << pmin <<  "\n\n";
     }
-
 
 
     if (iter){
@@ -1793,7 +1587,7 @@ double SGTELIB::Surrogate::eval_objective ( void ){
   // metric_multiple_obj indicate if the given metric "mt"
   // is scalar (one metric for all the blackbox outputs, like AOECV)
   // or is an array (one metric for each blackbox outputs, like RMSE)
-  if (SGTELIB::metric_multiple_obj(mt)){
+  if (SGTELIB::one_metric_value_per_bbo(mt)){
     for (int i=0 ; i<_m ; i++) metric += get_metric(mt,i);
   }
   else{

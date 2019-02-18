@@ -1,6 +1,6 @@
 /*-------------------------------------------------------------------------------------*/
 /*  sgtelib - A surrogate model library for derivative-free optimization               */
-/*  Version 2.0.1                                                                      */
+/*  Version 2.0.2                                                                      */
 /*                                                                                     */
 /*  Copyright (C) 2012-2017  Sebastien Le Digabel - Ecole Polytechnique, Montreal      */ 
 /*                           Bastien Talgorn - McGill University, Montreal             */
@@ -97,6 +97,22 @@ SGTELIB::Matrix::Matrix (void) :
                _nbCols    ( 0   ) {
   _X = new double * [0];
 }//
+
+/*---------------------------*/
+/*        constructor 5      */
+/*---------------------------*/
+SGTELIB::Matrix::Matrix (double v) : 
+               _name ( "double" ) ,
+               _nbRows    ( 1   ) ,
+               _nbCols    ( 1   ) {
+  #ifdef SGTELIB_DEBUG
+    std::cout << "Matrix Constructor 5\n";
+  #endif
+  _X = new double * [1];
+  _X[0] = new double [1];
+  _X[0][0] = v;
+}//
+
 
 /*---------------------------*/
 /*      copy constructor     */
@@ -326,11 +342,21 @@ SGTELIB::Matrix operator / (const SGTELIB::Matrix & A , const double v) {
 /*         destructor        */
 /*---------------------------*/
 SGTELIB::Matrix::~Matrix ( void ) {
-  //std::cout << "Delete " << _name << "\n";
-  std::cout.flush();
+  /*
+  #ifdef SGTELIB_DEBUG
+    std::cout << "Delete " << _name << " of size (" << _nbCols << "," << _nbRows << ")...";
+    display(std::cout);
+    std::cout.flush();
+  #endif
+  */
   for ( int i = 0 ; i < _nbRows ; ++i )
     delete [] _X[i];
-  delete [] _X;
+  delete [] _X; 
+  /*
+  #ifdef SGTELIB_DEBUG
+    std::cout << "Deleted.\n";
+  #endif
+  */
 }//
 
 /*---------------------------*/
@@ -593,7 +619,7 @@ void SGTELIB::Matrix::set_col (const double v , const int j){
   }
 }//
 
-void SGTELIB::Matrix::permute (const int i1 , const int j1 , const int i2 , const int j2 ){
+void SGTELIB::Matrix::swap (const int i1 , const int j1 , const int i2 , const int j2 ){
   #ifdef SGTELIB_DEBUG
     if ( i1 < 0 || i1 >= _nbRows || j1 < 0 || j1 >= _nbCols || i2 < 0 || i2 >= _nbRows || j2 < 0 || j2 >= _nbCols ){
       throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::permut: bad index" );
@@ -646,20 +672,6 @@ double & SGTELIB::Matrix::operator [] ( int k ){
   if (_nbRows==1) j=k; 
   else if (_nbCols==1) i=k;
   else throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::[k]: the matrix is not a vector" );
-  return _X[i][j];
-}//
-
-/*---------------------------*/
-/*  access to element (i,j)  */
-/*---------------------------*/
-double SGTELIB::Matrix::get ( const int i , const int j ) const {
-  #ifdef SGTELIB_DEBUG
-    if ( i < 0 || i >= _nbRows || j < 0 || j >= _nbCols ){
-      display(std::cout);
-      std::cout << "Error: try to access (" << i << "," << j << ") while dim is [" << _nbRows << "," << _nbCols << "]\n";
-      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::get(i,j): bad index" );
-    }
-  #endif
   return _X[i][j];
 }//
 
@@ -894,14 +906,17 @@ SGTELIB::Matrix SGTELIB::Matrix::row_vector ( const double * v,
 SGTELIB::Matrix SGTELIB::Matrix::product ( const SGTELIB::Matrix & A,
                                            const SGTELIB::Matrix & B )  {
 
-  if (A.get_nb_cols()!=B.get_nb_rows()){
-    std::cout << "A (" << A.get_name() << ") : " << A.get_nb_rows() << " , " << A.get_nb_cols() << "\n";
-    std::cout << "B (" << B.get_name() << ") : " << B.get_nb_rows() << " , " << B.get_nb_cols() << "\n";
-    throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::product(A,B): dimension error" );
-  }  
-
-  // Init matrix
-  SGTELIB::Matrix C(A.get_name()+"*"+B.get_name(),A.get_nb_rows(),B.get_nb_cols());
+  #ifdef SGTELIB_DEBUG
+    if (A.get_nb_cols()!=B.get_nb_rows()){
+      std::cout << "A (" << A.get_name() << ") : " << A.get_nb_rows() << " , " << A.get_nb_cols() << "\n";
+      std::cout << "B (" << B.get_name() << ") : " << B.get_nb_rows() << " , " << B.get_nb_cols() << "\n";
+      throw SGTELIB::Exception ( __FILE__ , __LINE__ , "Matrix::product(A,B): dimension error" );
+    }  
+    // Init matrix
+    SGTELIB::Matrix C(A.get_name()+"*"+B.get_name(),A.get_nb_rows(),B.get_nb_cols());
+  #else
+    SGTELIB::Matrix C("C",A.get_nb_rows(),B.get_nb_cols());
+  #endif
 
   // Compute
   int i,j,k;
@@ -912,7 +927,9 @@ SGTELIB::Matrix SGTELIB::Matrix::product ( const SGTELIB::Matrix & A,
   for ( i = 0 ; i < nb_rows ; ++i ) {
     for ( j = 0 ; j < nb_cols ; ++j ){
       C._X[i][j] = 0;
-      for ( k = 0 ; k < nb_inter; ++k ){
+    }
+    for ( k = 0 ; k < nb_inter; ++k ){
+      for ( j = 0 ; j < nb_cols ; ++j ){
         C._X[i][j] += A._X[i][k]*B._X[k][j];
       }
     }
@@ -1577,7 +1594,7 @@ SGTELIB::Matrix SGTELIB::Matrix::random_permutation_matrix ( const int n ) {
   std::random_shuffle ( v.begin(), v.end() );
 
   // Fill matrix
-  for (int i=0; i<n; ++i) perm.set(i,v.at(i),1.0);
+  for (int i=0; i<n; ++i) perm.set(i,v[i],1.0);
 
   return perm;
 }//
@@ -1690,6 +1707,40 @@ void SGTELIB::Matrix::normalize_cols ( void ){
         _X[i][j] /= d;
     }
   }
+}//
+
+
+
+/*------------------------------------------*/
+/*  compute the norm of each column         */
+/*------------------------------------------*/
+SGTELIB::Matrix SGTELIB::Matrix::col_norm ( const norm_t nt ) const {
+  
+  SGTELIB::Matrix N = SGTELIB::Matrix("Norm",1,_nbCols);
+
+  int i,j;
+  for ( j = 0 ; j < _nbCols ; ++j ){
+    double v = 0;
+    switch (nt){
+      case SGTELIB::NORM_0:
+        for (i=0;i<_nbRows;++i) v += double(fabs(_X[i][j])<EPSILON);
+        v /= double(_nbCols);
+        break;
+      case SGTELIB::NORM_1:
+        for (i=0;i<_nbRows;++i) v += fabs(_X[i][j]);
+        v /= double(_nbCols);
+        break;
+      case SGTELIB::NORM_2:
+        for (i=0;i<_nbRows;++i) v += _X[i][j]*_X[i][j];
+        v = sqrt(v/double(_nbCols));
+        break;
+      case SGTELIB::NORM_INF:
+        for (i=0;i<_nbRows;++i) v = std::max(v,fabs(_X[i][j]));
+        break;
+    }
+    N.set(0,j,v);
+  }
+  return N;
 }//
 
 

@@ -16,6 +16,7 @@ P = 50;
 % Data points
 X = rand(P,2);
 Z = f(X);
+Z = rand + rand*(Z>median(Z));
 
 
 % Create model
@@ -32,12 +33,10 @@ sgtelib_server_newdata(X,Z);
 
 
 figure('color','w'); hold on;
-surf(x1,x2,reshape(ZZ,PP,PP));
-plot3(X(:,1),X(:,2),Z,'ko','linewidth',3,'markersize',5);
+imagesc(x1(1,:),x2(:,1),reshape(ZZ,PP,PP));
+plot(X(:,1),X(:,2),'ko','linewidth',3,'markersize',5);
 
-
-set(gca,'view',[-36 66]);
-zlim(bounds(ZZ));
+axis([0 1 0 1]);
 xlabel('x');
 ylabel('y');
 

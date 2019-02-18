@@ -3,6 +3,7 @@ clear all
 clc
 disp('=========== EXPLORER =============');
 
+addpath('../Matlab_Server');
 
 WRITE = false;
 
@@ -98,7 +99,7 @@ end
 pause(0.3)
 
 if min(ei)==max(ei)
-    KITKIT
+    break;
 end
 [eimin,imin] = max(ei);
 XXmin = XX(imin);

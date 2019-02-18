@@ -5,9 +5,9 @@ disp('=========== EXPLORER =============');
 
 ! make -j 4
 
-model = 'TYPE LOWESS DEGREE 1 KERNEL_SHAPE OPTIM METRIC OECV'
+model = 'TYPE LOWESS DEGREE 2 KERNEL_SHAPE OPTIM METRIC OECV'
 
-f = @(x) cos(sqrt(4*x(:,1))).*cos(3*x(:,2))+(x(:,1)>0.5)+(x(:,2)>0.5);
+f = @(x) cos(4*x(:,1));
 
 
 
@@ -15,7 +15,12 @@ f = @(x) cos(sqrt(4*x(:,1))).*cos(3*x(:,2))+(x(:,1)>0.5)+(x(:,2)>0.5);
 P = 50;
 % Data points
 X = rand(P,2);
+X(:,2) = 1;
 Z = f(X);
+
+Z(Z>prctile(Z,70)) = 1e20;
+
+
 
 
 % Create model
