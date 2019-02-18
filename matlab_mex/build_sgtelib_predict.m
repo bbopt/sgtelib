@@ -49,7 +49,7 @@ else
         case 'GLNXA64'
             updateLDFLAGS = 'LDFLAGS=''$LDFLAGS -Wl,-rpath,''''$ORIGIN/../lib/'''' -Wl,-rpath-link,''''../lib/'''' '' ';
         case 'MACI64'
-            install_name_tool=['install_name_tool -change ' nameLibNomad ' @loader_path/../lib/' nameLibNomad ' ' nomad_bin filesep 'nomad.' mexext];
+            install_name_tool=['install_name_tool -change ' nameLibSgtelib ' @loader_path/../lib/' nameLibSgtelib ' ' nomad_bin filesep 'nomad.' mexext];
     end
     post = [' -I. -I' sgtelib_src ' -lut -lsgtelib -L' sgtelib_bin ' -output ' sgtelib_bin sgtelib_predict '.' mexext ];
     pre =[ 'mex -v -largeArrayDims ' sgtelib_predict_source updateLDFLAGS ];
