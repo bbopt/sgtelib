@@ -29,7 +29,7 @@ else
 end
   
 sgtelib_src=[sgtelib_home filesep 'src' filesep];
-sgtelib_bin=[sgtelib_home filesep 'bin' filesep];
+
 
 % Default values
 nameLibSgtelib = '';
@@ -37,10 +37,12 @@ updateLDFLAGS= '';
 install_name_tool='';
 
 if ( strcmp(computer,'PCWIN64') == 1 || strcmp(computer,'PCWIN32') == 1 )
+    sgtelib_bin=[sgtelib_home filesep 'bin' filesep];
     nameLibSgtelib = 'sgtelib.lib';
     post = [' -I.  -I' sgtelib_src ' -L' sgtelib_bin ' -lut -output ' sgtelib_bin sgtelib_predict '.' mexext];
     pre = ['mex -v -largeArrayDims ' sgtelib_predict_source ' ' nameLibSgtelib ];
 else
+    sgtelib_bin=[sgtelib_home filesep 'lib' filesep];
     nameLibSgtelib = 'libsgtelib.so';
 
     switch(computer)
@@ -55,7 +57,7 @@ else
     pre =[ 'mex -v -largeArrayDims ' sgtelib_predict_source updateLDFLAGS ];
 end
 
-if ( ~ exist([sgtelib_bin filesep nameLibSgtelib],'file') )
+if ( ~ exist([sgtelib_bin nameLibSgtelib],'file') )
         error('The SGTELIB library file %s is not available. Please perform sgtelib project compilation before proceeding.',nameLibSgtelib);      
 end
 
