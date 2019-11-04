@@ -537,7 +537,7 @@ double SGTELIB::gammacdfinv(double f, double a, double b){
   // b : scale coef
   if ( (a<=0) || (b<=0) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
-             "Surrogate_Utils::gammacdfinv: a or b is <0" );
+             "Surrogate_Utils::gammacdfinv: a or b is <=0" );
   }  
   if ( (f<0) || (f>1) ){
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
