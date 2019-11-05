@@ -279,7 +279,10 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
   SGTELIB::Matrix Distances = D;
   if (GAMMA_EXP==2) Distances=SGTELIB::Matrix::hadamard_square(Distances);
   const double mean = Distances.sum()/p_divide;
-  const double var  = SGTELIB::Matrix::hadamard_square(Distances+(-mean)).sum()/p_divide;
+  double var  = SGTELIB::Matrix::hadamard_square(Distances+(-mean)).sum()/p_divide;
+  if (var == 0) {
+      var = EPSILON;
+  }
   #ifdef SGTELIB_DEBUG
     std::cout << "mean var = " << mean << " " << var << "\n";
   #endif
@@ -429,18 +432,18 @@ void SGTELIB::Surrogate_LOWESS::predict_private_single ( const SGTELIB::Matrix X
     if (_W[i]>EPSILON){
       if (_degree>=10){
         // Linear terms
-        for (j=0 ; j<_n ; j++){
+        for (j=0 ; j<_n && k < _q; j++){
           _H[i][k++] = Xs.get(i,j)-XXs.get(0,j);
         }
       }
       if (_degree>=15){
          // Quad and crossed terms
-        for (j1=0 ; j1<_n ; j1++){
+        for (j1=0 ; j1<_n && k < _q; j1++){
           if (_x_multiple[j1]){
             dx1 = (Xs.get(i,j1)-XXs.get(0,j1));
             _H[i][k++] = dx1*dx1;
             if (_degree>=20){
-              for (j2=j1+1 ; j2<_n ; j2++){
+              for (j2=j1+1 ; j2<_n && k < _q; j2++){
                 if (_x_multiple[j2]){
                   _H[i][k++] = dx1*(Xs.get(i,j2)-XXs.get(0,j2));
                 }
