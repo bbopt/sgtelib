@@ -1576,30 +1576,6 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
 }//
 
 /*---------------------------*/
-/* random permutation matrix */
-/*---------------------------*/
-// Create a square matrix of size nbCols, with one 1.0 randomly 
-// placed in each col and in each row
-SGTELIB::Matrix SGTELIB::Matrix::random_permutation_matrix ( const int n ) {
-  // Init matrix
-  SGTELIB::Matrix perm("perm",n,n);
-
-  // Create random integer permutation
-  std::vector<int> v;
-
-  // Create order vector
-  for (int i=0; i<n; ++i) v.push_back(i); // 1 2 3 4 5 6 7 8 9
-
-  // shuffle
-  std::random_shuffle ( v.begin(), v.end() );
-
-  // Fill matrix
-  for (int i=0; i<n; ++i) perm.set(i,v[i],1.0);
-
-  return perm;
-}//
-
-/*---------------------------*/
 /* rank                      */
 /*---------------------------*/
 SGTELIB::Matrix SGTELIB::Matrix::rank ( void ) const {
