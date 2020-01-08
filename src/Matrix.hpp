@@ -277,9 +277,6 @@ namespace SGTELIB {
     // ones matrix
     static SGTELIB::Matrix ones ( const int nbRows , const int nbCols );
 
-    // random permutation matrix
-    static SGTELIB::Matrix random_permutation_matrix ( const int n );
-
     // Lines random permutation
     SGTELIB::Matrix random_line_permutation ( void ) const;
 
