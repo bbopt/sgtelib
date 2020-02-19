@@ -367,6 +367,29 @@ bool SGTELIB::TrainingSet::add_points ( const Matrix & Xnew ,
 }//
 
 /*--------------------------------------*/
+/*                 add_points           */
+/*--------------------------------------*/
+bool SGTELIB::TrainingSet::partial_reset_and_add_points ( const Matrix & Xnew ,
+                                        const Matrix & Znew )
+{
+    
+    if ( Xnew.get_nb_cols()!= _n || Znew.get_nb_cols() != _m)
+        return false;
+    
+    _X = Xnew ;
+    _Z = Znew;
+    
+    _p = Xnew.get_nb_rows();
+    
+    _Xs = SGTELIB::Matrix( "TrainingSet._Xs" , _p , _n );
+    _Zs = SGTELIB::Matrix( "TrainingSet._Zs" , _p , _m );
+    _Ds = SGTELIB::Matrix( "TrainingSet._Ds" , _p , _p );
+
+    _ready = false;
+    return true;
+}
+    
+/*--------------------------------------*/
 /*                 add_point            */
 /*--------------------------------------*/
 bool SGTELIB::TrainingSet::add_point ( const double * xnew ,
