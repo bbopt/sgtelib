@@ -140,6 +140,10 @@ namespace SGTELIB {
     // add points:
     bool add_points ( const SGTELIB::Matrix & Xnew ,
                       const SGTELIB::Matrix & Znew  );
+      
+    bool partial_reset_and_add_points( const SGTELIB::Matrix & Xnew ,
+    const SGTELIB::Matrix & Znew  );
+      
     bool add_point  ( const double * xnew ,
                       const double * znew  );
 
