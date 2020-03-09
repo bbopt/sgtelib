@@ -31,6 +31,9 @@
 #include "Matrix.hpp"
 #include <sys/stat.h>
 
+// Helpful for compilaton on some platforms
+#include <sys/time.h>
+
 // CASE Visual Studio C++ compiler
 #ifdef _MSC_VER
 #pragma warning(disable:4996)
