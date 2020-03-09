@@ -51,6 +51,10 @@
 //#define SGTELIB_DEBUG
 //#define ENSEMBLE_DEBUG
 
+// Helpful for compilaton on some platforms
+using std::isnan;
+using std::isinf;
+
 namespace SGTELIB {
   
   const double EPSILON = 1E-13;
