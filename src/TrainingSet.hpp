@@ -215,6 +215,8 @@ namespace SGTELIB {
     const SGTELIB::Matrix & get_matrix_Zs ( void ) const { check_ready(); return _Zs; };
     const SGTELIB::Matrix & get_matrix_Ds ( void ) const { check_ready(); return _Ds; };
 
+    const SGTELIB::Matrix & get_matrix_X ( void ) const { return _X; };
+      
     // display:
     void display ( std::ostream & out ) const;
     void info (void) const;
