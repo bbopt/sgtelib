@@ -32,9 +32,11 @@
 #include <list>
 #include <climits>
 #include <algorithm>
+#include <random>
 #include "Surrogate_Utils.hpp"
 #include "Exception.hpp"
 #include "Defines.hpp"
+
 
 namespace SGTELIB {
 
@@ -49,6 +51,8 @@ namespace SGTELIB {
     int _nbCols;
 
     double ** _X;
+      
+    static std::mt19937 _urng;
 
   public:
 
@@ -276,6 +280,9 @@ namespace SGTELIB {
 
     // ones matrix
     static SGTELIB::Matrix ones ( const int nbRows , const int nbCols );
+
+    // random permutation matrix
+    static SGTELIB::Matrix random_permutation_matrix ( const int n );
 
     // Lines random permutation
     SGTELIB::Matrix random_line_permutation ( void ) const;

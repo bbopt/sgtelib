@@ -25,6 +25,8 @@
 
 #include "Matrix.hpp"
 
+std::mt19937 SGTELIB::Matrix::_urng(0);
+
 /*---------------------------*/
 /*        constructor 1      */
 /*---------------------------*/
@@ -33,7 +35,7 @@ SGTELIB::Matrix::Matrix ( const std::string & name ,
                           int                 nbCols    ) : 
                _name   ( name ) ,
                _nbRows ( nbRows    ) ,
-               _nbCols ( nbCols    )   {
+               _nbCols ( nbCols    ) {
 #ifdef SGTELIB_DEBUG
   if ( _nbRows < 0 || _nbCols < 0 )
     throw SGTELIB::Exception ( __FILE__ , __LINE__ ,
@@ -59,7 +61,7 @@ SGTELIB::Matrix::Matrix ( const std::string & name ,
                           double           ** A      ) :
                _name ( name ) ,
                _nbRows    ( nbRows    ) ,
-               _nbCols    ( nbCols    )   {
+               _nbCols    ( nbCols    ) {
 #ifdef SGTELIB_DEBUG
   if ( _nbRows < 0 || _nbCols < 0 )
     throw SGTELIB::Exception ( __FILE__ , __LINE__ , 
@@ -83,7 +85,7 @@ SGTELIB::Matrix::Matrix ( const std::string & file_name ) :
                   _name ( "no_name" ) ,
                   _nbRows    ( 0         ) ,
                   _nbCols    ( 0         ) ,
-                  _X    ( NULL      )   {
+                  _X         ( NULL      ) {
   *this = import_data(file_name);
 }//
 
@@ -1573,6 +1575,30 @@ SGTELIB::Matrix SGTELIB::Matrix::ones ( const int nbRows , const int nbCols ) {
   // Fill with 1.0
   matrixOnes.fill(1.0);
   return matrixOnes;
+}//
+
+/*---------------------------*/
+/* random permutation matrix */
+/*---------------------------*/
+// Create a square matrix of size nbCols, with one 1.0 randomly 
+// placed in each col and in each row
+SGTELIB::Matrix SGTELIB::Matrix::random_permutation_matrix ( const int n ) {
+  // Init matrix
+  SGTELIB::Matrix perm("perm",n,n);
+
+  // Create random integer permutation
+  std::vector<int> v;
+
+  // Create order vector
+  for (int i=0; i<n; ++i) v.push_back(i); // 1 2 3 4 5 6 7 8 9
+
+  // shuffle
+  std::shuffle(v.begin(), v.end(),_urng);
+
+  // Fill matrix
+  for (int i=0; i<n; ++i) perm.set(i,v[i],1.0);
+
+  return perm;
 }//
 
 /*---------------------------*/
