@@ -21,7 +21,6 @@ endif
 
 ifeq ($(UNAME), Linux)
 SHARED_OPTIONS_EXE = -Wl,-rpath-link,'.' -Wl,-rpath,'$$ORIGIN/../lib'
-COMPILATOR_OPTIONS+= -ansi
 LIBS              += -ldl
 endif
 
