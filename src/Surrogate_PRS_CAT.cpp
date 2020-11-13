@@ -103,7 +103,7 @@ bool SGTELIB::Surrogate_PRS_CAT::build_private ( void ) {
 /*-------------------------------------------------*/
 /*          Compute PRS_CAT design matrix          */
 /*-------------------------------------------------*/
-const SGTELIB::Matrix SGTELIB::Surrogate_PRS_CAT::compute_design_matrix ( const SGTELIB::Matrix Monomes, 
+const SGTELIB::Matrix SGTELIB::Surrogate_PRS_CAT::compute_design_matrix ( const SGTELIB::Matrix& Monomes, 
                                                                           const SGTELIB::Matrix & Xs ) {
 
   const int p = Xs.get_nb_rows(); 

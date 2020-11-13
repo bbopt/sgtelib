@@ -50,18 +50,18 @@ namespace SGTELIB {
     SGTELIB::Matrix _Ai; // Inverse of Ht*H
     SGTELIB::Matrix _alpha; // Coefficients
 
-    virtual const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix Monomes, 
+    virtual const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix& Monomes, 
                                                           const SGTELIB::Matrix & Xs );
 
     // build model (private):
-    virtual bool build_private (void);
+    virtual bool build_private (void) override;
 
     void predict_private ( const SGTELIB::Matrix & XXs,
-                                 SGTELIB::Matrix * ZZs); 
+                                 SGTELIB::Matrix * ZZs) override;
 
 
     // Compute metrics
-    const SGTELIB::Matrix * get_matrix_Zvs (void);
+    const SGTELIB::Matrix * get_matrix_Zvs (void) override;
 
     bool compute_alpha ( void );
 
@@ -77,7 +77,7 @@ namespace SGTELIB {
     // Build the monome exponents
     static int get_nb_PRS_monomes(const int nvar, const int degree);
     static SGTELIB::Matrix get_PRS_monomes(const int nvar, const int degree);
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
 
   };
 }

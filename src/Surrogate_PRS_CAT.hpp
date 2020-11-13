@@ -39,11 +39,11 @@ namespace SGTELIB {
     std::set<double> _cat; // Categories
     int _nb_cat; // Number of categories
 
-    virtual const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix Monomes, 
-                                                          const SGTELIB::Matrix & Xs );
+    virtual const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix& Monomes, 
+                                                          const SGTELIB::Matrix & Xs ) override;
     // build model (private):
-    virtual bool build_private (void);
-    virtual bool init_private  (void);
+    virtual bool build_private (void) override;
+    virtual bool init_private  (void) override;
   public:
 
     // Constructor
@@ -53,7 +53,7 @@ namespace SGTELIB {
     // destructor:
     virtual ~Surrogate_PRS_CAT ( void );
 
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
 
   };
 }

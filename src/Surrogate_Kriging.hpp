@@ -63,29 +63,29 @@ namespace SGTELIB {
     /*--------------------------------------*/
     /*          Build model                 */
     /*--------------------------------------*/
-    virtual bool build_private (void);
-    virtual bool init_private  (void);
+    virtual bool build_private (void) override;
+    virtual bool init_private  (void) override;
     //void init_covariance_coef (void);
-    virtual void compute_metric_linv (void);
+    virtual void compute_metric_linv (void) override;
     bool compute_cv_values (void);
 
     /*--------------------------------------*/
     /*          predict                     */
     /*--------------------------------------*/ 
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
-                                         SGTELIB::Matrix * ZZs); 
+                                         SGTELIB::Matrix * ZZs) override;
 
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
                                          SGTELIB::Matrix * ZZs,
                                          SGTELIB::Matrix * std, 
                                          SGTELIB::Matrix * ei ,
-                                         SGTELIB::Matrix * cdf ); 
+                                         SGTELIB::Matrix * cdf ) override;
 
     /*--------------------------------------*/
     /*          Compute matrices            */
     /*--------------------------------------*/
-    virtual const SGTELIB::Matrix * get_matrix_Zvs (void);
-    virtual const SGTELIB::Matrix * get_matrix_Svs (void);
+    virtual const SGTELIB::Matrix * get_matrix_Zvs (void) override;
+    virtual const SGTELIB::Matrix * get_matrix_Svs (void) override;
 
   public:
 
@@ -103,7 +103,7 @@ namespace SGTELIB {
     /*--------------------------------------*/
     /*          Misc                        */
     /*--------------------------------------*/
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
 
   };
 }

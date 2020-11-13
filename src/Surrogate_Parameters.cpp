@@ -81,7 +81,7 @@ SGTELIB::model_t SGTELIB::Surrogate_Parameters::read_model_type ( const std::str
 /*--------------------------------------------------------------------*/
 /* Convert the param name provided by user into a standard param name */
 /*--------------------------------------------------------------------*/
-std::string SGTELIB::Surrogate_Parameters::to_standard_field_name (const std::string field){
+std::string SGTELIB::Surrogate_Parameters::to_standard_field_name (const std::string& field){
   
   if ( streqi(field,"TYPE") )           return "TYPE";
   if ( streqi(field,"TYPE_MODEL") )     return "TYPE";
@@ -842,7 +842,7 @@ SGTELIB::Matrix SGTELIB::Surrogate_Parameters::get_x ( void ){
 /*-------------------------------------------------*/
 /*  Set the parameters from an external value of x */
 /*-------------------------------------------------*/
-void SGTELIB::Surrogate_Parameters::set_x ( const SGTELIB::Matrix X ){
+void SGTELIB::Surrogate_Parameters::set_x ( const SGTELIB::Matrix& X ){
 
     int k=0;
     if (_degree_status        == SGTELIB::STATUS_OPTIM) _degree      = int(X.get(k++));
