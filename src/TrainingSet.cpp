@@ -443,7 +443,7 @@ bool SGTELIB::TrainingSet::check_singular_data ( void ){
     
     return e;
     
-}////
+}//
 
 /*---------------------------------------------------*/
 /*  compute the mean and std over                    */
