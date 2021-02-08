@@ -62,26 +62,26 @@ namespace SGTELIB {
     /*--------------------------------------*/
     /*          Building methods            */
     /*--------------------------------------*/
-    const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix & XXs , const bool constraints ); 
+    const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix & XXs , const bool constraints );
 
     /*--------------------------------------*/
     /*          Build model                 */
     /*--------------------------------------*/
     bool select_kernels ( void ); 
-    virtual bool build_private (void);
-    virtual bool init_private  (void);
+    virtual bool build_private (void) override;
+    virtual bool init_private  (void) override;
     //SGTELIB::Matrix get_bumpiness (void);
 
     /*--------------------------------------*/
     /*          predict                     */
     /*--------------------------------------*/ 
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
-                                         SGTELIB::Matrix * ZZs); 
+                                         SGTELIB::Matrix * ZZs) override;
 
     /*--------------------------------------*/
     /*          Compute matrices            */
     /*--------------------------------------*/
-    virtual const SGTELIB::Matrix * get_matrix_Zvs (void);
+    virtual const SGTELIB::Matrix * get_matrix_Zvs (void) override;
 
   public:
 
@@ -99,7 +99,7 @@ namespace SGTELIB {
     /*--------------------------------------*/
     /*          Misc                        */
     /*--------------------------------------*/
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
 
   };
 }

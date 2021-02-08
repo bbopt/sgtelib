@@ -89,7 +89,7 @@ bool SGTELIB::Surrogate_PRS::build_private ( void ) {
 /*--------------------------------------*/
 /*          Compute PRS matrix          */
 /*--------------------------------------*/
-const SGTELIB::Matrix SGTELIB::Surrogate_PRS::compute_design_matrix ( const SGTELIB::Matrix Monomes, 
+const SGTELIB::Matrix SGTELIB::Surrogate_PRS::compute_design_matrix ( const SGTELIB::Matrix& Monomes, 
                                                                       const SGTELIB::Matrix & Xs ) {
 
   const int n = Xs.get_nb_cols(); // Nb of points in the matrix X given in argument

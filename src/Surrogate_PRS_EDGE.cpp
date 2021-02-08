@@ -84,7 +84,7 @@ bool SGTELIB::Surrogate_PRS_EDGE::build_private ( void ) {
 /*-------------------------------------------------*/
 /*          Compute PRS_EDGE design matrix          */
 /*-------------------------------------------------*/
-const SGTELIB::Matrix SGTELIB::Surrogate_PRS_EDGE::compute_design_matrix ( const SGTELIB::Matrix Monomes, 
+const SGTELIB::Matrix SGTELIB::Surrogate_PRS_EDGE::compute_design_matrix ( const SGTELIB::Matrix& Monomes, 
                                                                            const SGTELIB::Matrix & Xs ) {
 
   // Call the standard design matrix

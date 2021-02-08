@@ -37,14 +37,14 @@ namespace SGTELIB {
 
   private:
   
-    virtual bool build_private (void);
+    virtual bool build_private (void) override;
  
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
-                                         SGTELIB::Matrix * ZZs); 
+                                         SGTELIB::Matrix * ZZs) override;
 
     // Compute metrics
-    virtual const SGTELIB::Matrix * get_matrix_Zvs (void);
-    virtual const SGTELIB::Matrix * get_matrix_Zhs (void);
+    virtual const SGTELIB::Matrix * get_matrix_Zvs (void) override;
+    virtual const SGTELIB::Matrix * get_matrix_Zhs (void) override;
 
   public:
 
@@ -55,7 +55,7 @@ namespace SGTELIB {
     // destructor:
     virtual ~Surrogate_KS ( void );
 
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
 
   };
 }

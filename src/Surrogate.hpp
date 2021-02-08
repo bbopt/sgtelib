@@ -140,10 +140,10 @@ namespace SGTELIB {
     // constructor:
 
     Surrogate ( SGTELIB::TrainingSet & trainingset,
-                const SGTELIB::Surrogate_Parameters param);
+                const SGTELIB::Surrogate_Parameters& param);
 
     Surrogate ( SGTELIB::TrainingSet & trainingset,
-                const SGTELIB::model_t mt );
+                const SGTELIB::model_t& mt );
 
     Surrogate ( SGTELIB::TrainingSet & trainingset,
                 const std::string & s );

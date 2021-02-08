@@ -37,11 +37,11 @@ namespace SGTELIB {
 
   protected:
 
-    virtual const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix Monomes, 
-                                                  const SGTELIB::Matrix & Xs );
+    virtual const SGTELIB::Matrix compute_design_matrix ( const SGTELIB::Matrix& Monomes, 
+                                                  const SGTELIB::Matrix & Xs ) override;
 
     // build model (private):
-    virtual bool build_private (void);
+    virtual bool build_private (void) override;
 
   public:
 
@@ -51,7 +51,7 @@ namespace SGTELIB {
     // destructor:
     virtual ~Surrogate_PRS_EDGE ( void );
 
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
 
   };
 }

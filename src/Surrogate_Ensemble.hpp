@@ -62,13 +62,14 @@ namespace SGTELIB {
     double * _metric; // Value of the metric for the Ensemble
 
     // build model (private):
-    virtual bool build_private (void);
-    virtual bool init_private  (void);
+    virtual bool build_private (void) override;
+    virtual bool init_private  (void) override;
+
 
     // Compute metrics
-    virtual const SGTELIB::Matrix * get_matrix_Zhs (void);
-    virtual const SGTELIB::Matrix * get_matrix_Shs (void);
-    virtual const SGTELIB::Matrix * get_matrix_Zvs (void);
+    virtual const SGTELIB::Matrix * get_matrix_Zhs (void) override;
+    virtual const SGTELIB::Matrix * get_matrix_Shs (void) override;
+    virtual const SGTELIB::Matrix * get_matrix_Zvs (void) override;
 
     void compute_W_by_select(void);
     void compute_W_by_wta1  (void);
@@ -79,10 +80,10 @@ namespace SGTELIB {
                                          SGTELIB::Matrix * ZZ ,
                                          SGTELIB::Matrix * std, 
                                          SGTELIB::Matrix * ei ,
-                                         SGTELIB::Matrix * cdf ); 
+                                         SGTELIB::Matrix * cdf ) override;
  
     virtual void predict_private ( const SGTELIB::Matrix & XXs,
-                                         SGTELIB::Matrix * ZZ ); 
+                                         SGTELIB::Matrix * ZZ ) override;
 
 
   public:
@@ -99,7 +100,7 @@ namespace SGTELIB {
     // destructor:
     virtual ~Surrogate_Ensemble ( void );
 
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
     void display ( std::ostream & out , const int k ) const {_surrogates.at(k)->display(out);};
 
     // ==============================================//

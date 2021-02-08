@@ -55,18 +55,18 @@ namespace SGTELIB {
     SGTELIB::Matrix _ZZsi; // Outputs for one point (buffer)
 
     // init and build model (private):
-    virtual bool init_private (void);
-    virtual bool build_private (void);
+    virtual bool init_private (void) override;
+    virtual bool build_private (void) override;
 
     void predict_private ( const SGTELIB::Matrix & XXs,
-                                 SGTELIB::Matrix * ZZs); 
+                                 SGTELIB::Matrix * ZZs) override;
 
     void delete_matrices (void);
 
     void predict_private_single ( SGTELIB::Matrix XXs , int i_exclude = -1);
 
     // Compute metrics
-    const SGTELIB::Matrix * get_matrix_Zvs (void);
+    const SGTELIB::Matrix * get_matrix_Zvs (void) override;
 
   public:
     // Constructor
@@ -77,7 +77,7 @@ namespace SGTELIB {
     virtual ~Surrogate_LOWESS ( void );
 
     // Build the monome exponents
-    virtual void display_private ( std::ostream & out ) const;
+    virtual void display_private ( std::ostream & out ) const override;
 
   };
 }
