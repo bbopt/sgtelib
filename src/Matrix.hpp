@@ -53,18 +53,18 @@ namespace SGTELIB {
   public:
 
     // constructor 1:
-    Matrix ( const std::string & name ,
+    explicit Matrix ( const std::string & name ,
              int                 nbRows    ,
              int                 nbCols      );
 
     // constructor 2:
-    Matrix ( const std::string & name ,
+    explicit Matrix ( const std::string & name ,
              int                 nbRows    ,
              int                 nbCols    ,
              double           ** A      );
 
     // constructor 3:
-    Matrix ( const std::string & file_name );
+    explicit Matrix ( const std::string & file_name );
 
     // constructor 4:
     Matrix ( void );
@@ -388,7 +388,7 @@ namespace SGTELIB {
     void replace_nan (double d);
 
     // Generate poll directions
-    static SGTELIB::Matrix get_poll_directions ( const SGTELIB::Matrix scaling,
+    static SGTELIB::Matrix get_poll_directions ( const SGTELIB::Matrix& scaling,
                                                  const SGTELIB::param_domain_t * domain,
                                                  double psize );
 

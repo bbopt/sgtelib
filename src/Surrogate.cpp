@@ -32,7 +32,7 @@ using namespace SGTELIB;
 /*--------------------------------------*/
 
 SGTELIB::Surrogate::Surrogate ( SGTELIB::TrainingSet & trainingset,
-                                const SGTELIB::Surrogate_Parameters param) :
+                                const SGTELIB::Surrogate_Parameters& param) :
   // set of data used to build the model 
   _trainingset ( trainingset      ) ,
   // set of parameters used to build the model
@@ -77,7 +77,7 @@ SGTELIB::Surrogate::Surrogate ( SGTELIB::TrainingSet & trainingset,
 
 
 SGTELIB::Surrogate::Surrogate ( SGTELIB::TrainingSet & trainingset,
-                                const SGTELIB::model_t mt ) :
+                                const SGTELIB::model_t& mt ) :
   _trainingset ( trainingset      ) ,
   _param       ( mt ) ,   
   _n     (_trainingset.get_input_dim()  ) ,

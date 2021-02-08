@@ -80,8 +80,8 @@ namespace SGTELIB {
   public:
 
     // Constructors
-    Surrogate_Parameters ( const model_t mt);
-    Surrogate_Parameters ( const std::string & s);
+    explicit Surrogate_Parameters ( const model_t mt);
+    explicit Surrogate_Parameters ( const std::string & s);
     //Surrogate_Parameters ( const SGTELIB::Surrogate_Parameters & p );
 
     // Defaults
@@ -92,7 +92,7 @@ namespace SGTELIB {
     static bool authorized_optim  (const std::string & field);
     void read_string (const std::string & model_description);
     static SGTELIB::model_t read_model_type ( const std::string & model_description);
-    static std::string to_standard_field_name (const std::string field);
+    static std::string to_standard_field_name (const std::string& field);
 
     // Check    
     void check (void);
@@ -122,7 +122,7 @@ namespace SGTELIB {
     // Set
     void set_kernel_coef     ( const double v          ) { _kernel_coef = v;      };
     void set_weight_type     ( const weight_t wt       ) { _weight_type = wt;     };
-    void set_weight          ( const SGTELIB::Matrix W ) { _weight = W;           };
+    void set_weight          ( const SGTELIB::Matrix& W ) { _weight = W;           };
     void update_covariance_coef ( const int nvar );
     //void set_distance_type   ( distance_t dt ) { _distance_type = dt; };
     //void set_degree          ( int d         ) { _degree = d;         };
@@ -138,7 +138,7 @@ namespace SGTELIB {
     double get_x_penalty ( void );
     bool check_x ( void );
     void display_x ( std::ostream & out );
-    void set_x ( const SGTELIB::Matrix X );
+    void set_x ( const SGTELIB::Matrix& X );
     void get_x_bounds ( SGTELIB::Matrix * LB ,
                         SGTELIB::Matrix * UB ,
                         SGTELIB::param_domain_t * domain,

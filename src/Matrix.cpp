@@ -2770,7 +2770,7 @@ int SGTELIB::Matrix::find_row (SGTELIB::Matrix & R){
 /*-------------------------------------------------*/
 /* Generate poll directions                        */
 /*-------------------------------------------------*/
-SGTELIB::Matrix SGTELIB::Matrix::get_poll_directions ( const SGTELIB::Matrix scaling,
+SGTELIB::Matrix SGTELIB::Matrix::get_poll_directions ( const SGTELIB::Matrix& scaling,
                                                        const SGTELIB::param_domain_t * domain,
                                                        double psize ) {
 
