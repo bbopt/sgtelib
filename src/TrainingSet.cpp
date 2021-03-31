@@ -410,7 +410,7 @@ bool SGTELIB::TrainingSet::add_point ( const double * xnew ,
 /*  the columns of a matrix                          */
 /*---------------------------------------------------*/
 bool SGTELIB::TrainingSet::check_singular_data ( void ){
-
+    
     int i,j;
     bool e = false;
     // Check that all the _X data are defined
@@ -422,7 +422,7 @@ bool SGTELIB::TrainingSet::check_singular_data ( void ){
             }
         }
     }
-
+    
     // Check that, for each output index, SOME data are defined
     bool isdef_Zj; // True if at least one value is defined for output j.
     // Loop on the output indexes
@@ -435,14 +435,14 @@ bool SGTELIB::TrainingSet::check_singular_data ( void ){
                 break;
             }
         }
-        // if there is more than 10 points and no correct value was found, return an error.
+        // if there is more than 10 points and no correct value was found, return flag error.
         if ( (_p>10) && ( ! isdef_Zj) ){
-            e = true; 
+            e = true;
         }
     }
-
+    
     return e;
-
+    
 }//
 
 /*---------------------------------------------------*/
