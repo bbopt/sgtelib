@@ -1322,7 +1322,7 @@ std::list<int> SGTELIB::TrainingSet::select_greedy ( const Matrix & X,
       #endif
       // Update lambda
       lambda *= 0.99;
-      if (lambda<1e-6) break;
+      if (lambda<1e-8) break;
     }
     else{
       #ifdef SGTELIB_DEBUG
